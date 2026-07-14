@@ -1919,7 +1919,7 @@
           return;
         }
         setStaffSync("Opening Google sign-in…", "");
-        var redirectUrl = window.location.origin + window.location.pathname;
+        var redirectUrl = appConfig.publicStaffUrl || (window.location.origin + window.location.pathname);
         var result = await staffClient.auth.signInWithOAuth({
           provider: "google",
           options: { redirectTo: redirectUrl, queryParams: { access_type: "offline", prompt: "consent" } }

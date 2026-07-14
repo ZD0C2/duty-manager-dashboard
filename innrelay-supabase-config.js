@@ -12,9 +12,8 @@
     supabasePublishableKey: "sb_publishable_hWv_41IDXZ4LsWaHLFHKXA_NkDI8QTf",
     propertySlug: "exhibition-court",
     propertyName: "Exhibition Court Hotel",
-    // Set this only after the guest file is publicly deployed and tested.
-    // Managers can also enter the live URL directly in the QR generator.
-    publicGuestUrl: "",
+    publicStaffUrl: "https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html",
+    publicGuestUrl: "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html",
     receptionPhone: "Use the room phone and select Reception",
     emergencyNumber: "999",
     demoMode: false,
