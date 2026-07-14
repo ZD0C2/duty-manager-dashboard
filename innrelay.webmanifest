@@ -1,0 +1,17 @@
+{
+  "name": "InnRelay — Hotel Issue Recovery",
+  "short_name": "InnRelay",
+  "description": "Guest requests, daily shift runs, issue recovery and handover for independent hotels.",
+  "start_url": "./innrelay-prototype.html",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": [
+    {
+      "src": "innrelay-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

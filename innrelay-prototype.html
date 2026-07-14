@@ -1,0 +1,2268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <link rel="manifest" href="innrelay.webmanifest">
+  <link rel="icon" href="innrelay-icon.svg" type="image/svg+xml">
+  <title>InnRelay — Hotel Shift Operations</title>
+  <style>
+    :root {
+      --ink: #0b1220;
+      --ink-2: #14233b;
+      --paper: #f6f2ea;
+      --white: #fffdf8;
+      --stone: #ddd8cf;
+      --muted: #7a8490;
+      --mint: #b6efd9;
+      --mint-ink: #0f6d55;
+      --amber: #f7c96e;
+      --coral: #ff8a68;
+      --lavender: #c7b7ff;
+      --line: rgba(11, 18, 32, .12);
+      --radius: 22px;
+      --shadow: 0 22px 60px rgba(11, 18, 32, .15);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.5;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    [hidden] { display: none !important; }
+
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 18px 30px;
+      color: var(--white);
+      background: rgba(11, 18, 32, .9);
+      backdrop-filter: blur(18px);
+      border-radius: 0 0 22px 22px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      font-size: 20px;
+    }
+    .brand-mark {
+      position: relative;
+      width: 27px;
+      height: 27px;
+      border-radius: 9px;
+      overflow: hidden;
+      background: var(--coral);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.25);
+    }
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--ink);
+      transform: rotate(45deg);
+    }
+    .brand-mark::before { left: 2px; top: 4px; }
+    .brand-mark::after { right: 2px; bottom: 4px; }
+    .site-nav nav { display: flex; gap: 24px; font-size: 14px; color: rgba(255,255,255,.78); }
+    .site-nav nav a:hover { color: var(--white); }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+
+    .button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 750;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .button:hover { transform: translateY(-2px); }
+    .button-primary {
+      background: var(--coral);
+      color: var(--ink);
+      box-shadow: 0 8px 22px rgba(255,138,104,.25);
+    }
+    .button-dark { background: var(--ink); color: var(--white); }
+    .button-light { background: var(--white); color: var(--ink); }
+    .button-quiet { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    .button-small { padding: 8px 12px; font-size: 13px; }
+
+    .landing { overflow: hidden; }
+    .hero {
+      position: relative;
+      min-height: 720px;
+      padding: 104px 30px 80px;
+      background: var(--ink);
+      color: var(--white);
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 660px;
+      height: 660px;
+      right: -230px;
+      top: -255px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(199,183,255,.26), rgba(199,183,255,0) 67%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      left: -250px;
+      bottom: -330px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(182,239,217,.15), rgba(182,239,217,0) 70%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(440px, .85fr);
+      gap: 68px;
+      align-items: center;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 20px;
+      color: var(--mint);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 99px;
+      background: var(--mint);
+      box-shadow: 0 0 0 5px rgba(182,239,217,.12);
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 680px;
+      margin-bottom: 22px;
+      font-size: clamp(48px, 6vw, 84px);
+      line-height: .98;
+      letter-spacing: -.075em;
+    }
+    .hero-copy {
+      max-width: 550px;
+      color: rgba(255,255,255,.73);
+      font-size: 20px;
+      line-height: 1.55;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .hero-note { margin-top: 22px; color: rgba(255,255,255,.48); font-size: 13px; }
+
+    .flow-shell {
+      position: relative;
+      min-height: 540px;
+      display: grid;
+      place-items: center;
+    }
+    .flow-orb {
+      position: absolute;
+      width: 410px;
+      height: 410px;
+      border-radius: 50%;
+      background: conic-gradient(from 210deg, var(--coral), var(--amber), var(--mint), var(--lavender), var(--coral));
+      filter: blur(.1px);
+      opacity: .96;
+    }
+    .flow-orb::after {
+      content: "";
+      position: absolute;
+      inset: 22px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+    .flow-card {
+      position: absolute;
+      z-index: 2;
+      width: min(330px, 83%);
+      padding: 18px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 18px;
+      color: var(--ink);
+      background: rgba(255,253,248,.96);
+      box-shadow: var(--shadow);
+      animation: float 6s ease-in-out infinite;
+    }
+    .flow-card.one { transform: translate(-74px, -132px) rotate(-5deg); }
+    .flow-card.two { transform: translate(93px, -5px) rotate(4deg); animation-delay: -2s; }
+    .flow-card.three { transform: translate(-84px, 142px) rotate(-3deg); animation-delay: -4s; }
+    @keyframes float {
+      0%, 100% { margin-top: 0; }
+      50% { margin-top: -10px; }
+    }
+    .card-top, .issue-meta, .card-footer, .timeline-row, .app-header-row, .section-head, .handover-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .room-label { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #66717f; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .status-coral { background: #ffe0d6; color: #9c361b; }
+    .status-amber { background: #fff0c7; color: #8b5c00; }
+    .status-mint { background: #d8f7ea; color: #0e6a51; }
+    .status-lavender { background: #e7e0ff; color: #5d42a4; }
+    .flow-card h3 { margin: 12px 0 8px; font-size: 20px; letter-spacing: -.045em; }
+    .flow-card p { margin: 0; color: #586373; font-size: 13px; }
+    .tiny-owner { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 12px; font-weight: 700; }
+    .avatar { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; color: var(--white); background: var(--ink-2); font-size: 10px; font-weight: 800; }
+
+    .proof-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      max-width: 1080px;
+      margin: -32px auto 0;
+      position: relative;
+      z-index: 3;
+      border: 1px solid rgba(11,18,32,.08);
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--white);
+      box-shadow: 0 16px 40px rgba(11,18,32,.1);
+    }
+    .proof-item { padding: 22px 28px; border-right: 1px solid var(--line); }
+    .proof-item:last-child { border-right: 0; }
+    .proof-item strong { display: block; font-size: 15px; letter-spacing: -.02em; }
+    .proof-item span { color: #697480; font-size: 13px; }
+
+    .section {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 130px 30px;
+    }
+    .section-label { color: #ad4e35; font-size: 12px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .section h2 { max-width: 780px; margin: 12px 0 18px; font-size: clamp(35px, 4.6vw, 61px); line-height: 1.02; letter-spacing: -.065em; }
+    .section-intro { max-width: 660px; color: #56616e; font-size: 18px; }
+
+    .failure-grid, .feature-grid { display: grid; gap: 16px; margin-top: 46px; }
+    .failure-grid { grid-template-columns: repeat(3, 1fr); }
+    .feature-grid { grid-template-columns: repeat(3, 1fr); }
+    .failure-card, .feature-card {
+      min-height: 210px;
+      padding: 24px;
+      border-radius: 20px;
+      background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .failure-number { color: #b5634d; font-size: 13px; font-weight: 800; }
+    .failure-card h3, .feature-card h3 { margin: 20px 0 8px; font-size: 21px; letter-spacing: -.04em; }
+    .failure-card p, .feature-card p { color: #68727e; font-size: 14px; }
+    .feature-symbol { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; color: var(--ink); background: var(--mint); font-weight: 900; }
+    .feature-card:nth-child(2) .feature-symbol, .feature-card:nth-child(5) .feature-symbol { background: #ffe1d6; }
+    .feature-card:nth-child(3) .feature-symbol, .feature-card:nth-child(6) .feature-symbol { background: #e5defe; }
+
+    .workflow-wrap {
+      margin-top: 48px;
+      padding: 24px;
+      border-radius: 28px;
+      color: var(--white);
+      background: var(--ink);
+      box-shadow: var(--shadow);
+    }
+    .workflow-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .workflow-tab { padding: 13px; border: 1px solid rgba(255,255,255,.1); border-radius: 14px; color: rgba(255,255,255,.62); background: transparent; text-align: left; }
+    .workflow-tab.active { color: var(--ink); background: var(--mint); border-color: var(--mint); }
+    .workflow-content { display: grid; grid-template-columns: .9fr 1.1fr; gap: 44px; align-items: center; padding: 50px 22px 24px; }
+    .workflow-content h3 { font-size: 40px; line-height: 1.03; letter-spacing: -.055em; margin-bottom: 16px; }
+    .workflow-content p { color: rgba(255,255,255,.68); font-size: 17px; }
+    .workflow-demo {
+      padding: 22px;
+      border-radius: 18px;
+      color: var(--ink);
+      background: var(--white);
+    }
+    .workflow-demo .mini-line { height: 10px; border-radius: 99px; margin: 13px 0; background: #e7e2da; }
+    .workflow-demo .mini-line.short { width: 54%; }
+    .workflow-demo .mini-line.mint { width: 76%; background: var(--mint); }
+    .workflow-demo .mini-line.coral { width: 88%; background: #ffcbbd; }
+
+    .pilot-panel {
+      display: grid;
+      grid-template-columns: 1fr .95fr;
+      gap: 42px;
+      align-items: center;
+      padding: 50px;
+      border-radius: 30px;
+      color: var(--white);
+      background: linear-gradient(135deg, #132744, #0b1220 58%, #493b74);
+    }
+    .pilot-panel h2 { font-size: clamp(40px, 4vw, 58px); }
+    .pilot-panel p { color: rgba(255,255,255,.72); }
+    .price { display: flex; align-items: baseline; gap: 8px; margin: 22px 0; }
+    .price strong { font-size: 60px; letter-spacing: -.07em; }
+    .pilot-list { display: grid; gap: 12px; padding: 22px; border-radius: 18px; background: rgba(255,255,255,.08); }
+    .pilot-list div { display: flex; gap: 10px; font-size: 14px; }
+    .check { color: var(--mint); font-weight: 900; }
+    .form-row { display: flex; gap: 10px; margin-top: 26px; }
+    .form-row input { min-width: 0; flex: 1; padding: 13px 16px; border: 1px solid rgba(255,255,255,.28); border-radius: 999px; color: var(--white); outline: none; background: rgba(255,255,255,.08); }
+    .form-row input::placeholder { color: rgba(255,255,255,.5); }
+    .form-note { min-height: 20px; margin-top: 12px; color: var(--mint); font-size: 13px; }
+
+    .footer { padding: 38px 30px 50px; color: #6f7983; text-align: center; font-size: 13px; }
+
+    /* Interactive product demo */
+    .app-screen {
+      min-height: 100vh;
+      color: #e8edf5;
+      background: #0b1220;
+    }
+    .app-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 72px;
+      padding: 14px 24px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(11,18,32,.94);
+      backdrop-filter: blur(18px);
+    }
+    .app-topbar .brand { color: var(--white); }
+    button.brand { border: 0; background: transparent; }
+    .property-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; border-radius: 999px; color: rgba(255,255,255,.76); background: rgba(255,255,255,.07); font-size: 13px; }
+    .property-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+    .demo-layout { display: grid; grid-template-columns: 218px minmax(0, 1fr); min-height: calc(100vh - 72px); }
+    .sidebar { padding: 22px 14px; border-right: 1px solid rgba(255,255,255,.08); }
+    .sidebar-label { margin: 4px 10px 12px; color: rgba(255,255,255,.38); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin: 4px 0;
+      padding: 11px 12px;
+      border: 0;
+      border-radius: 12px;
+      color: rgba(255,255,255,.63);
+      background: transparent;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .side-link.active, .side-link:hover { color: var(--white); background: rgba(255,255,255,.09); }
+    .side-icon { width: 20px; text-align: center; }
+    .app-main { padding: 34px; overflow: hidden; }
+    .app-header-row { align-items: flex-start; margin-bottom: 28px; }
+    .app-kicker { margin: 0 0 4px; color: var(--mint); font-size: 12px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .app-title { margin: 0; color: var(--white); font-size: 34px; line-height: 1; letter-spacing: -.06em; }
+    .app-subtitle { margin: 9px 0 0; color: rgba(255,255,255,.52); font-size: 14px; }
+    .quick-button { background: var(--coral); color: var(--ink); }
+    .risk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+    .risk-card {
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 16px;
+      background: #132039;
+    }
+    .risk-card strong { display: block; color: var(--white); font-size: 27px; line-height: 1; letter-spacing: -.06em; }
+    .risk-card span { color: rgba(255,255,255,.52); font-size: 12px; font-weight: 700; }
+    .risk-card.coral strong { color: var(--coral); }
+    .risk-card.amber strong { color: var(--amber); }
+    .risk-card.mint strong { color: var(--mint); }
+    .board-panel {
+      min-height: 400px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 20px;
+      background: #101c30;
+      overflow: hidden;
+    }
+    .board-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 18px; border-bottom: 1px solid rgba(255,255,255,.09); }
+    .board-toolbar h3 { margin: 0; color: var(--white); font-size: 15px; letter-spacing: -.025em; }
+    .filter-row { display: flex; flex-wrap: wrap; gap: 7px; }
+    .filter {
+      padding: 7px 9px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      color: rgba(255,255,255,.62);
+      background: transparent;
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .filter.active { border-color: var(--mint); color: var(--ink); background: var(--mint); }
+    .issue-list { display: grid; }
+    .issue-row {
+      display: grid;
+      grid-template-columns: 100px minmax(180px, 1.5fr) minmax(90px, .8fr) minmax(100px, .8fr) 80px 32px;
+      gap: 16px;
+      align-items: center;
+      padding: 15px 18px;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      color: inherit;
+      background: transparent;
+      text-align: left;
+      transition: background .16s ease;
+    }
+    .issue-row:hover { background: rgba(255,255,255,.045); }
+    .issue-row:last-child { border-bottom: 0; }
+    .issue-location { color: var(--white); font-weight: 800; letter-spacing: -.02em; }
+    .issue-title { color: rgba(255,255,255,.92); font-size: 14px; font-weight: 750; }
+    .issue-note { display: block; margin-top: 2px; color: rgba(255,255,255,.43); font-size: 12px; font-weight: 500; }
+    .assignee { display: flex; align-items: center; gap: 7px; color: rgba(255,255,255,.7); font-size: 12px; font-weight: 700; }
+    .assignee .avatar { width: 23px; height: 23px; background: #406080; }
+    .age { color: rgba(255,255,255,.5); font-size: 12px; font-weight: 700; }
+    .row-arrow { color: rgba(255,255,255,.42); font-size: 22px; }
+    .demo-empty { padding: 50px 20px; color: rgba(255,255,255,.5); text-align: center; }
+
+    .handover-grid { display: grid; grid-template-columns: 1.3fr .7fr; gap: 18px; }
+    .handover-card { padding: 20px; border: 1px solid rgba(255,255,255,.09); border-radius: 18px; background: #132039; }
+    .handover-card h3 { margin: 0 0 6px; color: var(--white); letter-spacing: -.04em; }
+    .handover-card p { color: rgba(255,255,255,.53); font-size: 13px; }
+    .handover-row { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .handover-row:last-child { border-bottom: 0; }
+    .handover-room { color: var(--white); font-size: 13px; font-weight: 800; }
+    .handover-desc { color: rgba(255,255,255,.6); font-size: 12px; }
+    .checklist { display: grid; gap: 12px; margin-top: 18px; }
+    .checkline { display: flex; align-items: flex-start; gap: 9px; color: rgba(255,255,255,.68); font-size: 13px; }
+    .checkline input { accent-color: var(--mint); margin-top: 3px; }
+    .shift-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(330px, .75fr); gap: 18px; align-items: start; }
+    .shift-stack { display: grid; gap: 14px; }
+    .shift-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .task-group { border: 1px solid rgba(255,255,255,.09); border-radius: 18px; background: #101c30; overflow: hidden; }
+    .task-group-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .task-group-head h3 { margin: 0; color: var(--white); font-size: 15px; letter-spacing: -.03em; }
+    .task-group-head span { color: rgba(255,255,255,.42); font-size: 11px; font-weight: 750; }
+    .shift-task { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .shift-task:last-child { border-bottom: 0; }
+    .shift-task-title { color: var(--white); font-size: 13px; font-weight: 800; }
+    .shift-task-copy { margin-top: 3px; color: rgba(255,255,255,.47); font-size: 11px; }
+    .task-state { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; border-radius: 999px; padding: 4px 8px; color: rgba(255,255,255,.55); background: rgba(255,255,255,.07); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .task-state.done { color: var(--mint-ink); background: var(--mint); }
+    .task-state.issue { color: #9c361b; background: #ffe0d6; }
+    .task-state.na { color: #5d42a4; background: #e7e0ff; }
+    .task-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .task-action { padding: 7px 9px; border: 1px solid rgba(255,255,255,.13); border-radius: 9px; color: rgba(255,255,255,.7); background: transparent; font-size: 11px; font-weight: 800; }
+    .task-action:hover { color: var(--white); background: rgba(255,255,255,.08); }
+    .task-action.done { color: var(--ink); background: var(--mint); border-color: var(--mint); }
+    .task-action.issue { color: var(--ink); background: var(--coral); border-color: var(--coral); }
+    .record-list { display: grid; gap: 8px; margin-top: 14px; }
+    .record-item { padding: 11px 12px; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; background: rgba(255,255,255,.04); }
+    .record-item strong { display: block; color: var(--white); font-size: 12px; }
+    .record-item span { color: rgba(255,255,255,.5); font-size: 11px; }
+    .record-item.alert { border-color: rgba(255,138,104,.5); background: rgba(255,138,104,.08); }
+    .form-divider { margin: 20px 0 4px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.09); color: var(--white); font-size: 14px; font-weight: 850; letter-spacing: -.03em; }
+    .compliance-note { margin-top: 12px; padding: 11px 12px; border-radius: 11px; color: #f2d99b; background: rgba(247,201,110,.09); font-size: 11px; line-height: 1.5; }
+    .sync-strip { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; padding: 13px 15px; border: 1px solid rgba(255,255,255,.1); border-radius: 14px; color: rgba(255,255,255,.65); background: rgba(255,255,255,.04); font-size: 12px; }
+    .sync-strip.live { color: #c8f7e8; border-color: rgba(184,239,217,.38); background: rgba(184,239,217,.08); }
+    .sync-strip.error { color: #ffd4ca; border-color: rgba(255,138,104,.38); background: rgba(255,138,104,.08); }
+    .guest-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
+    .guest-toolbar a { color: var(--mint); font-size: 12px; font-weight: 800; }
+    .guest-inbox { display: grid; gap: 10px; }
+    .guest-report-card { padding: 16px; border: 1px solid rgba(255,255,255,.09); border-radius: 15px; background: rgba(255,255,255,.035); }
+    .guest-report-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .guest-report-head h3 { margin: 2px 0 0; color: var(--white); font-size: 15px; }
+    .guest-report-meta { margin-top: 6px; color: rgba(255,255,255,.46); font-size: 11px; }
+    .guest-report-description { margin: 10px 0 0; color: rgba(255,255,255,.68); font-size: 12px; }
+    .guest-report-actions { display: grid; grid-template-columns: minmax(160px, 1fr) auto; gap: 9px; align-items: end; margin-top: 12px; }
+    .guest-note { width: 100%; padding: 9px 10px; border: 1px solid rgba(255,255,255,.13); border-radius: 10px; color: var(--white); background: rgba(0,0,0,.12); outline: none; font-size: 11px; }
+    .guest-note:focus { border-color: var(--mint); }
+    .guest-action-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .guest-action { padding: 8px 10px; border: 1px solid rgba(255,255,255,.14); border-radius: 9px; color: rgba(255,255,255,.75); background: transparent; font-size: 10px; font-weight: 850; }
+    .guest-action:hover { color: var(--white); background: rgba(255,255,255,.08); }
+    .guest-action.primary { color: var(--ink); border-color: var(--mint); background: var(--mint); }
+    .guest-action.resolve { color: var(--ink); border-color: var(--lavender); background: var(--lavender); }
+    .auth-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; }
+    .auth-options { display: grid; grid-template-columns: minmax(220px, 320px) auto; align-items: center; gap: 12px; margin-top: 14px; }
+    .oauth-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; background: var(--white); color: var(--ink); border: 1px solid var(--line); }
+    .oauth-mark { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #4285f4; background: white; font-weight: 900; }
+    .auth-divider { margin: 15px 0 0; color: rgba(255,255,255,.48); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+    .qr-setup { display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 20px; align-items: center; margin: 16px 0; padding: 18px; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; background: rgba(255,255,255,.035); }
+    .qr-frame { display: grid; place-items: center; min-height: 170px; padding: 10px; border-radius: 12px; background: white; }
+    .qr-frame img { width: 160px; height: 160px; display: block; }
+    .qr-copy h3 { margin: 0 0 5px; }
+    .qr-copy p { margin: 0 0 12px; color: rgba(255,255,255,.62); font-size: 12px; }
+    .qr-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+    .qr-controls .field { flex: 1 1 180px; margin-top: 0; }
+    .qr-url { margin-top: 9px; overflow-wrap: anywhere; color: var(--mint); font-size: 11px; }
+    .catalog-stat { display: inline-flex; margin-left: 8px; padding: 4px 8px; border-radius: 999px; color: var(--mint-ink); background: var(--mint); font-size: 10px; font-weight: 850; }
+
+    .overlay { position: fixed; z-index: 30; inset: 0; display: grid; justify-items: end; background: rgba(3, 8, 16, .58); }
+    .drawer { width: min(480px, 100%); min-height: 100%; padding: 24px; color: var(--ink); background: var(--paper); box-shadow: -22px 0 60px rgba(0,0,0,.25); overflow-y: auto; }
+    .drawer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .drawer-head h2 { margin: 7px 0 0; font-size: 34px; line-height: 1; letter-spacing: -.065em; }
+    .close { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); background: var(--white); font-size: 20px; }
+    .drawer-info { margin: 26px 0; padding: 16px; border-radius: 16px; background: rgba(11,18,32,.06); }
+    .drawer-info p { margin: 8px 0 0; color: #63707d; font-size: 14px; }
+    .timeline { display: grid; gap: 0; margin: 22px 0; }
+    .timeline-row { justify-content: flex-start; align-items: flex-start; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .timeline-row:last-child { border-bottom: 0; }
+    .timeline-dot { flex: 0 0 auto; width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; background: var(--coral); }
+    .timeline-dot.mint { background: var(--mint-ink); }
+    .timeline-dot.amber { background: #b47800; }
+    .timeline-copy strong { display: block; font-size: 14px; }
+    .timeline-copy span { color: #697480; font-size: 12px; }
+    .field { display: grid; gap: 7px; margin-top: 14px; }
+    .field label { color: #596471; font-size: 12px; font-weight: 800; }
+    .field input, .field select, .field textarea { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); outline: none; background: var(--white); }
+    .field textarea { min-height: 86px; resize: vertical; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .drawer-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 20px; }
+    .small-warning { margin-top: 18px; padding: 12px; border-radius: 12px; color: #7a5412; background: #fff0c7; font-size: 12px; }
+    .toast { position: fixed; z-index: 50; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); padding: 11px 16px; border-radius: 999px; color: var(--ink); background: var(--mint); box-shadow: 0 10px 24px rgba(0,0,0,.18); font-size: 13px; font-weight: 800; opacity: 0; pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 900px) {
+      .site-nav { margin: 0; border-radius: 0; padding: 16px 20px; }
+      .site-nav nav { display: none; }
+      .hero { padding: 78px 22px 64px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 35px; }
+      .flow-shell { min-height: 430px; }
+      .flow-orb { width: 330px; height: 330px; }
+      .proof-strip { margin: 0 22px; grid-template-columns: 1fr; }
+      .proof-item { border-right: 0; border-bottom: 1px solid var(--line); }
+      .proof-item:last-child { border-bottom: 0; }
+      .failure-grid, .feature-grid { grid-template-columns: 1fr; }
+      .workflow-content, .pilot-panel { grid-template-columns: 1fr; }
+      .handover-grid { grid-template-columns: 1fr; }
+      .shift-layout { grid-template-columns: 1fr; }
+      .risk-grid { grid-template-columns: 1fr 1fr; }
+      .demo-layout { grid-template-columns: 1fr; }
+      .sidebar { display: flex; gap: 5px; padding: 9px; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.08); overflow-x: auto; }
+      .sidebar-label { display: none; }
+      .side-link { width: auto; white-space: nowrap; }
+      .app-main { padding: 22px; }
+      .issue-row { grid-template-columns: 82px minmax(0, 1fr) 28px; gap: 10px; }
+      .issue-row .issue-meta, .issue-row .assignee, .issue-row .age { display: none; }
+    }
+
+    @media (max-width: 560px) {
+      .nav-actions .button-light { display: none; }
+      h1 { font-size: 51px; }
+      .hero-copy { font-size: 17px; }
+      .flow-card { width: 260px; padding: 15px; }
+      .flow-card.one { transform: translate(-28px, -110px) rotate(-5deg); }
+      .flow-card.two { transform: translate(34px, -4px) rotate(4deg); }
+      .flow-card.three { transform: translate(-26px, 105px) rotate(-3deg); }
+      .section { padding: 88px 22px; }
+      .workflow-wrap { padding: 14px; }
+      .workflow-tabs { grid-template-columns: 1fr 1fr; }
+      .workflow-content { gap: 22px; padding: 30px 8px 8px; }
+      .workflow-content h3 { font-size: 31px; }
+      .pilot-panel { padding: 28px 22px; }
+      .form-row { flex-direction: column; }
+      .form-row .button { width: 100%; }
+      .app-topbar { padding: 12px 14px; }
+      .app-topbar .property-pill { display: none; }
+      .app-title { font-size: 30px; }
+      .app-header-row { align-items: flex-end; }
+      .quick-button { padding: 10px 12px; font-size: 12px; }
+      .risk-grid { gap: 8px; }
+      .risk-card { padding: 13px; }
+      .board-toolbar { align-items: flex-start; }
+      .field-grid { grid-template-columns: 1fr; }
+      .shift-controls { grid-template-columns: 1fr; }
+      .shift-task { grid-template-columns: 1fr; }
+      .task-actions { justify-content: flex-start; }
+      .guest-report-actions, .auth-grid, .auth-options, .qr-setup { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <section id="landing" class="landing">
+    <header class="site-nav">
+      <a class="brand" href="#top" aria-label="InnRelay home"><span class="brand-mark" aria-hidden="true"></span>InnRelay</a>
+      <nav aria-label="Primary navigation">
+        <a href="#workflow">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#pilot">Founding pilot</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="button button-light button-small" data-open-app>Live demo</button>
+        <a class="button button-primary button-small" href="#pilot">Request a pilot</a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">Daily shift operations for independent hotels</p>
+            <h1>Run the shift. Catch the exception. Hand over what matters.</h1>
+            <p class="hero-copy">InnRelay connects a QR guest portal with AM, PM and night-shift operations, so every request becomes an acknowledged, owned and visible hotel issue.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#pilot">Request a founding pilot</a>
+              <button class="button button-light" data-open-app>Explore the live demo</button>
+              <a class="button button-light" href="./innrelay-guest.html?property=exhibition-court&room=208">Try the guest portal</a>
+            </div>
+            <p class="hero-note">Built for busy shifts. Works beautifully on an iPad. No PMS integration required for the pilot.</p>
+          </div>
+          <div class="flow-shell" aria-label="An example hotel issue progressing through the InnRelay workflow">
+            <div class="flow-orb" aria-hidden="true"></div>
+            <article class="flow-card one">
+              <div class="card-top"><span class="room-label">Room 208</span><span class="status status-coral">Guest waiting</span></div>
+              <h3>Wi-Fi down</h3>
+              <p>Guest cannot join a work call. First report at 18:36.</p>
+            </article>
+            <article class="flow-card two">
+              <div class="card-top"><span class="room-label">Owned</span><span class="status status-amber">Action now</span></div>
+              <h3>Leo is checking the access point</h3>
+              <p>Guest update due at 18:55. Room move considered.</p>
+              <div class="tiny-owner"><span class="avatar">L</span> Maintenance owner</div>
+            </article>
+            <article class="flow-card three">
+              <div class="card-top"><span class="room-label">Next shift</span><span class="status status-lavender">Handover</span></div>
+              <h3>Keep visible until verified</h3>
+              <p>Unresolved items stay at the top of the evening handover.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="proof-strip" aria-label="InnRelay benefits">
+        <div class="proof-item"><strong>AM, PM and Night runs</strong><span>Daily tasks organised by shift and operating area.</span></div>
+        <div class="proof-item"><strong>Structured records</strong><span>Tills, cash drops, temperatures and safety checks.</span></div>
+        <div class="proof-item"><strong>Automatic handover</strong><span>Unresolved work follows the next shift.</span></div>
+      </section>
+
+      <section class="section">
+        <p class="section-label">The costly gap</p>
+        <h2>A guest issue should never vanish in a WhatsApp thread, paper log, or handover gap.</h2>
+        <p class="section-intro">Most hotels already have smart staff. The failure is that a problem changes hands while the guest is still waiting for an answer. InnRelay gives the team one calm, shared source of truth.</p>
+        <div class="failure-grid">
+          <article class="failure-card">
+            <span class="failure-number">01 — Reported</span>
+            <h3>The issue is recorded, but nobody owns it.</h3>
+            <p>A note exists somewhere, but the person who can resolve it does not see it at the right moment.</p>
+          </article>
+          <article class="failure-card">
+            <span class="failure-number">02 — In progress</span>
+            <h3>The work happens, but the guest is not updated.</h3>
+            <p>A maintenance fix without a service-recovery update still feels like no help to the guest.</p>
+          </article>
+          <article class="failure-card">
+            <span class="failure-number">03 — Shift change</span>
+            <h3>The next team inherits a surprise.</h3>
+            <p>Unresolved, guest-impacting issues are automatically collected before the handover is signed off.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="workflow" class="section">
+        <p class="section-label">One simple workflow</p>
+        <h2>Capture. Own. Recover. Handover.</h2>
+        <p class="section-intro">Not more software to administer. One deliberate path for the operational moments that most affect a stay.</p>
+        <div class="workflow-wrap">
+          <div class="workflow-tabs" role="tablist" aria-label="InnRelay workflow">
+            <button class="workflow-tab active" data-workflow="Capture" role="tab">01 / Capture</button>
+            <button class="workflow-tab" data-workflow="Own" role="tab">02 / Own</button>
+            <button class="workflow-tab" data-workflow="Recover" role="tab">03 / Recover</button>
+            <button class="workflow-tab" data-workflow="Handover" role="tab">04 / Handover</button>
+          </div>
+          <div class="workflow-content">
+            <div>
+              <h3 id="workflow-title">Report a useful issue in under 30 seconds.</h3>
+              <p id="workflow-copy">Choose a room or area, issue type, urgency, and guest impact. Add a sentence that gives the next person enough context to act.</p>
+              <button class="button button-light button-small" data-open-app>Try the product demo</button>
+            </div>
+            <div class="workflow-demo">
+              <div class="card-top"><span class="room-label" id="demo-label">Room 208</span><span id="demo-status" class="status status-coral">Guest waiting</span></div>
+              <h3 id="demo-title">Wi-Fi down</h3>
+              <p id="demo-copy">First report, before the issue becomes a story nobody can reconstruct.</p>
+              <div class="mini-line coral" id="mini-one"></div>
+              <div class="mini-line short" id="mini-two"></div>
+              <div class="mini-line mint" id="mini-three"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <p class="section-label">Built for real shifts</p>
+        <h2>Everything needed to recover an issue. Nothing that slows the team down.</h2>
+        <div class="feature-grid">
+          <article class="feature-card"><span class="feature-symbol">↗</span><h3>Daily Shift Run</h3><p>Receive handover and complete the right checks for AM, PM or night.</p></article>
+          <article class="feature-card"><span class="feature-symbol">!</span><h3>Guest impact first</h3><p>Make “guest waiting” and “room out of order” impossible to miss.</p></article>
+          <article class="feature-card"><span class="feature-symbol">◎</span><h3>Named ownership</h3><p>Replace “someone is dealing with it” with one visible next action.</p></article>
+          <article class="feature-card"><span class="feature-symbol">↺</span><h3>Update checkpoints</h3><p>Show when the guest was last updated and when they need an answer.</p></article>
+          <article class="feature-card"><span class="feature-symbol">→</span><h3>Verified resolution</h3><p>Close an issue only when it is truly fixed, not merely passed on.</p></article>
+          <article class="feature-card"><span class="feature-symbol">□</span><h3>Clean handover</h3><p>Open issues automatically follow the next team, with context intact.</p></article>
+        </div>
+      </section>
+
+      <section id="pilot" class="section">
+        <div class="pilot-panel">
+          <div>
+            <p class="section-label" style="color: var(--mint)">Founding pilot</p>
+            <h2>Build the calmer shift with us.</h2>
+            <p>We are opening InnRelay to five independent hotels or serviced-apartment operators who want a simpler way to protect guest recovery between shifts.</p>
+            <div class="price"><strong>£0</strong><span>for the first 30 days</span></div>
+            <p>Then £49 per property per month. No annual contract during the pilot.</p>
+            <form id="pilot-form">
+              <div class="form-row">
+                <input id="pilot-email" type="email" required placeholder="Your work email">
+                <button class="button button-primary" type="submit">Request a pilot</button>
+              </div>
+              <div id="pilot-note" class="form-note" role="status"></div>
+            </form>
+          </div>
+          <div class="pilot-list">
+            <div><span class="check">✓</span><span>Set up around your rooms and common areas.</span></div>
+            <div><span class="check">✓</span><span>Works on a shared iPad, phone, or desktop browser.</span></div>
+            <div><span class="check">✓</span><span>No PMS integration needed for the first version.</span></div>
+            <div><span class="check">✓</span><span>Weekly feedback, not a long sales process.</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">InnRelay is a working product concept for independent hotel operations. Never enter guest payment-card details in operational notes.</footer>
+  </section>
+
+  <section id="app" class="app-screen" hidden>
+    <header class="app-topbar">
+      <button class="brand" data-close-app aria-label="Return to InnRelay landing page"><span class="brand-mark" aria-hidden="true"></span>InnRelay</button>
+      <div class="property-pill">Exhibition Court Hotel · Pilot workspace</div>
+      <div style="display:flex;gap:8px">
+        <a class="button button-light button-small" href="./innrelay-guest.html?property=exhibition-court&room=208" target="_blank" rel="noopener">Guest portal</a>
+        <button class="button button-light button-small" data-close-app>Exit demo</button>
+      </div>
+    </header>
+    <div class="demo-layout">
+      <aside class="sidebar" aria-label="Demo navigation">
+        <p class="sidebar-label">Operations</p>
+        <button class="side-link active" data-view="board"><span class="side-icon">◉</span>Live Board</button>
+        <button class="side-link" data-view="guest"><span class="side-icon">↯</span>Guest Inbox</button>
+        <button class="side-link" data-view="shift"><span class="side-icon">✓</span>Shift Run</button>
+        <button class="side-link" data-view="report"><span class="side-icon">＋</span>Quick Report</button>
+        <button class="side-link" data-view="handover"><span class="side-icon">→</span>Handover</button>
+        <p class="sidebar-label">Pilot set-up</p>
+        <button class="side-link" data-view="settings"><span class="side-icon">◌</span>Property settings</button>
+      </aside>
+      <main class="app-main">
+        <section id="board-view">
+          <div class="app-header-row">
+            <div>
+              <p class="app-kicker">Tuesday · Evening shift</p>
+              <h1 class="app-title">Keep the guest story moving.</h1>
+              <p class="app-subtitle">Your riskiest open issues, ordered by guest impact and time waiting.</p>
+            </div>
+            <button class="button quick-button" data-view="report">+ Quick report</button>
+          </div>
+          <div class="risk-grid" id="risk-grid"></div>
+          <section class="board-panel">
+            <div class="board-toolbar">
+              <h3>Open issue board</h3>
+              <div class="filter-row" aria-label="Issue filters">
+                <button class="filter active" data-filter="all">All open</button>
+                <button class="filter" data-filter="waiting">Guest waiting</button>
+                <button class="filter" data-filter="critical">Critical</button>
+                <button class="filter" data-filter="handover">Needs handover</button>
+              </div>
+            </div>
+            <div id="issue-list" class="issue-list"></div>
+          </section>
+        </section>
+
+        <section id="shift-view" hidden>
+          <div class="app-header-row">
+            <div>
+              <p class="app-kicker">Daily hotel operations</p>
+              <h1 class="app-title">Run the shift. Hand over what matters.</h1>
+              <p class="app-subtitle">Complete recurring checks, capture structured records, and turn any exception into an owned issue.</p>
+            </div>
+            <button id="complete-shift" class="button quick-button">Complete shift</button>
+          </div>
+
+          <section class="handover-card" style="margin-bottom:18px">
+            <div class="shift-controls">
+              <div class="field"><label for="shift-type">Active shift</label><select id="shift-type"><option>AM</option><option>PM</option><option>Night</option></select></div>
+              <div class="field"><label for="shift-end">Scheduled finish</label><input id="shift-end" type="time"></div>
+              <div class="field"><label for="shift-initials">Your initials</label><input id="shift-initials" maxlength="3" placeholder="e.g. FD"></div>
+            </div>
+            <div class="field"><label for="incoming-handover">Handover received from <span id="handover-source">AM shift</span></label><textarea id="incoming-handover" placeholder="Confirm open issues from the app and add anything received verbally or on paper that is not yet recorded."></textarea></div>
+            <div class="drawer-actions">
+              <button id="save-shift-setup" class="button button-primary" type="button">Save shift start</button>
+            </div>
+          </section>
+
+          <div id="shift-metrics" class="risk-grid"></div>
+
+          <div class="shift-layout">
+            <div id="shift-task-groups" class="shift-stack"></div>
+
+            <div class="shift-stack">
+              <section class="handover-card">
+                <h3>Till count and cash drop</h3>
+                <p>Record each configured till. The £100 float is editable for each property or till.</p>
+                <form id="till-form">
+                  <div class="field-grid">
+                    <div class="field"><label for="till-name">Till</label><select id="till-name"><option>Reception</option><option>Restaurant</option><option>Bar</option><option>Restaurant + Bar</option></select></div>
+                    <div class="field"><label for="till-counted">Total counted (£)</label><input id="till-counted" type="number" min="0" step="0.01" required></div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field"><label for="till-float">Float retained (£)</label><input id="till-float" type="number" min="0" step="0.01" value="100" required></div>
+                    <div class="field"><label for="till-expected">Expected total (£, optional)</label><input id="till-expected" type="number" min="0" step="0.01"></div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field"><label for="pod-number">Cash pod number</label><input id="pod-number" placeholder="Required when cash is dropped"></div>
+                    <div class="field"><label for="pod-colour">Pod colour</label><input id="pod-colour" placeholder="e.g. Blue"></div>
+                  </div>
+                  <button class="button button-primary button-small" type="submit">Record till</button>
+                </form>
+                <p class="compliance-note">Cash records are operationally sensitive. The live version should require a manager PIN, preserve an audit trail, and never store card details.</p>
+                <div id="till-records" class="record-list"></div>
+              </section>
+
+              <section class="handover-card">
+                <h3>Temperature record</h3>
+                <p>Use the approved temperature range set by the property; “cool” is not a measurable result.</p>
+                <form id="temperature-form">
+                  <div class="field"><label for="temperature-equipment">Equipment</label><select id="temperature-equipment"><option>Kitchen fridge</option><option>Kitchen freezer</option><option>Restaurant fridge</option><option>Bar fridge</option><option>Beer cooler</option><option>Vending machine</option></select></div>
+                  <div class="field-grid">
+                    <div class="field"><label for="temperature-reading">Reading (°C)</label><input id="temperature-reading" type="number" step="0.1" required></div>
+                    <div class="field"><label for="temperature-min">Approved minimum (°C)</label><input id="temperature-min" type="number" step="0.1" required></div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field"><label for="temperature-max">Approved maximum (°C)</label><input id="temperature-max" type="number" step="0.1" required></div>
+                    <div class="field"><label for="temperature-action">Corrective action</label><input id="temperature-action" placeholder="Needed if outside range"></div>
+                  </div>
+                  <button class="button button-primary button-small" type="submit">Record temperature</button>
+                </form>
+                <div id="temperature-records" class="record-list"></div>
+              </section>
+
+              <section class="handover-card">
+                <h3>Fire and safety record</h3>
+                <p>Record the check and raise any fault immediately. This does not replace the property’s approved fire procedures.</p>
+                <form id="fire-form">
+                  <div class="field-grid">
+                    <div class="field"><label for="fire-check-type">Check</label><select id="fire-check-type"><option>Fire walk</option><option>Fire alarm test</option><option>Fire exit inspection</option><option>Fire panel check</option></select></div>
+                    <div class="field"><label for="fire-result">Result</label><select id="fire-result"><option>Pass</option><option>Fault found</option><option>Not due</option></select></div>
+                  </div>
+                  <div class="field"><label for="fire-location">Route, location or test point</label><input id="fire-location" required placeholder="e.g. Ground floor route / Call point 3"></div>
+                  <div class="field"><label for="fire-note">Notes or action taken</label><input id="fire-note" placeholder="Describe faults, isolation or escalation"></div>
+                  <button class="button button-primary button-small" type="submit">Record safety check</button>
+                </form>
+                <div id="fire-records" class="record-list"></div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section id="guest-view" hidden>
+          <div class="app-header-row">
+            <div>
+              <p class="app-kicker">Guest-to-staff requests</p>
+              <h1 class="app-title">Acknowledge the guest. Own the next action.</h1>
+              <p class="app-subtitle">Reports submitted from the QR guest portal arrive here and are also placed on the Live Board.</p>
+            </div>
+            <a class="button quick-button" href="./innrelay-guest.html?property=exhibition-court&room=208" target="_blank" rel="noopener">Open guest portal</a>
+          </div>
+
+          <div id="staff-sync-status" class="sync-strip" role="status">Preparing guest-report connection…</div>
+
+          <section class="qr-setup" aria-labelledby="qr-title">
+            <div class="qr-frame"><img id="guest-qr-image" alt="QR code for the selected guest room"></div>
+            <div class="qr-copy">
+              <h3 id="qr-title">Guest-room QR code</h3>
+              <p>Enter a room, update the code, then print it for that room. Guests may still correct their room after scanning.</p>
+              <div class="qr-controls">
+                <div class="field" style="flex-basis:100%"><label for="qr-base-url">Public guest-page URL</label><input id="qr-base-url" type="url" placeholder="https://your-site.example/innrelay-guest.html"><p style="margin:5px 0 0;color:rgba(255,255,255,.55);font-size:11px">This exact page must open successfully on a phone before printing room QR codes.</p></div>
+                <div class="field"><label for="qr-room">Room number or area</label><input id="qr-room" value="208" maxlength="80" placeholder="208 or Lobby"></div>
+                <button id="update-qr" class="button button-primary button-small" type="button">Update QR</button>
+                <button id="print-qr" class="button button-quiet button-small" type="button">Print QR</button>
+              </div>
+              <div id="guest-qr-url" class="qr-url"></div>
+            </div>
+          </section>
+
+          <section id="staff-auth-card" class="handover-card" style="margin-bottom:16px">
+            <h3>Staff sign in</h3>
+            <p>Use the Google account linked to this property. Only approved staff memberships can open hotel reports.</p>
+            <div class="auth-options">
+              <button id="staff-google-sign-in" class="button oauth-button" type="button"><span class="oauth-mark">G</span> Continue with Google</button>
+              <span>Recommended</span>
+            </div>
+            <div class="auth-divider">Fallback: work email and password</div>
+            <form id="staff-login-form" class="auth-grid">
+              <div class="field"><label for="staff-email">Work email</label><input id="staff-email" type="email" autocomplete="username" required placeholder="manager@hotel.com"></div>
+              <div class="field"><label for="staff-password">Password</label><input id="staff-password" type="password" autocomplete="current-password" required></div>
+              <button class="button button-primary button-small" type="submit">Sign in</button>
+            </form>
+            <div class="drawer-actions"><button id="staff-sign-out" class="button button-quiet button-small" type="button" hidden>Sign out</button></div>
+          </section>
+
+          <section class="board-panel">
+            <div class="guest-toolbar">
+              <h3>Guest reports <span id="catalog-stat" class="catalog-stat">catalogue loading</span></h3>
+              <a href="./innrelay-guest.html?property=exhibition-court&room=208" target="_blank" rel="noopener">Test Room 208 QR link ↗</a>
+            </div>
+            <div id="guest-inbox-list" class="guest-inbox"><div class="demo-empty">No guest reports yet.</div></div>
+          </section>
+        </section>
+
+        <section id="report-view" hidden>
+          <div class="app-header-row">
+            <div>
+              <p class="app-kicker">Quick report</p>
+              <h1 class="app-title">Make the next action obvious.</h1>
+              <p id="report-storage-copy" class="app-subtitle">This pilot uses local demo storage until its Supabase project is connected. Never enter payment-card or identity-document details.</p>
+            </div>
+          </div>
+          <section class="handover-card" style="max-width: 780px">
+            <form id="issue-form">
+              <div class="field-grid">
+                <div class="field"><label for="location">Room or area</label><select id="location" required></select></div>
+                <div class="field"><label for="category">Category</label><select id="category"></select></div>
+              </div>
+              <div class="field-grid">
+                <div class="field"><label for="issue-library">Common issue</label><select id="issue-library"></select></div>
+                <div class="field"><label for="issue-title">What happened?</label><input id="issue-title" required placeholder="Choose a common issue or describe a new one"></div>
+              </div>
+              <div class="field-grid">
+                <div class="field"><label for="urgency">Urgency</label><select id="urgency"><option>Guest now</option><option>Critical</option><option>Today</option><option>Monitor</option></select></div>
+                <div class="field"><label for="impact">Guest impact</label><select id="impact"><option>Guest waiting</option><option>Guest affected</option><option>Room out of order</option><option>None yet</option></select></div>
+              </div>
+              <div class="field"><label for="issue-note">Useful context for the owner</label><textarea id="issue-note" placeholder="What has already been checked or promised to the guest?"></textarea></div>
+              <div class="field-grid">
+                <div class="field"><label for="owner">First owner</label><select id="owner"><option>Unassigned</option><option>Leo — Maintenance</option><option>Maya — Reception</option><option>Amal — Housekeeping</option></select></div>
+                <div class="field"><label for="reporter">Your initials</label><input id="reporter" maxlength="3" required placeholder="e.g. FD"></div>
+              </div>
+              <p class="small-warning">Never enter guest payment-card details, passport scans, or other sensitive documents in an operational note.</p>
+              <div class="drawer-actions">
+                <button class="button button-primary" type="submit">Add to live board</button>
+                <button class="button button-quiet" type="button" data-view="board">Cancel</button>
+              </div>
+            </form>
+          </section>
+        </section>
+
+        <section id="handover-view" hidden>
+          <div class="app-header-row">
+            <div>
+              <p class="app-kicker">Evening to night handover</p>
+              <h1 class="app-title">Nothing important leaves with the shift.</h1>
+              <p class="app-subtitle">InnRelay collects every unresolved, guest-impacting issue in one calm handover.</p>
+            </div>
+            <button id="export-handover" class="button button-light button-small">Export summary</button>
+          </div>
+          <div class="handover-grid">
+            <section class="handover-card">
+              <h3>Open guest-impacting issues</h3>
+              <p>These require an owner or guest update during the next shift.</p>
+              <div id="handover-list"></div>
+            </section>
+            <section class="handover-card">
+              <h3>Shift sign-off</h3>
+              <p>Use this as the final one-minute check before the handover is sent.</p>
+              <div class="checklist">
+                <label class="checkline"><input type="checkbox"> Guest-waiting issues have a next update time.</label>
+                <label class="checkline"><input type="checkbox"> Room-out-of-order status is known by reception.</label>
+                <label class="checkline"><input type="checkbox"> Contractors, promises, and recovery actions are recorded.</label>
+                <label class="checkline"><input type="checkbox"> The incoming shift knows the top unresolved issue.</label>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section id="settings-view" hidden>
+          <div class="app-header-row">
+            <div>
+              <p class="app-kicker">Pilot set-up</p>
+              <h1 class="app-title">Keep configuration small.</h1>
+              <p class="app-subtitle">In the live product, this is where a manager adds rooms, areas, categories, and a shared property PIN.</p>
+            </div>
+          </div>
+          <section class="handover-card" style="max-width: 740px">
+            <h3>Recommended first setup</h3>
+            <div class="checklist">
+              <div class="checkline"><span class="check">✓</span><span>Rooms 001–200 and common areas.</span></div>
+              <div class="checkline"><span class="check">✓</span><span>Reception, housekeeping, maintenance, and food & beverage categories.</span></div>
+              <div class="checkline"><span class="check">✓</span><span>Individual Google or email staff accounts linked to this property; no shared PIN.</span></div>
+              <div class="checkline"><span class="check">✓</span><span>Automatic handover at shift change, with a printable daily summary.</span></div>
+            </div>
+            <div class="drawer-actions">
+              <button id="backup-demo" class="button button-quiet" type="button">Download pilot backup</button>
+              <button id="reset-demo" class="button button-quiet" type="button">Reset demo data</button>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <div id="drawer-overlay" class="overlay" hidden>
+    <aside class="drawer" aria-label="Issue detail">
+      <div class="drawer-head">
+        <div>
+          <span id="drawer-location" class="room-label">Room 208</span>
+          <h2 id="drawer-title">Wi-Fi down</h2>
+        </div>
+        <button class="close" data-close-drawer aria-label="Close issue detail">×</button>
+      </div>
+      <div id="drawer-statuses" class="drawer-actions"></div>
+      <div class="drawer-info">
+        <strong id="drawer-impact">Guest waiting</strong>
+        <p id="drawer-note">Guest cannot join a work call. Maintenance has been asked to check the access point.</p>
+      </div>
+      <h3>Recovery timeline</h3>
+      <div id="drawer-timeline" class="timeline"></div>
+      <div class="field">
+        <label for="update-note">Add operational update</label>
+        <textarea id="update-note" placeholder="e.g. Guest offered a room move; waiting for test result."></textarea>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label for="detail-owner">Owner</label><select id="detail-owner"><option>Leo — Maintenance</option><option>Maya — Reception</option><option>Amal — Housekeeping</option><option>Unassigned</option></select></div>
+        <div class="field"><label for="detail-status">Status</label><select id="detail-status"><option>In progress</option><option>Waiting</option><option>Resolved</option><option>Verified</option></select></div>
+      </div>
+      <div class="drawer-actions">
+        <button id="save-update" class="button button-primary">Save update</button>
+        <button id="verify-issue" class="button button-dark">Mark verified</button>
+      </div>
+    </aside>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="./innrelay-issue-catalog.js"></script>
+  <script src="./innrelay-supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
+  <script>
+    (function () {
+      var STORAGE_KEY = "innrelay_prototype_v2";
+      var SHIFT_STORAGE_KEY = "innrelay_shift_run_v1";
+      var fallbackIssueLibrary = {
+        "Housekeeping & Cleanliness": ["Hair in bathroom", "Soap or shampoo empty", "Bed linen stained", "Room not released but showing ready", "Laundry delay on room turnaround", "Deep clean required"],
+        "Customer Service & Staff Conduct": ["Guest felt unwelcome", "Slow service at reception", "Delayed complaint follow-up", "No ownership of issue", "Poor shift handover", "Late callback promised but not done"],
+        "Facilities & Room Issues": ["Shower leaking", "Toilet not flushing", "Wi-Fi unreachable", "Air conditioner noisy", "Air conditioner not cooling", "TV not working", "Door lock faulty", "Key card coding issue", "Lift out of service"],
+        "Breakfast & Restaurant": ["Breakfast items cold on arrival", "Coffee machine fault", "Long queue at breakfast host point", "Allergen concern raised at breakfast", "Food hygiene concern at service"],
+        "Event Day & Arrival": ["Arrival queue building at reception", "Check-in delay due to high volume", "Guest frustrated about parking situation", "No early arrival room available", "Visible wait time at front desk exceeding 5 minutes"],
+        "Security & Access": ["Guest disturbance in corridor", "Entrance door not secure", "Fire exit obstructed", "Lost master key concern", "Guest unable to reach someone overnight"],
+        "Administration & Financial": ["Till below target float", "Cash-up variance", "Cash drop not recorded", "Pod number or colour missing", "Refund pending"],
+        "Emergency, Hygiene & Compliance": ["Minor flood or water ingress", "Fire alarm activation", "Guest injury report", "Allergen briefing gap", "Pest sighting"],
+        "Technology & Systems": ["PMS not responding", "Card machine offline", "Printer not working", "Internet outage", "Door encoder issue"],
+        "Accessibility & Mobility": ["Adapted room unavailable", "Mobility request not prepared", "Grab rail issue", "Wheelchair route obstructed", "Lift delay affects guest"]
+      };
+      var issueLibrary = window.InnRelayCatalog ? window.InnRelayCatalog.toIssueLibrary() : fallbackIssueLibrary;
+      var shiftTasks = [
+        { id: "receive-handover", group: "Shift handover", shifts: ["AM", "PM", "Night"], location: "Reception", category: "Customer Service & Staff Conduct", title: "Receive and review the previous shift handover", copy: "Review open app issues and add anything received verbally or on paper." },
+        { id: "review-open-issues", group: "Shift handover", shifts: ["AM", "PM", "Night"], location: "Reception", category: "Customer Service & Staff Conduct", title: "Confirm owners for all open issues", copy: "Every unresolved item needs an owner and next action." },
+        { id: "count-tills", group: "Cash and close", shifts: ["AM", "PM", "Night"], location: "Reception", category: "Administration & Financial", title: "Count all active tills", copy: "Reception, Restaurant, Bar, or the combined Restaurant + Bar till." },
+        { id: "cash-drops", group: "Cash and close", shifts: ["PM", "Night"], location: "Back office", category: "Administration & Financial", title: "Retain the target float and secure excess cash", copy: "Record the drop amount, pod number and pod colour." },
+        { id: "mop-areas", group: "Cleaning and presentation", shifts: ["AM", "PM", "Night"], location: "Public areas", category: "Housekeeping & Cleanliness", title: "Mop the required hotel areas", copy: "Kitchen, reception, bar and restaurant according to the shift schedule." },
+        { id: "clean-tables", group: "Cleaning and presentation", shifts: ["AM", "PM", "Night"], location: "Restaurant", category: "Housekeeping & Cleanliness", title: "Clean and reset tables", copy: "Tables should be clean, dry and ready for the next service." },
+        { id: "restock-condiments", group: "Cleaning and presentation", shifts: ["AM", "PM", "Night"], location: "Restaurant", category: "Breakfast & Restaurant", title: "Restock table condiments", copy: "Salt, white sugar, brown sugar, ketchup and property-defined items." },
+        { id: "inspect-plates", group: "Service readiness", shifts: ["AM", "PM", "Night"], location: "Restaurant", category: "Breakfast & Restaurant", title: "Remove chipped plates and damaged crockery", copy: "Record shortages or damage as an issue." },
+        { id: "polish-cutlery", group: "Service readiness", shifts: ["AM", "PM", "Night"], location: "Restaurant", category: "Breakfast & Restaurant", title: "Polish forks, knives and spoons", copy: "Cutlery should be clean, polished and ready for service." },
+        { id: "check-glassware", group: "Service readiness", shifts: ["AM", "PM", "Night"], location: "Bar", category: "Breakfast & Restaurant", title: "Check beer and coffee glassware", copy: "Remove chipped, stained or poorly polished items." },
+        { id: "clean-nozzles", group: "Bar and food hygiene", shifts: ["PM", "Night"], location: "Bar", category: "Breakfast & Restaurant", title: "Clean beer nozzles", copy: "Complete the approved bar close-down cleaning procedure." },
+        { id: "beer-container-clean", group: "Bar and food hygiene", shifts: ["PM", "Night"], location: "Bar", category: "Breakfast & Restaurant", title: "Complete beer container and line-cleaning check", copy: "Record the approved cleaning cycle or raise an exception when overdue." },
+        { id: "record-temperatures", group: "Bar and food hygiene", shifts: ["AM", "PM", "Night"], location: "Kitchen", category: "Emergency, Hygiene & Compliance", title: "Record fridge, freezer and beer-cooler temperatures", copy: "Enter the measured value and compare it with the property-approved range." },
+        { id: "check-stock", group: "Stock and equipment", shifts: ["AM", "PM", "Night"], location: "Store room", category: "Administration & Financial", title: "Check operational stock availability", copy: "Kitchen, restaurant, bar and vending-machine items: available, low or unavailable." },
+        { id: "equipment-status", group: "Stock and equipment", shifts: ["AM", "PM", "Night"], location: "Public areas", category: "Facilities & Room Issues", title: "Check equipment for out-of-order status", copy: "Any faulty kitchen, restaurant, bar or vending equipment becomes an owned issue." },
+        { id: "sound-system", group: "Stock and equipment", shifts: ["AM", "PM"], location: "Restaurant", category: "Technology & Systems", title: "Test the sound system", copy: "Confirm power, output and appropriate operating level." },
+        { id: "prepare-breakfast", group: "Breakfast and opening", shifts: ["Night", "AM"], location: "Breakfast station", category: "Breakfast & Restaurant", title: "Prepare or verify breakfast setup", copy: "Complete the property’s food, equipment, table and service-readiness checks." },
+        { id: "fire-walk", group: "Safety and close", shifts: ["AM", "PM", "Night"], location: "Hotel", category: "Emergency, Hygiene & Compliance", title: "Complete the scheduled fire walk", copy: "Record the route, result and any immediate corrective action." },
+        { id: "fire-alarm-sheet", group: "Safety and close", shifts: ["AM", "PM", "Night"], location: "Fire panel", category: "Emergency, Hygiene & Compliance", title: "Complete the fire alarm test sheet when due", copy: "Record the test point and result; do not mark complete when the test is not scheduled." },
+        { id: "close-shift", group: "Safety and close", shifts: ["AM", "PM", "Night"], location: "Reception", category: "Customer Service & Staff Conduct", title: "Run end-of-shift checks at the scheduled time", copy: "Record any delay and complete all required cash, hygiene and safety records." },
+        { id: "send-handover", group: "Safety and close", shifts: ["AM", "PM", "Night"], location: "Reception", category: "Customer Service & Staff Conduct", title: "Prepare and send the next-shift handover", copy: "Open exceptions must carry forward with owner, latest action and next step." }
+      ];
+      var locations = buildLocations();
+      var seedIssues = [
+        { id: 1, location: "Room 208", category: "Technology & Systems", title: "Wi-Fi unreachable", note: "Guest cannot join a work call. Access point check requested.", urgency: "Guest now", impact: "Guest waiting", owner: "Leo — Maintenance", age: "24m", status: "In progress", handover: true, timeline: [["Reported by FD", "18:36 · Guest waiting"], ["Leo accepted the issue", "18:41 · Access point check"], ["Guest update due", "18:55 · Offer room move if needed"]] },
+        { id: 2, location: "Room 114", category: "Facilities & Room Issues", title: "Shower pressure low", note: "Guest has been offered a later update after maintenance check.", urgency: "Today", impact: "Guest affected", owner: "Leo — Maintenance", age: "41m", status: "Waiting", handover: true, timeline: [["Reported by MA", "18:19 · Guest affected"], ["Valve check requested", "18:28 · Waiting for access"], ["Guest update recorded", "18:31 · Next update at 19:00"]] },
+        { id: 3, location: "Lobby", category: "Technology & Systems", title: "Keycard printer jam", note: "Front desk has one spare encoding station available.", urgency: "Today", impact: "None yet", owner: "Maya — Reception", age: "13m", status: "In progress", handover: false, timeline: [["Reported by FD", "18:47 · Front desk"], ["Maya accepted the issue", "18:49 · Checking jam"]] },
+        { id: 4, location: "Room 302", category: "Facilities & Room Issues", title: "Air conditioner noisy", note: "Guest out for dinner; maintenance can enter after 20:30.", urgency: "Monitor", impact: "Guest affected", owner: "Unassigned", age: "2h", status: "New", handover: true, timeline: [["Reported by AS", "16:58 · Guest affected"], ["Access note added", "17:02 · Enter after 20:30"]] },
+        { id: 5, location: "Room 019", category: "Facilities & Room Issues", title: "Bathroom light replaced", note: "Resolved and checked with the room attendant.", urgency: "Today", impact: "None yet", owner: "Amal — Housekeeping", age: "3h", status: "Verified", handover: false, timeline: [["Reported by AS", "15:31"], ["Bulb replaced", "15:48"], ["Verified by room attendant", "16:03"]] }
+      ];
+      var issues = loadIssues();
+      var shiftState = loadShiftState();
+      var activeFilter = "all";
+      var selectedId = null;
+      var appConfig = window.INNRELAY_CONFIG || {};
+      var GUEST_DEMO_KEY = "innrelay_guest_reports_v1";
+      var staffClient = null;
+      var staffSession = null;
+      var staffMembership = null;
+      var staffChannel = null;
+      var guestReports = [];
+      var guestBroadcast = "BroadcastChannel" in window ? new BroadcastChannel("innrelay-guest-reports") : null;
+      var workflowData = {
+        "Capture": { title: "Report a useful issue in under 30 seconds.", copy: "Choose a room or area, issue type, urgency, and guest impact. Add a sentence that gives the next person enough context to act.", label: "Room 208", status: "Guest waiting", className: "status status-coral", demoTitle: "Wi-Fi down", demoCopy: "First report, before the issue becomes a story nobody can reconstruct." },
+        "Own": { title: "Give the issue a person, not a vague promise.", copy: "A visible owner and next action stop the most expensive sentence in hotel operations: “I thought someone was dealing with it.”", label: "Owner assigned", status: "Action now", className: "status status-amber", demoTitle: "Leo is checking the access point", demoCopy: "One person has the work, the guest context, and a clear next move." },
+        "Recover": { title: "Track the guest update as carefully as the repair.", copy: "Service recovery is not finished when maintenance has been called. The next guest update is part of the issue.", label: "Guest update", status: "Due 18:55", className: "status status-lavender", demoTitle: "Offer room move if the test fails", demoCopy: "The team knows what was promised, when it needs an answer, and what comes next." },
+        "Handover": { title: "Let unresolved issues follow the next shift.", copy: "Anything open, waiting, or guest-impacting becomes part of the handover automatically. No memory test required.", label: "Night handover", status: "Still open", className: "status status-coral", demoTitle: "Room 208 stays visible", demoCopy: "The incoming shift receives the owner, latest action, and the guest’s next required update." }
+      };
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, function (character) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character];
+        });
+      }
+
+      function clone(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function buildLocations() {
+        var rooms = [];
+        var number;
+        for (number = 1; number <= 200; number += 1) {
+          rooms.push("Room " + String(number).padStart(3, "0"));
+        }
+        return rooms.concat(["Lobby", "Reception", "Restaurant", "Bar", "Kitchen", "Breakfast station", "Corridor", "Lift", "Laundry", "Car park", "Back office", "Store room", "Public toilet", "Entrance", "Exterior"]);
+      }
+
+      function loadIssues() {
+        try {
+          var saved = window.localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            var parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length) return parsed;
+          }
+        } catch (error) {
+          /* A private browser or a blocked storage policy still leaves the demo usable. */
+        }
+        return clone(seedIssues);
+      }
+
+      function persistIssues() {
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(issues.filter(function (issue) { return !issue.remoteId; })));
+        } catch (error) {
+          /* The live product will persist server-side; the demo can keep running in memory. */
+        }
+      }
+
+      function defaultRun(shift) {
+        var finishTimes = { AM: "15:00", PM: "23:00", Night: "07:00" };
+        return {
+          shift: shift,
+          scheduledEnd: finishTimes[shift],
+          initials: "",
+          handoverNote: "",
+          tasks: {},
+          completed: false,
+          completedAt: ""
+        };
+      }
+
+      function defaultShiftState() {
+        return {
+          currentShift: "PM",
+          runs: {
+            AM: defaultRun("AM"),
+            PM: defaultRun("PM"),
+            Night: defaultRun("Night")
+          },
+          tillRecords: [],
+          temperatureRecords: [],
+          fireRecords: []
+        };
+      }
+
+      function loadShiftState() {
+        var fallback = defaultShiftState();
+        try {
+          var saved = window.localStorage.getItem(SHIFT_STORAGE_KEY);
+          if (!saved) return fallback;
+          var parsed = JSON.parse(saved);
+          ["AM", "PM", "Night"].forEach(function (shift) {
+            if (!parsed.runs || !parsed.runs[shift]) {
+              if (!parsed.runs) parsed.runs = {};
+              parsed.runs[shift] = fallback.runs[shift];
+            }
+          });
+          if (!Array.isArray(parsed.tillRecords)) parsed.tillRecords = [];
+          if (!Array.isArray(parsed.temperatureRecords)) parsed.temperatureRecords = [];
+          if (!Array.isArray(parsed.fireRecords)) parsed.fireRecords = [];
+          if (["AM", "PM", "Night"].indexOf(parsed.currentShift) === -1) parsed.currentShift = "PM";
+          return parsed;
+        } catch (error) {
+          return fallback;
+        }
+      }
+
+      function persistShiftState() {
+        try {
+          window.localStorage.setItem(SHIFT_STORAGE_KEY, JSON.stringify(shiftState));
+        } catch (error) {
+          /* The prototype remains usable in memory when device storage is restricted. */
+        }
+      }
+
+      function currentRun() {
+        return shiftState.runs[shiftState.currentShift];
+      }
+
+      function incomingShiftName() {
+        return { AM: "night shift", PM: "morning shift", Night: "afternoon shift" }[shiftState.currentShift];
+      }
+
+      function money(value) {
+        return "£" + Number(value || 0).toFixed(2);
+      }
+
+      function recordTimestamp() {
+        return new Date().toLocaleString();
+      }
+
+      function setStaffSync(message, state) {
+        var target = document.getElementById("staff-sync-status");
+        if (!target) return;
+        target.textContent = message;
+        target.className = "sync-strip" + (state ? " " + state : "");
+      }
+
+      function guestPortalUrl(room, suppliedBase) {
+        var base = suppliedBase || appConfig.publicGuestUrl;
+        if (!base) {
+          base = new URL("./innrelay-guest.html", window.location.href).href;
+        }
+        var url = new URL(base);
+        url.searchParams.set("property", appConfig.propertySlug || "exhibition-court");
+        if (room) url.searchParams.set("room", room.replace(/^room\s*/i, ""));
+        return url.href;
+      }
+
+      function renderGuestQr() {
+        var room = document.getElementById("qr-room").value.trim();
+        var baseInput = document.getElementById("qr-base-url");
+        var base = baseInput.value.trim();
+        if (!base) {
+          setStaffSync("Enter the public URL where innrelay-guest.html has actually been uploaded.", "error");
+          baseInput.focus();
+          return;
+        }
+        var url;
+        try { url = guestPortalUrl(room, base); }
+        catch (error) { setStaffSync("The guest-page URL is not valid.", "error"); baseInput.focus(); return; }
+        try { window.localStorage.setItem("innrelay-public-guest-url", base); } catch (error) {}
+        document.getElementById("guest-qr-url").textContent = url;
+        document.getElementById("guest-qr-image").src = "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=" + encodeURIComponent(url);
+        document.getElementById("guest-qr-image").alt = "QR code for " + (room || "the guest portal");
+      }
+
+      function printGuestQr() {
+        var room = document.getElementById("qr-room").value.trim() || "Guest portal";
+        var imageUrl = document.getElementById("guest-qr-image").src;
+        var portalUrl = document.getElementById("guest-qr-url").textContent;
+        var printWindow = window.open("", "_blank", "noopener,noreferrer");
+        if (!printWindow) { showToast("Allow pop-ups to print the QR code."); return; }
+        printWindow.document.write('<!doctype html><html><head><title>InnRelay QR · ' + escapeHtml(room) + '</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:40px;color:#0b1220}img{width:280px;height:280px}h1{margin-bottom:4px}p{margin:5px auto;max-width:520px}.url{font-size:10px;overflow-wrap:anywhere}@media print{button{display:none}}</style></head><body><h1>InnRelay Guest</h1><p><strong>' + escapeHtml(/^room\s/i.test(room) ? room : "Room " + room) + '</strong></p><p>Scan to request help or report a problem.</p><img src="' + imageUrl + '" alt="Guest QR code"><p class="url">' + escapeHtml(portalUrl) + '</p><button onclick="window.print()">Print</button></body></html>');
+        printWindow.document.close();
+      }
+
+      function loadDemoGuestReports() {
+        try {
+          var rows = JSON.parse(window.localStorage.getItem(GUEST_DEMO_KEY) || "[]");
+          return Array.isArray(rows) ? rows : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function saveDemoGuestReports(rows) {
+        window.localStorage.setItem(GUEST_DEMO_KEY, JSON.stringify(rows));
+        if (guestBroadcast) guestBroadcast.postMessage({ type: "reports-changed" });
+      }
+
+      function remoteNumericId(value) {
+        var source = String(value || "");
+        var hash = 0;
+        var index;
+        for (index = 0; index < source.length; index += 1) hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0;
+        return -Math.abs(hash || 900000000);
+      }
+
+      function guestStatusToIssueStatus(status) {
+        return {
+          reported: "New",
+          acknowledged: "In progress",
+          in_progress: "In progress",
+          waiting_guest: "Waiting",
+          resolved: "Resolved",
+          closed: "Verified",
+          cancelled: "Verified",
+          duplicate: "Verified"
+        }[status] || "New";
+      }
+
+      function guestStatusLabel(status) {
+        return {
+          reported: "Guest reported",
+          acknowledged: "Acknowledged",
+          in_progress: "In progress",
+          waiting_guest: "Waiting for guest",
+          resolved: "Resolved",
+          closed: "Closed",
+          cancelled: "Cancelled",
+          duplicate: "Duplicate"
+        }[status] || String(status || "Guest reported").replace(/_/g, " ");
+      }
+
+      function guestReportAsIssue(report) {
+        var status = guestStatusToIssueStatus(report.status);
+        var created = report.created_at ? new Date(report.created_at) : new Date();
+        var ageMinutes = Math.max(0, Math.floor((Date.now() - created.getTime()) / 60000));
+        var age = ageMinutes < 60 ? ageMinutes + "m" : ageMinutes < 1440 ? Math.floor(ageMinutes / 60) + "h" : Math.floor(ageMinutes / 1440) + "d";
+        var urgency = report.urgency === "emergency" ? "Critical" : report.urgency === "urgent" ? "Guest now" : report.urgency === "soon" ? "Today" : "Monitor";
+        var impact = { guest_waiting: "Guest waiting", room_out_of_order: "Room out of order", none_yet: "None yet" }[report.guest_impact] || "Guest affected";
+        var note = report.staff_note || report.resolution_note || report.description || "Guest submitted this report from the QR portal.";
+        var timeline = [["Guest report received", created.toLocaleString() + " · " + (report.guest_name || "Guest portal")]];
+        if (report.status && report.status !== "reported") timeline.push([guestStatusLabel(report.status), (report.updated_at ? new Date(report.updated_at) : new Date()).toLocaleString() + (report.staff_note ? " · " + report.staff_note : "")]);
+        return {
+          id: remoteNumericId(report.id),
+          remoteId: report.id,
+          remoteStatus: report.status,
+          location: report.location,
+          category: report.category_label || report.category_key || "Guest portal",
+          title: report.title,
+          note: note,
+          urgency: urgency,
+          impact: impact,
+          owner: report.owner_display || "Unassigned",
+          age: age,
+          status: status,
+          handover: ["resolved", "closed", "cancelled", "duplicate"].indexOf(report.status) === -1,
+          timeline: timeline
+        };
+      }
+
+      function mergeGuestReportsIntoBoard(rows) {
+        guestReports = Array.isArray(rows) ? rows.slice() : [];
+        issues = issues.filter(function (issue) { return !issue.remoteId; });
+        guestReports.slice().reverse().forEach(function (report) {
+          issues.unshift(guestReportAsIssue(report));
+        });
+        renderGuestInbox();
+        renderBoard();
+        renderHandover();
+      }
+
+      function renderGuestInbox() {
+        var target = document.getElementById("guest-inbox-list");
+        if (!target) return;
+        if (!guestReports.length) {
+          target.innerHTML = '<div class="demo-empty">No guest reports yet. Open the Room 208 link to test the guest flow.</div>';
+          return;
+        }
+        target.innerHTML = guestReports.map(function (report) {
+          var issue = guestReportAsIssue(report);
+          var closed = ["resolved", "closed", "cancelled", "duplicate"].indexOf(report.status) > -1;
+          return '<article class="guest-report-card" data-guest-report="' + escapeHtml(report.id) + '">' +
+            '<div class="guest-report-head"><div><span class="room-label">' + escapeHtml(report.location) + ' · ' + escapeHtml(report.category_label || "Guest portal") + '</span><h3>' + escapeHtml(report.title) + '</h3></div><span class="' + statusClass(issue) + '">' + escapeHtml(guestStatusLabel(report.status)) + '</span></div>' +
+            '<div class="guest-report-meta">' + escapeHtml(report.guest_name || "Guest") + ' · ' + escapeHtml(report.contact_preference || "app update") + ' · ' + escapeHtml(report.created_at ? new Date(report.created_at).toLocaleString() : "Just now") + '</div>' +
+            '<p class="guest-report-description">' + escapeHtml(report.description || "No additional detail supplied.") + (report.staff_note ? '<br><strong>Latest staff update:</strong> ' + escapeHtml(report.staff_note) : '') + '</p>' +
+            (closed ? '' : '<div class="guest-report-actions"><input class="guest-note" data-guest-note placeholder="Update visible to the guest, or resolution note"><div class="guest-action-row">' +
+              '<button class="guest-action primary" data-guest-action="acknowledged" type="button">Acknowledge</button>' +
+              '<button class="guest-action" data-guest-action="in_progress" type="button">Start work</button>' +
+              '<button class="guest-action resolve" data-guest-action="resolved" type="button">Resolve</button>' +
+            '</div></div>') + '</article>';
+        }).join("");
+      }
+
+      async function fetchLiveGuestReports() {
+        if (!staffClient || !staffSession || !staffMembership) return;
+        var result = await staffClient.from("guest_reports")
+          .select("id,property_id,guest_user_id,location,category_key,category_label,issue_code,title,description,urgency,guest_impact,guest_name,contact_preference,status,owner_user_id,owner_display,staff_note,resolution_note,created_at,updated_at")
+          .eq("property_id", staffMembership.property_id)
+          .order("created_at", { ascending: false })
+          .limit(200);
+        if (result.error) {
+          setStaffSync("Guest reports could not be loaded: " + result.error.message, "error");
+          return;
+        }
+        mergeGuestReportsIntoBoard(result.data || []);
+      }
+
+      function loadLocalGuestReports() {
+        mergeGuestReportsIntoBoard(loadDemoGuestReports());
+      }
+
+      async function updateGuestReport(reportId, nextStatus, note) {
+        var message = note || ({ acknowledged: "Your request has been acknowledged by the hotel team.", in_progress: "A team member is now working on your request.", resolved: "The hotel team has marked this request resolved." }[nextStatus]);
+        if (nextStatus === "resolved" && !note) {
+          showToast("Add a short resolution note before resolving the request.");
+          return false;
+        }
+        if (staffClient && staffSession && staffMembership) {
+          var updatePayload = {
+            status: nextStatus,
+            owner_user_id: staffSession.user.id,
+            owner_display: staffMembership.display_name,
+            staff_note: message
+          };
+          if (nextStatus === "resolved") updatePayload.resolution_note = note;
+          var updateResult = await staffClient.from("guest_reports").update(updatePayload).eq("id", reportId).select("id").single();
+          if (updateResult.error) {
+            setStaffSync("Guest update failed: " + updateResult.error.message, "error");
+            return false;
+          }
+          var historyResult = await staffClient.from("guest_report_updates").insert({
+            report_id: reportId,
+            author_user_id: staffSession.user.id,
+            author_kind: "staff",
+            message: message,
+            status: nextStatus
+          });
+          if (historyResult.error) setStaffSync("Status saved, but timeline note failed: " + historyResult.error.message, "error");
+          await fetchLiveGuestReports();
+          return true;
+        }
+        var rows = loadDemoGuestReports();
+        var report = rows.filter(function (item) { return String(item.id) === String(reportId); })[0];
+        if (!report) return false;
+        report.status = nextStatus;
+        report.owner_display = "Demo Duty Manager";
+        report.staff_note = message;
+        if (nextStatus === "resolved") report.resolution_note = note;
+        report.updated_at = new Date().toISOString();
+        saveDemoGuestReports(rows);
+        loadLocalGuestReports();
+        return true;
+      }
+
+      function startStaffRealtime() {
+        if (!staffClient || !staffMembership) return;
+        if (staffChannel) staffClient.removeChannel(staffChannel);
+        staffChannel = staffClient.channel("innrelay-staff-" + staffMembership.property_id)
+          .on("postgres_changes", { event: "*", schema: "public", table: "guest_reports", filter: "property_id=eq." + staffMembership.property_id }, fetchLiveGuestReports)
+          .subscribe(function (status) {
+            if (status === "SUBSCRIBED") setStaffSync("Live · guest reports are synchronised with " + staffMembership.property_name, "live");
+          });
+      }
+
+      async function handleStaffSession(session) {
+        staffSession = session || null;
+        staffMembership = null;
+        var form = document.getElementById("staff-login-form");
+        var signOut = document.getElementById("staff-sign-out");
+        if (!staffSession) {
+          form.hidden = false;
+          signOut.hidden = true;
+          setStaffSync("Sign in with a property staff account to receive live guest reports.", "");
+          mergeGuestReportsIntoBoard([]);
+          return;
+        }
+        var membershipResult = await staffClient.from("property_staff")
+          .select("property_id,display_name,role,active,properties!inner(name,slug)")
+          .eq("user_id", staffSession.user.id)
+          .eq("active", true);
+        if (membershipResult.error || !membershipResult.data || !membershipResult.data.length) {
+          form.hidden = true;
+          signOut.hidden = false;
+          setStaffSync("Signed in, but this account is not linked to an InnRelay property.", "error");
+          mergeGuestReportsIntoBoard([]);
+          return;
+        }
+        var preferred = membershipResult.data.filter(function (membership) {
+          return membership.properties && membership.properties.slug === appConfig.propertySlug;
+        })[0] || membershipResult.data[0];
+        staffMembership = {
+          property_id: preferred.property_id,
+          display_name: preferred.display_name,
+          role: preferred.role,
+          property_name: preferred.properties.name,
+          property_slug: preferred.properties.slug
+        };
+        form.hidden = true;
+        signOut.hidden = false;
+        setStaffSync("Connected as " + staffMembership.display_name + " · loading guest reports…", "live");
+        await fetchLiveGuestReports();
+        startStaffRealtime();
+      }
+
+      async function initialiseStaffSync() {
+        var catalogueStat = document.getElementById("catalog-stat");
+        if (window.InnRelayCatalog) catalogueStat.textContent = window.InnRelayCatalog.stats.categories + " categories · " + window.InnRelayCatalog.stats.issues + " issues · custom entry always available";
+        var liveConfigured = Boolean(appConfig.supabaseUrl && appConfig.supabasePublishableKey && !appConfig.demoMode && window.supabase);
+        if (!liveConfigured) {
+          document.getElementById("report-storage-copy").textContent = "This pilot currently uses local demo storage. Never enter payment-card or identity-document details.";
+          document.getElementById("staff-auth-card").hidden = true;
+          setStaffSync("Demo mode · guest reports synchronise between guest and staff tabs on this device", "");
+          loadLocalGuestReports();
+          return;
+        }
+        document.getElementById("report-storage-copy").textContent = "Reports are stored in the property Supabase workspace with staff access controls. Never enter payment-card or identity-document details.";
+        staffClient = window.supabase.createClient(appConfig.supabaseUrl, appConfig.supabasePublishableKey, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "innrelay-staff-auth" }
+        });
+        staffClient.auth.onAuthStateChange(function (event, session) {
+          window.setTimeout(function () { handleStaffSession(session); }, 0);
+        });
+        var result = await staffClient.auth.getSession();
+        if (result.error) {
+          setStaffSync("Staff session could not be opened: " + result.error.message, "error");
+          return;
+        }
+        await handleStaffSession(result.data.session);
+      }
+
+      function fillSelect(id, values, placeholder) {
+        var select = document.getElementById(id);
+        var previous = select.value;
+        select.innerHTML = "";
+        if (placeholder) {
+          var placeholderOption = document.createElement("option");
+          placeholderOption.value = "";
+          placeholderOption.textContent = placeholder;
+          select.appendChild(placeholderOption);
+        }
+        values.forEach(function (value) {
+          var option = document.createElement("option");
+          option.value = value;
+          option.textContent = value;
+          select.appendChild(option);
+        });
+        if (values.indexOf(previous) > -1) select.value = previous;
+      }
+
+      function updateIssueLibrary() {
+        var category = document.getElementById("category").value;
+        fillSelect("issue-library", issueLibrary[category] || [], "Choose a common issue");
+      }
+
+      function prepareReportForm() {
+        fillSelect("location", locations);
+        fillSelect("category", Object.keys(issueLibrary));
+        updateIssueLibrary();
+      }
+
+      function visibleShiftTasks() {
+        return shiftTasks.filter(function (task) {
+          return task.shifts.indexOf(shiftState.currentShift) > -1;
+        });
+      }
+
+      function renderShiftMetrics() {
+        var tasks = visibleShiftTasks();
+        var run = currentRun();
+        var done = 0;
+        var issueCount = 0;
+        var notApplicable = 0;
+        tasks.forEach(function (task) {
+          var entry = run.tasks[task.id];
+          if (!entry) return;
+          if (entry.status === "done") done += 1;
+          if (entry.status === "issue") issueCount += 1;
+          if (entry.status === "na") notApplicable += 1;
+        });
+        var pending = tasks.length - done - issueCount - notApplicable;
+        document.getElementById("shift-metrics").innerHTML =
+          '<div class="risk-card mint"><strong>' + done + '</strong><span>Completed</span></div>' +
+          '<div class="risk-card amber"><strong>' + pending + '</strong><span>Still pending</span></div>' +
+          '<div class="risk-card coral"><strong>' + issueCount + '</strong><span>Issues raised</span></div>' +
+          '<div class="risk-card"><strong>' + notApplicable + '</strong><span>Not applicable</span></div>';
+      }
+
+      function renderShiftTasks() {
+        var tasks = visibleShiftTasks();
+        var run = currentRun();
+        var groups = [];
+        tasks.forEach(function (task) {
+          if (groups.indexOf(task.group) === -1) groups.push(task.group);
+        });
+        document.getElementById("shift-task-groups").innerHTML = groups.map(function (group) {
+          var groupTasks = tasks.filter(function (task) { return task.group === group; });
+          var completed = groupTasks.filter(function (task) {
+            return run.tasks[task.id] && run.tasks[task.id].status !== "pending";
+          }).length;
+          var rows = groupTasks.map(function (task) {
+            var entry = run.tasks[task.id] || { status: "pending", initials: "", at: "" };
+            var label = { pending: "Pending", done: "Completed", issue: "Issue raised", na: "Not applicable" }[entry.status] || "Pending";
+            var detail = entry.at ? " · " + escapeHtml(entry.initials || "") + " · " + escapeHtml(entry.at) : "";
+            return '<div class="shift-task">' +
+              '<div><div class="shift-task-title">' + escapeHtml(task.title) + '</div><div class="shift-task-copy">' + escapeHtml(task.copy) + '</div><span class="task-state ' + escapeHtml(entry.status) + '">' + label + detail + '</span></div>' +
+              '<div class="task-actions">' +
+              '<button class="task-action done" data-task-action="done" data-task-id="' + task.id + '">Done</button>' +
+              '<button class="task-action" data-task-action="na" data-task-id="' + task.id + '">N/A</button>' +
+              '<button class="task-action issue" data-task-action="issue" data-task-id="' + task.id + '">Raise issue</button>' +
+              '</div></div>';
+          }).join("");
+          return '<section class="task-group"><div class="task-group-head"><h3>' + escapeHtml(group) + '</h3><span>' + completed + ' / ' + groupTasks.length + '</span></div>' + rows + '</section>';
+        }).join("");
+      }
+
+      function renderOperationalRecords() {
+        var tillTarget = document.getElementById("till-records");
+        var temperatureTarget = document.getElementById("temperature-records");
+        var fireTarget = document.getElementById("fire-records");
+        var tills = shiftState.tillRecords.slice().reverse().slice(0, 5);
+        var temperatures = shiftState.temperatureRecords.slice().reverse().slice(0, 5);
+        var fires = shiftState.fireRecords.slice().reverse().slice(0, 5);
+        tillTarget.innerHTML = tills.length ? tills.map(function (record) {
+          var variance = record.variance === null ? "Expected total not entered" : "Variance " + money(record.variance);
+          return '<div class="record-item ' + (record.alert ? "alert" : "") + '"><strong>' + escapeHtml(record.till) + ' · Counted ' + money(record.counted) + '</strong><span>Float ' + money(record.float) + ' · Drop ' + money(record.drop) + ' · ' + escapeHtml(variance) + (record.drop > 0 ? ' · Pod ' + escapeHtml(record.podNumber) + ' (' + escapeHtml(record.podColour) + ')' : '') + ' · ' + escapeHtml(record.initials) + ' · ' + escapeHtml(record.at) + '</span></div>';
+        }).join("") : '<div class="record-item"><span>No till counts recorded for this pilot yet.</span></div>';
+        temperatureTarget.innerHTML = temperatures.length ? temperatures.map(function (record) {
+          return '<div class="record-item ' + (record.pass ? "" : "alert") + '"><strong>' + escapeHtml(record.equipment) + ' · ' + escapeHtml(record.reading) + '°C · ' + (record.pass ? "PASS" : "OUT OF RANGE") + '</strong><span>Approved ' + escapeHtml(record.minimum) + '°C to ' + escapeHtml(record.maximum) + '°C' + (record.action ? ' · Action: ' + escapeHtml(record.action) : '') + ' · ' + escapeHtml(record.initials) + ' · ' + escapeHtml(record.at) + '</span></div>';
+        }).join("") : '<div class="record-item"><span>No temperatures recorded for this pilot yet.</span></div>';
+        fireTarget.innerHTML = fires.length ? fires.map(function (record) {
+          return '<div class="record-item ' + (record.result === "Fault found" ? "alert" : "") + '"><strong>' + escapeHtml(record.type) + ' · ' + escapeHtml(record.result) + '</strong><span>' + escapeHtml(record.location) + (record.note ? ' · ' + escapeHtml(record.note) : '') + ' · ' + escapeHtml(record.initials) + ' · ' + escapeHtml(record.at) + '</span></div>';
+        }).join("") : '<div class="record-item"><span>No fire or safety checks recorded for this pilot yet.</span></div>';
+      }
+
+      function renderShiftRun() {
+        var run = currentRun();
+        document.getElementById("shift-type").value = shiftState.currentShift;
+        document.getElementById("shift-end").value = run.scheduledEnd;
+        document.getElementById("shift-initials").value = run.initials;
+        document.getElementById("incoming-handover").value = run.handoverNote;
+        document.getElementById("handover-source").textContent = incomingShiftName();
+        renderShiftMetrics();
+        renderShiftTasks();
+        renderOperationalRecords();
+      }
+
+      function createOperationalIssue(details) {
+        var reporter = details.initials || currentRun().initials || "DM";
+        issues.unshift({
+          id: Date.now() + Math.floor(Math.random() * 1000),
+          location: details.location || "Hotel",
+          category: details.category || "Customer Service & Staff Conduct",
+          title: details.title,
+          note: details.note || "Raised from the " + shiftState.currentShift + " Shift Run.",
+          urgency: details.urgency || "Today",
+          impact: details.impact || "None yet",
+          owner: "Unassigned",
+          age: "now",
+          status: "New",
+          handover: true,
+          timeline: [["Raised by " + reporter, recordTimestamp() + " · " + shiftState.currentShift + " Shift Run"]]
+        });
+        persistIssues();
+        renderBoard();
+        renderHandover();
+      }
+
+      function handleShiftTaskAction(event) {
+        var action = event.target.getAttribute("data-task-action");
+        var taskId = event.target.getAttribute("data-task-id");
+        if (!action || !taskId) return;
+        var run = currentRun();
+        var initialsValue = document.getElementById("shift-initials").value.trim().toUpperCase();
+        if (!initialsValue) {
+          showToast("Enter your initials before completing shift checks.");
+          document.getElementById("shift-initials").focus();
+          return;
+        }
+        run.initials = initialsValue;
+        var task = shiftTasks.filter(function (item) { return item.id === taskId; })[0];
+        run.tasks[taskId] = { status: action, initials: initialsValue, at: recordTimestamp() };
+        if (action === "issue" && task) {
+          createOperationalIssue({
+            title: task.title + " - exception",
+            category: task.category,
+            location: task.location,
+            note: task.copy + " Raised from the " + shiftState.currentShift + " Shift Run.",
+            initials: initialsValue
+          });
+          showToast("Issue raised and added to handover.");
+        } else if (action === "done") {
+          showToast("Task completed.");
+        } else {
+          showToast("Task marked not applicable.");
+        }
+        persistShiftState();
+        renderShiftRun();
+      }
+
+      function initials(name) {
+        if (!name || name === "Unassigned") return "—";
+        return name.split(" ")[0].slice(0, 1).toUpperCase();
+      }
+
+      function statusClass(issue) {
+        if (issue.status === "Verified") return "status status-mint";
+        if (issue.impact === "Guest waiting" || issue.urgency === "Critical") return "status status-coral";
+        if (issue.status === "Waiting" || issue.urgency === "Guest now") return "status status-amber";
+        return "status status-lavender";
+      }
+
+      function filteredIssues() {
+        return issues.filter(function (issue) {
+          if (activeFilter === "waiting") return issue.impact === "Guest waiting" && issue.status !== "Verified";
+          if (activeFilter === "critical") return issue.urgency === "Critical" && issue.status !== "Verified";
+          if (activeFilter === "handover") return issue.handover && issue.status !== "Verified";
+          return issue.status !== "Verified";
+        }).sort(function (a, b) {
+          var score = function (item) {
+            var value = 0;
+            if (item.impact === "Guest waiting") value += 40;
+            if (item.impact === "Room out of order") value += 30;
+            if (item.urgency === "Critical") value += 25;
+            if (item.handover) value += 4;
+            return value;
+          };
+          return score(b) - score(a);
+        });
+      }
+
+      function renderBoard() {
+        var openIssues = issues.filter(function (issue) { return issue.status !== "Verified"; });
+        var waiting = openIssues.filter(function (issue) { return issue.impact === "Guest waiting"; }).length;
+        var handover = openIssues.filter(function (issue) { return issue.handover; }).length;
+        var outOfOrder = openIssues.filter(function (issue) { return issue.impact === "Room out of order"; }).length;
+        document.getElementById("risk-grid").innerHTML =
+          '<div class="risk-card coral"><strong>' + waiting + '</strong><span>Guest waiting</span></div>' +
+          '<div class="risk-card amber"><strong>' + openIssues.length + '</strong><span>Open issues</span></div>' +
+          '<div class="risk-card"><strong>' + outOfOrder + '</strong><span>Rooms out of order</span></div>' +
+          '<div class="risk-card mint"><strong>' + handover + '</strong><span>Need handover</span></div>';
+        var list = filteredIssues();
+        var target = document.getElementById("issue-list");
+        if (!list.length) {
+          target.innerHTML = '<div class="demo-empty">No issues match this filter. A quiet board is a good board.</div>';
+          return;
+        }
+        target.innerHTML = list.map(function (issue) {
+          return '<button class="issue-row" data-issue-id="' + issue.id + '">' +
+            '<span class="issue-location">' + escapeHtml(issue.location) + '</span>' +
+            '<span><span class="issue-title">' + escapeHtml(issue.title) + '</span><span class="issue-note">' + escapeHtml(issue.category || "Operational issue") + ' · ' + escapeHtml(issue.note) + '</span></span>' +
+            '<span class="issue-meta"><span class="' + statusClass(issue) + '">' + escapeHtml(issue.impact) + '</span></span>' +
+            '<span class="assignee"><span class="avatar">' + initials(issue.owner) + '</span>' + escapeHtml(issue.owner) + '</span>' +
+            '<span class="age">' + escapeHtml(issue.age) + '</span>' +
+            '<span class="row-arrow">›</span>' +
+            '</button>';
+        }).join("");
+        Array.prototype.forEach.call(target.querySelectorAll("[data-issue-id]"), function (button) {
+          button.addEventListener("click", function () { openDrawer(Number(button.getAttribute("data-issue-id"))); });
+        });
+      }
+
+      function renderHandover() {
+        var list = issues.filter(function (issue) { return issue.handover && issue.status !== "Verified"; });
+        var target = document.getElementById("handover-list");
+        if (!list.length) {
+          target.innerHTML = '<p class="demo-empty">Nothing needs handover. Great shift.</p>';
+          return;
+        }
+        target.innerHTML = list.map(function (issue) {
+          return '<div class="handover-row"><div><div class="handover-room">' + escapeHtml(issue.location) + ' · ' + escapeHtml(issue.title) + '</div><div class="handover-desc">' + escapeHtml(issue.category || "Operational issue") + ' · ' + escapeHtml(issue.owner) + ' · ' + escapeHtml(issue.impact) + ' · ' + escapeHtml(issue.note) + '</div></div><span class="' + statusClass(issue) + '">' + escapeHtml(issue.status) + '</span></div>';
+        }).join("");
+      }
+
+      function showView(view) {
+        ["board", "guest", "shift", "report", "handover", "settings"].forEach(function (name) {
+          document.getElementById(name + "-view").hidden = name !== view;
+        });
+        Array.prototype.forEach.call(document.querySelectorAll(".side-link"), function (button) {
+          button.classList.toggle("active", button.getAttribute("data-view") === view);
+        });
+        if (view === "board") renderBoard();
+        if (view === "handover") renderHandover();
+        if (view === "report") prepareReportForm();
+        if (view === "shift") renderShiftRun();
+        if (view === "guest") renderGuestInbox();
+      }
+
+      function showToast(message) {
+        var toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        window.clearTimeout(showToast.timeout);
+        showToast.timeout = window.setTimeout(function () { toast.classList.remove("show"); }, 2500);
+      }
+
+      function openDrawer(id) {
+        var issue = issues.filter(function (item) { return item.id === id; })[0];
+        if (!issue) return;
+        selectedId = id;
+        document.getElementById("drawer-location").textContent = issue.location;
+        document.getElementById("drawer-title").textContent = issue.title;
+        document.getElementById("drawer-impact").textContent = issue.impact + " · " + issue.urgency + " · " + (issue.category || "Operational issue");
+        document.getElementById("drawer-note").textContent = issue.note || "No additional note was added.";
+        document.getElementById("drawer-statuses").innerHTML = '<span class="' + statusClass(issue) + '">' + escapeHtml(issue.impact) + '</span><span class="status status-lavender">' + escapeHtml(issue.status) + '</span>';
+        document.getElementById("detail-owner").value = ["Leo — Maintenance", "Maya — Reception", "Amal — Housekeeping", "Unassigned"].indexOf(issue.owner) > -1 ? issue.owner : "Unassigned";
+        document.getElementById("detail-status").value = ["In progress", "Waiting", "Resolved", "Verified"].indexOf(issue.status) > -1 ? issue.status : "In progress";
+        document.getElementById("update-note").value = "";
+        document.getElementById("drawer-timeline").innerHTML = issue.timeline.map(function (item, index) {
+          var dotClass = index === issue.timeline.length - 1 ? "timeline-dot amber" : "timeline-dot" + (index === 1 ? " mint" : "");
+          return '<div class="timeline-row"><span class="' + dotClass + '"></span><div class="timeline-copy"><strong>' + escapeHtml(item[0]) + '</strong><span>' + escapeHtml(item[1]) + '</span></div></div>';
+        }).join("");
+        document.getElementById("drawer-overlay").hidden = false;
+      }
+
+      function closeDrawer() {
+        document.getElementById("drawer-overlay").hidden = true;
+        selectedId = null;
+      }
+
+      function formatCurrentTime() {
+        var now = new Date();
+        return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + " · Demo update";
+      }
+
+      function buildHandoverHtml() {
+        var list = issues.filter(function (issue) { return issue.handover && issue.status !== "Verified"; });
+        var rows = list.map(function (issue) {
+          return '<article class="item"><h2>' + escapeHtml(issue.location) + ' · ' + escapeHtml(issue.title) + '</h2><p class="meta">' + escapeHtml(issue.category || "Operational issue") + ' · ' + escapeHtml(issue.impact) + ' · ' + escapeHtml(issue.urgency) + '</p><p><strong>Owner:</strong> ' + escapeHtml(issue.owner) + '</p><p><strong>Latest context:</strong> ' + escapeHtml(issue.note || "No context recorded.") + '</p><p><strong>Status:</strong> ' + escapeHtml(issue.status) + '</p></article>';
+        }).join("");
+        if (!rows) rows = '<article class="item"><p>No unresolved guest-impacting issues. Great shift.</p></article>';
+        return '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>InnRelay Handover</title><style>body{margin:0;padding:30px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0b1220;background:#fffdf8;line-height:1.5}header{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:26px;padding-bottom:18px;border-bottom:2px solid #0b1220}h1{margin:0;font-size:30px;letter-spacing:-.05em}h2{margin:0 0 7px;font-size:17px;letter-spacing:-.03em}.eyebrow,.meta{margin:0;color:#66717f;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}.item{margin:12px 0;padding:16px;border:1px solid #ddd8cf;border-radius:12px;break-inside:avoid}.item p{margin:6px 0;font-size:14px}.button{padding:10px 14px;border:0;border-radius:999px;background:#0b1220;color:#fff;font-weight:700;cursor:pointer}@media print{body{padding:18px}.button{display:none}}</style></head><body><header><div><p class="eyebrow">InnRelay · evening to night handover</p><h1>Guest issue recovery summary</h1><p class="meta">' + new Date().toLocaleString() + '</p></div><button class="button" onclick="window.print()">Print / Save PDF</button></header><main>' + rows + '</main></body></html>';
+      }
+
+      function exportHandover() {
+        var printable = window.open("", "_blank");
+        if (!printable) {
+          showToast("Allow pop-ups to export the handover.");
+          return;
+        }
+        printable.document.open();
+        printable.document.write(buildHandoverHtml());
+        printable.document.close();
+        printable.focus();
+      }
+
+      function downloadBackup() {
+        var payload = {
+          product: "InnRelay",
+          version: 2,
+          exportedAt: new Date().toISOString(),
+          issueLibrary: issueLibrary,
+          issues: issues,
+          guestReports: guestReports,
+          shiftState: shiftState
+        };
+        var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = "innrelay-pilot-backup.json";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+      }
+
+      function requireShiftInitials() {
+        var value = document.getElementById("shift-initials").value.trim().toUpperCase();
+        if (!value) {
+          showToast("Enter your initials before recording this check.");
+          document.getElementById("shift-initials").focus();
+          return "";
+        }
+        currentRun().initials = value;
+        return value;
+      }
+
+      Array.prototype.forEach.call(document.querySelectorAll("[data-open-app]"), function (button) {
+        button.addEventListener("click", function () {
+          document.getElementById("landing").hidden = true;
+          document.getElementById("app").hidden = false;
+          window.scrollTo(0, 0);
+          showView("board");
+        });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-close-app]"), function (button) {
+        button.addEventListener("click", function () {
+          document.getElementById("app").hidden = true;
+          document.getElementById("landing").hidden = false;
+          window.scrollTo(0, 0);
+        });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-view]"), function (button) {
+        button.addEventListener("click", function () { showView(button.getAttribute("data-view")); });
+      });
+      document.getElementById("staff-login-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        if (!staffClient) return;
+        setStaffSync("Signing in…", "");
+        var result = await staffClient.auth.signInWithPassword({
+          email: document.getElementById("staff-email").value.trim(),
+          password: document.getElementById("staff-password").value
+        });
+        if (result.error) {
+          setStaffSync("Sign-in failed: " + result.error.message, "error");
+          return;
+        }
+        document.getElementById("staff-password").value = "";
+        await handleStaffSession(result.data.session);
+      });
+      document.getElementById("staff-google-sign-in").addEventListener("click", async function () {
+        if (!staffClient) { setStaffSync("Live staff authentication is not configured.", "error"); return; }
+        if (window.location.protocol === "file:") {
+          setStaffSync("Google sign-in cannot return to a C:\\ file. Open this app through http://localhost:8080 or the public website.", "error");
+          return;
+        }
+        setStaffSync("Opening Google sign-in…", "");
+        var redirectUrl = window.location.origin + window.location.pathname;
+        var result = await staffClient.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: redirectUrl, queryParams: { access_type: "offline", prompt: "consent" } }
+        });
+        if (result.error) setStaffSync("Google sign-in failed: " + result.error.message, "error");
+      });
+      document.getElementById("update-qr").addEventListener("click", renderGuestQr);
+      document.getElementById("print-qr").addEventListener("click", printGuestQr);
+      document.getElementById("qr-room").addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); renderGuestQr(); } });
+      document.getElementById("staff-sign-out").addEventListener("click", async function () {
+        if (!staffClient) return;
+        if (staffChannel) await staffClient.removeChannel(staffChannel);
+        await staffClient.auth.signOut();
+        await handleStaffSession(null);
+      });
+      document.getElementById("guest-inbox-list").addEventListener("click", async function (event) {
+        var actionButton = event.target.closest("[data-guest-action]");
+        if (!actionButton) return;
+        var card = actionButton.closest("[data-guest-report]");
+        var noteInput = card.querySelector("[data-guest-note]");
+        var note = noteInput ? noteInput.value.trim() : "";
+        actionButton.disabled = true;
+        var saved = await updateGuestReport(card.getAttribute("data-guest-report"), actionButton.getAttribute("data-guest-action"), note);
+        actionButton.disabled = false;
+        if (saved) showToast("Guest report updated and reflected on the Live Board.");
+      });
+      window.addEventListener("storage", function (event) {
+        if (event.key === GUEST_DEMO_KEY && !staffClient) loadLocalGuestReports();
+      });
+      if (guestBroadcast) guestBroadcast.addEventListener("message", function () {
+        if (!staffClient) loadLocalGuestReports();
+      });
+      var savedGuestUrl = "";
+      try { savedGuestUrl = window.localStorage.getItem("innrelay-public-guest-url") || ""; } catch (error) {}
+      document.getElementById("qr-base-url").value = savedGuestUrl || appConfig.publicGuestUrl || "";
+      renderGuestQr();
+      document.getElementById("shift-type").addEventListener("change", function () {
+        var previousRun = currentRun();
+        previousRun.scheduledEnd = document.getElementById("shift-end").value || previousRun.scheduledEnd;
+        previousRun.initials = document.getElementById("shift-initials").value.trim().toUpperCase();
+        previousRun.handoverNote = document.getElementById("incoming-handover").value.trim();
+        shiftState.currentShift = this.value;
+        persistShiftState();
+        renderShiftRun();
+      });
+      document.getElementById("save-shift-setup").addEventListener("click", function () {
+        var run = currentRun();
+        run.scheduledEnd = document.getElementById("shift-end").value || run.scheduledEnd;
+        run.initials = document.getElementById("shift-initials").value.trim().toUpperCase();
+        run.handoverNote = document.getElementById("incoming-handover").value.trim();
+        persistShiftState();
+        renderShiftRun();
+        showToast("Shift start and incoming handover saved.");
+      });
+      document.getElementById("shift-task-groups").addEventListener("click", handleShiftTaskAction);
+      document.getElementById("complete-shift").addEventListener("click", function () {
+        var run = currentRun();
+        run.scheduledEnd = document.getElementById("shift-end").value || run.scheduledEnd;
+        run.initials = document.getElementById("shift-initials").value.trim().toUpperCase();
+        run.handoverNote = document.getElementById("incoming-handover").value.trim();
+        var pending = visibleShiftTasks().filter(function (task) {
+          return !run.tasks[task.id];
+        }).length;
+        if (pending) {
+          persistShiftState();
+          showToast(pending + " shift tasks still need a result.");
+          return;
+        }
+        run.completed = true;
+        run.completedAt = recordTimestamp();
+        persistShiftState();
+        showToast(shiftState.currentShift + " shift signed off.");
+        showView("handover");
+      });
+      document.getElementById("till-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var initialsValue = requireShiftInitials();
+        if (!initialsValue) return;
+        var counted = Number(document.getElementById("till-counted").value);
+        var floatValue = Number(document.getElementById("till-float").value);
+        var expectedInput = document.getElementById("till-expected").value.trim();
+        var expected = expectedInput === "" ? null : Number(expectedInput);
+        var drop = Math.max(0, counted - floatValue);
+        var podNumber = document.getElementById("pod-number").value.trim();
+        var podColour = document.getElementById("pod-colour").value.trim();
+        if (drop > 0 && (!podNumber || !podColour)) {
+          showToast("Add the cash pod number and colour for the excess cash.");
+          return;
+        }
+        var variance = expected === null ? null : counted - expected;
+        var alert = counted < floatValue || (variance !== null && Math.abs(variance) > 0.009);
+        var record = {
+          till: document.getElementById("till-name").value,
+          counted: counted,
+          float: floatValue,
+          expected: expected,
+          variance: variance,
+          drop: drop,
+          podNumber: podNumber,
+          podColour: podColour,
+          initials: initialsValue,
+          shift: shiftState.currentShift,
+          at: recordTimestamp(),
+          alert: alert
+        };
+        shiftState.tillRecords.push(record);
+        currentRun().tasks["count-tills"] = { status: alert ? "issue" : "done", initials: initialsValue, at: record.at };
+        if (drop > 0 && shiftState.currentShift !== "AM") currentRun().tasks["cash-drops"] = { status: "done", initials: initialsValue, at: record.at };
+        if (alert) {
+          createOperationalIssue({
+            title: record.till + " till count requires review",
+            category: "Administration & Financial",
+            location: record.till,
+            note: "Counted " + money(counted) + ", target float " + money(floatValue) + (variance === null ? "." : ", variance " + money(variance) + "."),
+            initials: initialsValue,
+            urgency: "Today"
+          });
+        }
+        persistShiftState();
+        event.target.reset();
+        document.getElementById("till-float").value = "100";
+        renderShiftRun();
+        showToast("Till count recorded" + (alert ? " and flagged for review." : "."));
+      });
+      document.getElementById("temperature-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var initialsValue = requireShiftInitials();
+        if (!initialsValue) return;
+        var reading = Number(document.getElementById("temperature-reading").value);
+        var minimum = Number(document.getElementById("temperature-min").value);
+        var maximum = Number(document.getElementById("temperature-max").value);
+        var action = document.getElementById("temperature-action").value.trim();
+        if (minimum > maximum) {
+          showToast("The approved minimum cannot be higher than the maximum.");
+          return;
+        }
+        var pass = reading >= minimum && reading <= maximum;
+        if (!pass && !action) {
+          showToast("Record the corrective action for an out-of-range temperature.");
+          return;
+        }
+        var record = {
+          equipment: document.getElementById("temperature-equipment").value,
+          reading: reading,
+          minimum: minimum,
+          maximum: maximum,
+          action: action,
+          pass: pass,
+          initials: initialsValue,
+          shift: shiftState.currentShift,
+          at: recordTimestamp()
+        };
+        shiftState.temperatureRecords.push(record);
+        currentRun().tasks["record-temperatures"] = { status: pass ? "done" : "issue", initials: initialsValue, at: record.at };
+        if (!pass) {
+          createOperationalIssue({
+            title: record.equipment + " temperature outside approved range",
+            category: "Emergency, Hygiene & Compliance",
+            location: record.equipment,
+            note: "Recorded " + reading + "°C; approved range " + minimum + "°C to " + maximum + "°C. Corrective action: " + action,
+            initials: initialsValue,
+            urgency: "Critical"
+          });
+        }
+        persistShiftState();
+        event.target.reset();
+        renderShiftRun();
+        showToast(pass ? "Temperature recorded." : "Temperature exception added to handover.");
+      });
+      document.getElementById("fire-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var initialsValue = requireShiftInitials();
+        if (!initialsValue) return;
+        var result = document.getElementById("fire-result").value;
+        var note = document.getElementById("fire-note").value.trim();
+        if (result === "Fault found" && !note) {
+          showToast("Describe the fault and action taken.");
+          return;
+        }
+        var record = {
+          type: document.getElementById("fire-check-type").value,
+          result: result,
+          location: document.getElementById("fire-location").value.trim(),
+          note: note,
+          initials: initialsValue,
+          shift: shiftState.currentShift,
+          at: recordTimestamp()
+        };
+        shiftState.fireRecords.push(record);
+        var taskId = record.type === "Fire alarm test" ? "fire-alarm-sheet" : "fire-walk";
+        var taskStatus = result === "Fault found" ? "issue" : result === "Not due" ? "na" : "done";
+        currentRun().tasks[taskId] = { status: taskStatus, initials: initialsValue, at: record.at };
+        if (result === "Fault found") {
+          createOperationalIssue({
+            title: record.type + " fault - " + record.location,
+            category: "Emergency, Hygiene & Compliance",
+            location: record.location,
+            note: note,
+            initials: initialsValue,
+            urgency: "Critical"
+          });
+        }
+        persistShiftState();
+        event.target.reset();
+        renderShiftRun();
+        showToast(result === "Fault found" ? "Safety fault added to handover." : "Safety check recorded.");
+      });
+      document.getElementById("category").addEventListener("change", updateIssueLibrary);
+      document.getElementById("issue-library").addEventListener("change", function () {
+        if (this.value) document.getElementById("issue-title").value = this.value;
+      });
+      Array.prototype.forEach.call(document.querySelectorAll(".filter"), function (button) {
+        button.addEventListener("click", function () {
+          activeFilter = button.getAttribute("data-filter");
+          Array.prototype.forEach.call(document.querySelectorAll(".filter"), function (item) { item.classList.remove("active"); });
+          button.classList.add("active");
+          renderBoard();
+        });
+      });
+      Array.prototype.forEach.call(document.querySelectorAll(".workflow-tab"), function (button) {
+        button.addEventListener("click", function () {
+          var data = workflowData[button.getAttribute("data-workflow")];
+          Array.prototype.forEach.call(document.querySelectorAll(".workflow-tab"), function (item) { item.classList.remove("active"); });
+          button.classList.add("active");
+          document.getElementById("workflow-title").textContent = data.title;
+          document.getElementById("workflow-copy").textContent = data.copy;
+          document.getElementById("demo-label").textContent = data.label;
+          var status = document.getElementById("demo-status");
+          status.textContent = data.status;
+          status.className = data.className;
+          document.getElementById("demo-title").textContent = data.demoTitle;
+          document.getElementById("demo-copy").textContent = data.demoCopy;
+        });
+      });
+      document.getElementById("pilot-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var email = document.getElementById("pilot-email").value;
+        document.getElementById("pilot-note").textContent = "Thanks — the demo prototype has recorded " + email + ". Connect this form to your real inbox before launch.";
+        document.getElementById("pilot-form").reset();
+      });
+      document.getElementById("issue-form").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var location = document.getElementById("location").value.trim();
+        var category = document.getElementById("category").value;
+        var title = document.getElementById("issue-title").value.trim();
+        var note = document.getElementById("issue-note").value.trim();
+        var urgency = document.getElementById("urgency").value;
+        var impact = document.getElementById("impact").value;
+        var owner = document.getElementById("owner").value;
+        var reporter = document.getElementById("reporter").value.trim().toUpperCase();
+        issues.unshift({ id: Date.now(), location: location, category: category, title: title, note: note || "No additional context added.", urgency: urgency, impact: impact, owner: owner, age: "now", status: owner === "Unassigned" ? "New" : "In progress", handover: impact !== "None yet", timeline: [["Reported by " + reporter, formatCurrentTime()], [owner === "Unassigned" ? "Waiting for an owner" : owner + " selected as first owner", formatCurrentTime()]] });
+        persistIssues();
+        event.target.reset();
+        showView("board");
+        showToast("Issue added to the live board.");
+      });
+      document.querySelector("[data-close-drawer]").addEventListener("click", closeDrawer);
+      document.getElementById("drawer-overlay").addEventListener("click", function (event) {
+        if (event.target === this) closeDrawer();
+      });
+      document.getElementById("save-update").addEventListener("click", async function () {
+        var issue = issues.filter(function (item) { return item.id === selectedId; })[0];
+        if (!issue) return;
+        var update = document.getElementById("update-note").value.trim();
+        var selectedStatus = document.getElementById("detail-status").value;
+        if (issue.remoteId) {
+          var remoteStatus = { "In progress": "in_progress", "Waiting": "waiting_guest", "Resolved": "resolved", "Verified": "closed" }[selectedStatus] || "in_progress";
+          var remoteSaved = await updateGuestReport(issue.remoteId, remoteStatus, update);
+          if (!remoteSaved) return;
+          closeDrawer();
+          showToast("Guest-visible operational update saved.");
+          return;
+        }
+        issue.owner = document.getElementById("detail-owner").value;
+        issue.status = selectedStatus;
+        if (issue.status === "Verified") issue.handover = false;
+        if (update) issue.timeline.push([update, formatCurrentTime()]);
+        if (issue.status === "Waiting" || issue.status === "In progress") issue.handover = true;
+        persistIssues();
+        renderBoard();
+        renderHandover();
+        closeDrawer();
+        showToast("Operational update saved.");
+      });
+      document.getElementById("verify-issue").addEventListener("click", async function () {
+        var issue = issues.filter(function (item) { return item.id === selectedId; })[0];
+        if (!issue) return;
+        if (issue.remoteId) {
+          var verifyNote = document.getElementById("update-note").value.trim() || "The hotel team has closed this request after verification.";
+          var verified = await updateGuestReport(issue.remoteId, "closed", verifyNote);
+          if (!verified) return;
+          closeDrawer();
+          showToast("Guest report closed and removed from handover.");
+          return;
+        }
+        issue.status = "Verified";
+        issue.handover = false;
+        issue.timeline.push(["Verified as resolved", formatCurrentTime()]);
+        persistIssues();
+        renderBoard();
+        renderHandover();
+        closeDrawer();
+        showToast("Issue marked verified.");
+      });
+      document.getElementById("export-handover").addEventListener("click", function () {
+        exportHandover();
+      });
+      document.getElementById("backup-demo").addEventListener("click", function () {
+        downloadBackup();
+        showToast("Pilot backup downloaded.");
+      });
+      document.getElementById("reset-demo").addEventListener("click", function () {
+        issues = clone(seedIssues);
+        shiftState = defaultShiftState();
+        if (!staffClient) {
+          window.localStorage.removeItem(GUEST_DEMO_KEY);
+          guestReports = [];
+        }
+        activeFilter = "all";
+        Array.prototype.forEach.call(document.querySelectorAll(".filter"), function (item) {
+          item.classList.toggle("active", item.getAttribute("data-filter") === "all");
+        });
+        persistIssues();
+        persistShiftState();
+        renderBoard();
+        renderHandover();
+        renderShiftRun();
+        renderGuestInbox();
+        showToast("Pilot demo reset.");
+      });
+
+      if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
+        navigator.serviceWorker.register("./innrelay-service-worker.js").catch(function () {
+          /* The static demo remains usable even if a host does not allow service workers. */
+        });
+      }
+
+      prepareReportForm();
+      renderBoard();
+      renderHandover();
+      renderShiftRun();
+      initialiseStaffSync();
+    }());
+  </script>
+</body>
+</html>

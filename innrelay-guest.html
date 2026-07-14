@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1724">
+  <meta name="description" content="Report a hotel request or problem and follow its progress with InnRelay Guest.">
+  <title>InnRelay Guest · Tell the hotel</title>
+  <link rel="manifest" href="./innrelay-guest.webmanifest">
+  <link rel="icon" href="./innrelay-icon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --ink: #0b1724;
+      --muted: #607080;
+      --paper: #f7f4ed;
+      --white: #fffefa;
+      --line: #ddd8cd;
+      --mint: #b8efd9;
+      --mint-dark: #08745f;
+      --coral: #ff826c;
+      --amber: #ffd37b;
+      --blue: #dcecff;
+      --shadow: 0 18px 55px rgba(11, 23, 36, .1);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
+    .topbar { position: sticky; top: 0; z-index: 20; border-bottom: 1px solid rgba(11,23,36,.1); background: rgba(247,244,237,.92); backdrop-filter: blur(14px); }
+    .topbar-inner { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 850; letter-spacing: -.02em; }
+    .brand-mark { width: 22px; height: 22px; border-radius: 7px 7px 2px 7px; background: var(--mint-dark); box-shadow: inset -7px -7px 0 var(--mint); }
+    .property { min-width: 0; text-align: right; }
+    .property strong, .property span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .property span { color: var(--muted); font-size: 12px; }
+    .connection { margin-top: 16px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); color: var(--muted); font-size: 13px; }
+    .connection.live { color: #075c4d; border-color: #9edbc7; background: #effcf7; }
+    .connection.error { color: #8a2618; border-color: #f2b2a7; background: #fff1ee; }
+    .hero { padding: 56px 0 28px; display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: end; }
+    .eyebrow { margin: 0 0 10px; color: var(--mint-dark); text-transform: uppercase; letter-spacing: .16em; font-size: 12px; font-weight: 850; }
+    h1 { margin: 0; max-width: 760px; font-size: clamp(40px, 7vw, 74px); line-height: .98; letter-spacing: -.065em; }
+    .hero p:not(.eyebrow) { max-width: 650px; margin: 20px 0 0; color: var(--muted); font-size: clamp(17px, 2vw, 20px); }
+    .room-card { padding: 22px; border-radius: 22px; background: var(--ink); color: white; box-shadow: var(--shadow); }
+    .room-card span { color: #a8b8c6; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
+    .room-card strong { display: block; margin-top: 5px; font-size: 28px; }
+    .room-card button { margin-top: 12px; padding: 8px 12px; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; color: white; background: transparent; font-size: 12px; font-weight: 800; }
+    .room-card button:hover { background: rgba(255,255,255,.1); }
+    .safety { margin: 0 0 28px; padding: 17px 18px; display: flex; gap: 14px; align-items: flex-start; border-radius: 16px; background: #fff0ed; border: 1px solid #f3b8ae; }
+    .safety strong { display: block; margin-bottom: 2px; }
+    .safety p { margin: 0; color: #743529; }
+    .safety-mark { flex: 0 0 auto; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--coral); font-weight: 900; }
+    .layout { padding-bottom: 70px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+    .card { border: 1px solid var(--line); border-radius: 22px; background: var(--white); box-shadow: 0 8px 30px rgba(11,23,36,.05); }
+    .report-card { padding: clamp(20px, 4vw, 34px); }
+    .card h2 { margin: 0; font-size: 28px; letter-spacing: -.04em; }
+    .intro { margin: 7px 0 24px; color: var(--muted); }
+    .field { margin-top: 17px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 800; }
+    input, select, textarea { width: 100%; border: 1px solid #cfc9bd; border-radius: 12px; background: white; color: var(--ink); padding: 12px 13px; outline: 0; }
+    input:focus, select:focus, textarea:focus { border-color: var(--mint-dark); box-shadow: 0 0 0 3px rgba(8,116,95,.12); }
+    textarea { min-height: 112px; resize: vertical; }
+    .search-wrap { position: relative; }
+    .search-results { position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 10; max-height: 280px; overflow: auto; border: 1px solid var(--line); border-radius: 13px; background: white; box-shadow: var(--shadow); }
+    .search-result { width: 100%; padding: 11px 13px; border: 0; border-bottom: 1px solid #eee9df; background: white; text-align: left; }
+    .search-result:hover { background: #f2fbf7; }
+    .search-result strong, .search-result span { display: block; }
+    .search-result span { color: var(--muted); font-size: 12px; }
+    .popular { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 20px; }
+    .popular button { min-height: 78px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: #fbfaf6; color: var(--ink); text-align: left; font-weight: 750; }
+    .popular button:hover { border-color: #8acdb9; background: #effcf7; }
+    .form-note { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
+    .emergency-note { margin-top: 15px; padding: 13px; border-radius: 12px; background: #fff0ed; border: 1px solid #f3b8ae; color: #743529; }
+    .actions { display: flex; align-items: center; gap: 12px; margin-top: 22px; }
+    .primary { min-height: 48px; padding: 12px 18px; border: 0; border-radius: 999px; background: var(--ink); color: white; font-weight: 850; }
+    .primary:hover { transform: translateY(-1px); }
+    .primary:disabled { opacity: .55; cursor: wait; transform: none; }
+    .privacy { color: var(--muted); font-size: 12px; }
+    .side { display: grid; gap: 16px; }
+    .status-card, .help-card { padding: 20px; }
+    .status-card h2 { font-size: 22px; }
+    .request-list { display: grid; gap: 10px; margin-top: 16px; }
+    .request { padding: 13px; border-radius: 13px; background: #f6f3ec; border: 1px solid #e4ded2; }
+    .request-top { display: flex; justify-content: space-between; gap: 12px; }
+    .request strong { font-size: 14px; }
+    .request p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .badge { flex: 0 0 auto; align-self: flex-start; padding: 4px 8px; border-radius: 999px; background: var(--amber); font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .05em; }
+    .badge.acknowledged, .badge.in_progress { background: var(--blue); }
+    .badge.resolved, .badge.closed { background: var(--mint); }
+    .empty { padding: 15px 0; color: var(--muted); font-size: 13px; }
+    .help-card { background: var(--ink); color: white; }
+    .help-card h3 { margin: 0 0 8px; }
+    .help-card p { margin: 0; color: #b8c5cf; font-size: 14px; }
+    .help-card a { display: inline-block; margin-top: 14px; color: var(--mint); font-weight: 800; }
+    .success { padding: 26px; text-align: center; }
+    .success-mark { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 50%; background: var(--mint); font-size: 26px; font-weight: 900; }
+    .success h2 { font-size: 26px; }
+    .success p { color: var(--muted); }
+    .link-button { border: 0; background: none; color: var(--mint-dark); font-weight: 800; text-decoration: underline; }
+    [hidden] { display: none !important; }
+    @media (max-width: 820px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .room-card { max-width: 360px; }
+      .side { grid-row: 2; }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 22px, 1080px); }
+      .topbar-inner { min-height: 60px; }
+      .property { max-width: 210px; }
+      .hero { padding-top: 36px; }
+      .field-grid { grid-template-columns: 1fr; gap: 0; }
+      .popular { grid-template-columns: 1fr 1fr; }
+      .actions { align-items: stretch; flex-direction: column; }
+      .primary { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <a class="brand" href="#report"><span class="brand-mark" aria-hidden="true"></span>InnRelay Guest</a>
+      <div class="property"><strong id="property-name">Exhibition Court Hotel</strong><span id="property-location">Guest service portal</span></div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <div id="connection" class="connection" role="status">Starting secure guest session…</div>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Tell us once · Follow it here</p>
+        <h1>Need something? Let the right team know.</h1>
+        <p>Report a request or problem in under a minute. Hotel staff can acknowledge it, assign it and update you here.</p>
+      </div>
+      <aside class="room-card"><span>Your room or location</span><strong id="room-display">Choose your room below</strong><button id="change-room" type="button">Choose or change room</button></aside>
+    </section>
+
+    <section class="safety" aria-label="Emergency guidance">
+      <div class="safety-mark">!</div>
+      <div><strong>Do not wait for the app in an emergency.</strong><p>For fire, smoke, serious illness, violence or immediate danger, call reception and emergency services first.</p></div>
+    </section>
+
+    <div class="layout">
+      <main id="report" class="card report-card">
+        <div id="report-panel">
+          <h2>What can we help with?</h2>
+          <p class="intro">Choose a common item, search the full catalogue, or describe something completely different.</p>
+
+          <div id="popular" class="popular" aria-label="Popular request categories"></div>
+
+          <div class="field search-wrap">
+            <label for="catalog-search">Search all requests and problems</label>
+            <input id="catalog-search" type="search" autocomplete="off" placeholder="Try towels, Wi-Fi, noise, breakfast…">
+            <div id="search-results" class="search-results" hidden></div>
+          </div>
+
+          <form id="guest-report-form">
+            <div class="field-grid">
+              <div class="field"><label for="guest-category">Category</label><select id="guest-category" required><option value="">Loading categories…</option></select></div>
+              <div class="field"><label for="guest-issue">Request or problem</label><select id="guest-issue" required><option value="">Choose a category first</option></select></div>
+            </div>
+            <div id="custom-issue-field" class="field" hidden><label for="custom-issue">What is the issue or request?</label><input id="custom-issue" maxlength="140" placeholder="Describe the item we did not list"></div>
+            <div class="field-grid">
+              <div class="field"><label for="guest-location">Your room number or location</label><input id="guest-location" required maxlength="80" autocomplete="off" placeholder="e.g. Room 208 or Lobby"><p class="form-note">You can change a room supplied by the QR code if it is not correct.</p></div>
+              <div class="field"><label for="guest-urgency">How soon?</label><select id="guest-urgency"><option value="normal">When possible</option><option value="soon">As soon as possible</option><option value="urgent">Urgent - guest affected now</option></select></div>
+            </div>
+            <div class="field"><label for="guest-description">Useful details</label><textarea id="guest-description" maxlength="1200" placeholder="Tell the team what happened, what is missing, or what you have already tried."></textarea><p class="form-note">Do not enter card numbers, passport details or other sensitive information.</p></div>
+            <div class="field-grid">
+              <div class="field"><label for="guest-name">Name (optional)</label><input id="guest-name" maxlength="80" autocomplete="name" placeholder="How should staff address you?"></div>
+              <div class="field"><label for="contact-preference">Preferred update</label><select id="contact-preference"><option value="app">Update me on this page</option><option value="room-phone">Call my room</option><option value="reception">I will speak to reception</option></select></div>
+            </div>
+            <div id="emergency-note" class="emergency-note" hidden><strong>Call first.</strong> This selection could involve immediate danger. Contact reception and emergency services before sending the report.</div>
+            <div class="actions">
+              <button id="submit-report" class="primary" type="submit">Send to hotel team</button>
+              <span class="privacy">Only this browser and authorised hotel staff can view the report.</span>
+            </div>
+          </form>
+        </div>
+
+        <section id="success-panel" class="success" hidden>
+          <div class="success-mark">✓</div>
+          <h2>Your report has reached the queue.</h2>
+          <p id="success-copy">The hotel team can now acknowledge and assign it.</p>
+          <button id="report-another" class="link-button" type="button">Send another request</button>
+        </section>
+      </main>
+
+      <aside class="side">
+        <section class="card status-card">
+          <h2>My requests</h2>
+          <p class="intro">Status updates from this stay appear here.</p>
+          <div id="request-list" class="request-list"><div class="empty">No requests sent from this browser yet.</div></div>
+        </section>
+        <section class="card help-card">
+          <h3>Prefer to speak to someone?</h3>
+          <p id="reception-copy">Use the room phone and select Reception.</p>
+          <a id="emergency-link" href="tel:999">Emergency services: 999</a>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <!-- The catalogue is embedded so this guest page also works when the HTML
+       is downloaded or previewed without its sibling JavaScript files. -->
+  <script>
+(function (global) {
+  "use strict";
+
+  var categories = [
+    {
+      key: "housekeeping-cleanliness",
+      label: "Housekeeping & room cleanliness",
+      group: "Room",
+      audience: "both",
+      issues: [
+        "Room not cleaned", "Room cleaned late", "Daily service missed", "Requested clean not completed",
+        "Do not disturb sign ignored", "Bed not made", "Dust on surfaces", "Dirty floor", "Carpet stained",
+        "Carpet wet", "Hair found in room", "Hair found in bathroom", "Bathroom not cleaned", "Toilet not cleaned",
+        "Shower or bath not cleaned", "Sink not cleaned", "Mirror marked", "Bin not emptied", "Rubbish left in room",
+        "Bad smell in room", "Smoke smell", "Food smell", "Damp or mould smell", "Mould visible",
+        "Insects or pest evidence", "Balcony or terrace dirty", "Window dirty", "Minibar area dirty",
+        "Cleaning chemicals left behind", "Cleaning equipment left behind", "Personal item moved during cleaning",
+        "Public corridor needs cleaning", "Stairwell needs cleaning", "Cleaning noise disturbing guest", "Deep clean required"
+      ]
+    },
+    {
+      key: "linen-towels-toiletries",
+      label: "Linen, towels & toiletries",
+      group: "Room",
+      audience: "both",
+      issues: [
+        "Extra bath towels requested", "Extra hand towels requested", "Extra face cloths requested", "Fresh towels requested",
+        "Towel missing", "Towel stained", "Towel damaged", "Towel damp on arrival", "Bath mat missing",
+        "Bed linen stained", "Bed linen torn", "Bed linen damp", "Bed linen not changed", "Duvet cover missing",
+        "Extra duvet requested", "Extra blanket requested", "Extra pillows requested", "Different pillow requested",
+        "Pillowcase missing or stained", "Mattress protector issue", "Bathrobe requested", "Slippers requested",
+        "Toilet roll missing", "Extra toilet roll requested", "Tissues missing", "Soap empty", "Shampoo empty",
+        "Conditioner empty", "Body wash empty", "Hand wash empty", "Dental kit requested", "Shaving kit requested",
+        "Sanitary products requested", "Shower cap requested", "Vanity kit requested", "Laundry bag requested"
+      ]
+    },
+    {
+      key: "bathroom-plumbing",
+      label: "Bathroom, water & plumbing",
+      group: "Room",
+      audience: "both",
+      issues: [
+        "No hot water", "Hot water takes too long", "Water too hot", "Water temperature fluctuates",
+        "Low water pressure", "No water", "Shower leaking", "Shower head damaged", "Shower hose damaged",
+        "Shower controls not working", "Shower door not closing", "Bath leaking", "Bath plug missing or faulty",
+        "Tap leaking", "Tap loose", "Sink blocked or draining slowly", "Bath blocked or draining slowly",
+        "Shower drain blocked", "Drain smell", "Toilet not flushing", "Toilet blocked", "Toilet running continuously",
+        "Toilet seat loose or damaged", "Bidet not working", "Bathroom extractor not working", "Bathroom flooding",
+        "Water leak from ceiling", "Water leak from wall", "Pipe noise", "Bathroom sealant damaged",
+        "Grab rail loose", "Bathroom door or lock faulty", "Towel rail not heating", "Bathroom floor slippery",
+        "Water quality or colour concern"
+      ]
+    },
+    {
+      key: "heating-cooling-air",
+      label: "Heating, cooling & air quality",
+      group: "Room",
+      audience: "both",
+      issues: [
+        "Room too hot", "Room too cold", "Air conditioning not cooling", "Air conditioning not heating",
+        "Air conditioning not turning on", "Air conditioning noisy", "Air conditioning leaking", "Thermostat not working",
+        "Radiator not heating", "Radiator too hot", "Radiator leaking", "Fan not working", "Ventilation poor",
+        "Room feels stuffy", "Humidity too high", "Condensation", "Draft from window", "Draft from door",
+        "Strong odour from ventilation", "Dust from air vent", "Air quality concern", "Portable heater requested",
+        "Portable fan requested", "Window will not open", "Window will not close", "Climate control instructions needed"
+      ]
+    },
+    {
+      key: "electrical-lighting",
+      label: "Electricity, lighting & charging",
+      group: "Room",
+      audience: "both",
+      issues: [
+        "No electricity in room", "Partial power loss", "Power keeps tripping", "Socket not working",
+        "Socket loose or damaged", "USB charging point not working", "Bedside charging not working",
+        "Main room light not working", "Bedside lamp not working", "Bathroom light not working",
+        "Mirror light not working", "Wardrobe light not working", "Light flickering", "Light switch not working",
+        "Lights will not turn off", "Lights too dim", "Emergency light fault", "Hairdryer not working",
+        "Iron not working", "Kettle not working", "Coffee machine not working", "Electrical burning smell",
+        "Electrical sparking", "Exposed wire or damaged cable", "Adapter requested", "Extension lead requested",
+        "EV charging point problem"
+      ]
+    },
+    {
+      key: "room-furniture-fixtures",
+      label: "Room furniture & fixtures",
+      group: "Room",
+      audience: "both",
+      issues: [
+        "Bed uncomfortable", "Mattress damaged", "Mattress too firm", "Mattress too soft", "Bed frame damaged",
+        "Bed or headboard noisy", "Sofa bed problem", "Cot problem", "Chair damaged", "Desk damaged",
+        "Bedside table damaged", "Wardrobe door faulty", "Wardrobe hanger missing", "Drawer faulty",
+        "Curtain damaged", "Curtain will not close", "Blind damaged", "Blind will not close", "Window damaged",
+        "Window seal damaged", "Mirror damaged", "Wall or paint damaged", "Ceiling damaged", "Floor damaged",
+        "Carpet trip hazard", "Door stop damaged", "Balcony furniture damaged", "Balcony door faulty",
+        "Minibar cabinet faulty", "Safe shelf or fitting damaged", "Luggage rack requested", "Furniture item missing",
+        "Room layout obstructed", "Sharp edge or broken fitting"
+      ]
+    },
+    {
+      key: "wifi-tv-phone-technology",
+      label: "Wi-Fi, TV, phone & room technology",
+      group: "Technology",
+      audience: "both",
+      issues: [
+        "Wi-Fi will not connect", "Wi-Fi password not working", "Wi-Fi very slow", "Wi-Fi keeps disconnecting",
+        "Wi-Fi weak in room", "Internet outage", "Guest portal will not load", "TV will not turn on",
+        "TV has no picture", "TV has no sound", "TV remote missing", "TV remote not working",
+        "TV channels missing", "TV signal breaking up", "Casting or streaming not working", "HDMI input not working",
+        "Hotel information screen incorrect", "Room telephone not working", "Room telephone has no dial tone",
+        "Cannot call reception", "Voicemail light or message problem", "Alarm clock not working",
+        "Wake-up call not received", "Smart-room controls not working", "Tablet or digital directory not working",
+        "Bluetooth speaker not connecting", "Device charging station not working", "Technology instructions needed"
+      ]
+    },
+    {
+      key: "doors-keys-security",
+      label: "Doors, keys, safe & room security",
+      group: "Access & safety",
+      audience: "both",
+      issues: [
+        "Key card not working", "Key card works intermittently", "Key card lost", "Mobile key not working",
+        "Room door will not open", "Room door will not close", "Room door will not lock", "Door lock loose",
+        "Door latch or chain damaged", "Door closer not working", "Peephole damaged or blocked",
+        "Balcony door will not lock", "Window lock faulty", "Connecting door concern", "Safe will not open",
+        "Safe will not lock", "Safe code forgotten", "Safe damaged", "Suspicious person near room",
+        "Unauthorised entry concern", "Someone tried the room door", "Item may have been stolen",
+        "Security escort requested", "Privacy concern", "CCTV question", "Master key concern",
+        "Entrance door not secure", "Fire door not closing", "Emergency exit obstructed"
+      ]
+    },
+    {
+      key: "noise-disturbance",
+      label: "Noise & disturbance",
+      group: "Stay",
+      audience: "both",
+      issues: [
+        "Noise from neighbouring room", "Loud music", "Loud television", "Party in room", "Shouting or arguing",
+        "Corridor noise", "Door slamming", "Children running in corridor", "Noise from bar or restaurant",
+        "Noise from event", "Street or traffic noise", "Construction noise", "Delivery noise", "Lift noise",
+        "Plant or machinery noise", "Air conditioning noise", "Plumbing noise", "Cleaning noise",
+        "Staff noise", "Dog barking", "Alarm sounding", "Repeated nuisance calls", "Guest disturbance or threatening behaviour",
+        "Quiet-room move requested", "Earplugs requested"
+      ]
+    },
+    {
+      key: "reception-reservations-checkin",
+      label: "Reception, reservation & check-in",
+      group: "Guest services",
+      audience: "both",
+      issues: [
+        "Reservation not found", "Reservation details incorrect", "Wrong room type", "Wrong bed type",
+        "Number of guests incorrect", "Special request missing", "Accessible room request missing",
+        "Connecting rooms request missing", "Early check-in request", "Late check-out request", "Room not ready",
+        "Check-in queue too long", "Check-in taking too long", "Identity check question", "Deposit question",
+        "Booking amendment requested", "Stay extension requested", "Room move requested", "Room upgrade requested",
+        "Downgrade or room change concern", "No-show or cancellation dispute", "Third-party booking issue",
+        "Loyalty benefit missing", "Welcome amenity missing", "Guest name incorrect", "Departure information requested",
+        "Reception not answering", "Overbooking or relocation concern"
+      ]
+    },
+    {
+      key: "billing-payments-refunds",
+      label: "Bill, payment, deposit & refund",
+      group: "Guest services",
+      audience: "both",
+      issues: [
+        "Charge not recognised", "Room rate incorrect", "Tax or fee question", "Duplicate charge", "Deposit charged incorrectly",
+        "Deposit release pending", "Refund pending", "Refund amount incorrect", "Restaurant charge incorrect",
+        "Bar charge incorrect", "Minibar charge disputed", "Parking charge incorrect", "Spa charge incorrect",
+        "Extra-night charge incorrect", "No-show charge disputed", "Cancellation fee disputed", "Card payment declined",
+        "Card machine not working", "Cash payment question", "Invoice requested", "Invoice details incorrect",
+        "Company billing issue", "Split bill requested", "Receipt requested", "Currency conversion question",
+        "Pre-authorisation question", "Payment link problem", "Voucher or gift card not accepted", "Service charge question"
+      ]
+    },
+    {
+      key: "guest-service-requests",
+      label: "Guest service & room requests",
+      group: "Guest services",
+      audience: "both",
+      issues: [
+        "Wake-up call requested", "Luggage assistance requested", "Luggage storage requested", "Ice requested",
+        "Drinking water requested", "Extra cups or glasses requested", "Tea or coffee supplies requested",
+        "Milk requested", "Room directory or hotel information requested", "Local information requested",
+        "Restaurant recommendation requested", "Taxi requested", "Print or copy requested", "Parcel collection requested",
+        "Message delivery requested", "Maintenance visit requested", "Housekeeping visit requested",
+        "Privacy or no-service request", "Celebration setup requested", "Birthday or anniversary request",
+        "Prayer mat requested", "Sewing kit requested", "Umbrella requested", "Phone charger requested",
+        "Scales requested", "First-aid item requested", "Guest wants to speak to a manager"
+      ]
+    },
+    {
+      key: "breakfast",
+      label: "Breakfast",
+      group: "Food & drink",
+      audience: "both",
+      issues: [
+        "Breakfast opening time question", "Breakfast location question", "Breakfast not included", "Breakfast charge incorrect",
+        "Breakfast queue too long", "Table not available", "Table not clean", "Breakfast item unavailable",
+        "Hot food cold", "Food overcooked", "Food undercooked", "Food quality concern", "Coffee cold",
+        "Coffee machine fault", "Tea supplies missing", "Juice unavailable", "Milk unavailable",
+        "Cutlery missing or dirty", "Plate or bowl dirty", "Chipped plate or cup", "Glass dirty",
+        "Condiments missing", "High chair requested", "Dietary option unavailable", "Allergen information requested",
+        "Takeaway breakfast requested", "Early breakfast requested", "Breakfast service slow", "Breakfast staff concern"
+      ]
+    },
+    {
+      key: "restaurant-room-service",
+      label: "Restaurant & room service",
+      group: "Food & drink",
+      audience: "both",
+      issues: [
+        "Restaurant reservation requested", "Restaurant reservation missing", "Table not ready", "Restaurant queue too long",
+        "Order not taken", "Order taking too long", "Food delivery taking too long", "Wrong dish delivered",
+        "Item missing from order", "Food cold", "Food overcooked", "Food undercooked", "Food quality concern",
+        "Portion concern", "Menu item unavailable", "Room service menu missing", "Room service not answering",
+        "Room service tray not collected", "Cutlery missing", "Napkins missing", "Condiments missing",
+        "Table or tray dirty", "Chipped crockery", "Bill incorrect", "Service charge question", "Restaurant staff concern",
+        "Private dining request", "Child meal requested", "Dietary meal requested"
+      ]
+    },
+    {
+      key: "bar-beverages",
+      label: "Bar & beverages",
+      group: "Food & drink",
+      audience: "both",
+      issues: [
+        "Bar opening time question", "Bar closed unexpectedly", "Waiting too long at bar", "Drink order delayed",
+        "Wrong drink served", "Drink quality concern", "Beer tastes unusual", "Beer temperature concern",
+        "Wine temperature concern", "Coffee quality concern", "Coffee machine fault", "Drink unavailable",
+        "Ice unavailable", "Glass dirty", "Glass chipped", "Table dirty", "Bar area untidy",
+        "Bill incorrect", "Card payment problem", "Alcohol-free option requested", "Bar snack unavailable",
+        "Noise from bar", "Bar staff concern", "Possible intoxication concern", "Suspected drink tampering"
+      ]
+    },
+    {
+      key: "food-allergy-dietary-safety",
+      label: "Food allergy, dietary need & food safety",
+      group: "Food & drink",
+      audience: "both",
+      issues: [
+        "Allergen information requested", "Allergy not recorded", "Allergy request not followed",
+        "Possible allergic reaction", "Cross-contamination concern", "Food labelling concern", "Undercooked food safety concern",
+        "Foreign object in food", "Food appears spoiled", "Food smells unusual", "Food temperature safety concern",
+        "Vegan option requested", "Vegetarian option requested", "Gluten-free option requested", "Dairy-free option requested",
+        "Halal option requested", "Kosher option requested", "Nut-free option requested", "Low-salt option requested",
+        "Diabetic-friendly option requested", "Texture-modified meal requested", "Baby food heating requested",
+        "Dietary request unavailable", "Kitchen hygiene concern", "Suspected food poisoning"
+      ]
+    },
+    {
+      key: "minibar-vending-retail",
+      label: "Minibar, vending & hotel shop",
+      group: "Food & drink",
+      audience: "both",
+      issues: [
+        "Minibar empty", "Minibar item missing", "Minibar item expired", "Minibar not cooling", "Minibar noisy",
+        "Minibar charge disputed", "Minibar price question", "Vending machine out of order", "Vending machine not accepting payment",
+        "Vending machine kept money", "Vending item stuck", "Vending item out of stock", "Vending item expired",
+        "Ice machine out of order", "Water dispenser out of order", "Hotel shop closed", "Shop item unavailable",
+        "Shop price or payment issue", "Bottle opener requested", "Fridge requested for medication"
+      ]
+    },
+    {
+      key: "public-areas-lifts",
+      label: "Public areas, corridors, stairs & lifts",
+      group: "Property",
+      audience: "both",
+      issues: [
+        "Lift out of service", "Lift delayed", "Lift stopped unexpectedly", "Lift door problem", "Lift alarm concern",
+        "Escalator problem", "Corridor dirty", "Corridor obstruction", "Corridor lighting fault", "Stairwell lighting fault",
+        "Stair or handrail damaged", "Floor wet or slippery", "Trip hazard", "Public toilet dirty", "Public toilet blocked",
+        "Public toilet supplies missing", "Lobby seating unavailable", "Lobby too hot or cold", "Lobby noise",
+        "Entrance door problem", "Revolving door problem", "Signage unclear or missing", "Wayfinding assistance requested",
+        "Smoking in non-smoking area", "Public area furniture damaged", "Ceiling leak in public area"
+      ]
+    },
+    {
+      key: "parking-arrival-transport",
+      label: "Parking, arrival & transport",
+      group: "Arrival",
+      audience: "both",
+      issues: [
+        "Hotel entrance difficult to find", "Parking location question", "Parking full", "Parking space unavailable",
+        "Accessible parking unavailable", "Parking barrier not working", "Parking ticket or validation problem",
+        "Parking charge question", "Vehicle damage concern", "Vehicle security concern", "EV charger not working",
+        "Valet service delayed", "Valet vehicle retrieval issue", "Taxi requested", "Taxi delayed or missing",
+        "Airport transfer requested", "Transfer delayed or missing", "Shuttle information requested", "Shuttle full",
+        "Drop-off area blocked", "Luggage unloading assistance requested", "Coach parking issue", "Bicycle storage requested",
+        "Motorcycle parking requested", "Directions requested"
+      ]
+    },
+    {
+      key: "accessibility-mobility",
+      label: "Accessibility & mobility",
+      group: "Access & safety",
+      audience: "both",
+      issues: [
+        "Step-free route unavailable", "Accessible entrance problem", "Accessible parking unavailable",
+        "Accessible room not prepared", "Accessible room feature missing", "Wheelchair route obstructed",
+        "Lift unavailable affects access", "Ramp damaged or too steep", "Grab rail loose or missing",
+        "Shower chair requested", "Raised toilet seat requested", "Portable ramp requested", "Wheelchair requested",
+        "Mobility scooter storage requested", "Hearing loop not working", "Visual alarm concern", "Braille signage missing",
+        "Large-print information requested", "Sign-language support requested", "Quiet check-in requested",
+        "Assistance animal concern", "Accessible table unavailable", "Evacuation assistance plan needed",
+        "Carer or companion room issue", "Medication refrigeration requested"
+      ]
+    },
+    {
+      key: "family-children",
+      label: "Family, baby & children",
+      group: "Guest services",
+      audience: "both",
+      issues: [
+        "Cot requested", "Cot missing", "Cot damaged or unsafe", "Extra bed requested", "Extra bed missing",
+        "High chair requested", "Baby bath requested", "Bottle warming requested", "Baby food heating requested",
+        "Nappy bin requested", "Changing facility question", "Childproofing request", "Connecting rooms request",
+        "Children's menu requested", "Children's activity information requested", "Child lost or separated",
+        "Baby monitor question", "Family room setup incorrect", "Child bedding missing", "Pool child-safety concern",
+        "Babysitting information requested", "Pushchair storage requested"
+      ]
+    },
+    {
+      key: "pets-assistance-animals",
+      label: "Pets & assistance animals",
+      group: "Guest services",
+      audience: "both",
+      issues: [
+        "Pet policy question", "Pet fee question", "Pet-friendly room not prepared", "Pet bed requested",
+        "Pet bowl requested", "Pet waste bags requested", "Pet cleaning concern", "Pet noise complaint",
+        "Pet left unattended", "Pet damage concern", "Pet relief area question", "Assistance animal access concern",
+        "Assistance animal room setup", "Pet allergy room concern", "Veterinary information requested"
+      ]
+    },
+    {
+      key: "laundry-dry-cleaning",
+      label: "Laundry, ironing & dry cleaning",
+      group: "Guest services",
+      audience: "both",
+      issues: [
+        "Laundry collection requested", "Laundry not collected", "Laundry delayed", "Laundry item missing",
+        "Laundry item damaged", "Laundry returned stained", "Laundry charge incorrect", "Laundry form missing",
+        "Laundry bag missing", "Dry-cleaning request", "Dry cleaning delayed", "Iron requested", "Iron damaged",
+        "Ironing board requested", "Ironing board damaged", "Self-service laundry question", "Washing machine out of order",
+        "Dryer out of order", "Detergent unavailable", "Clothes drying request"
+      ]
+    },
+    {
+      key: "lost-property-deliveries",
+      label: "Lost property, parcels & deliveries",
+      group: "Guest services",
+      audience: "both",
+      issues: [
+        "Item lost in room", "Item lost in public area", "Item left after checkout", "Lost item search update requested",
+        "Found item to hand in", "Lost property return requested", "Courier collection requested", "Parcel expected",
+        "Parcel not found", "Parcel delivered to wrong guest", "Food delivery arrival question", "Food delivery not allowed upstairs",
+        "Flower delivery expected", "Luggage delivery delayed", "Mail or letter expected", "Secure item storage requested",
+        "Passport or identity document lost", "Phone or device lost", "Room key lost", "Vehicle key lost"
+      ]
+    },
+    {
+      key: "meetings-events-business",
+      label: "Meetings, events & business services",
+      group: "Events",
+      audience: "both",
+      issues: [
+        "Meeting room not ready", "Meeting room locked", "Room layout incorrect", "Chairs or tables missing",
+        "Projector not working", "Display screen not working", "HDMI or adapter missing", "Microphone not working",
+        "Sound system not working", "Video conference not working", "Event Wi-Fi problem", "Power socket problem",
+        "Lighting problem", "Room too hot or cold", "Catering delayed", "Catering item missing",
+        "Dietary requirement missed", "Water or refreshments missing", "Flipchart or stationery missing",
+        "Printing requested", "Business centre equipment fault", "Event signage missing", "Delegate registration issue",
+        "Event noise complaint", "Private event access concern", "Invoice or event billing issue", "Wedding or celebration setup issue"
+      ]
+    },
+    {
+      key: "spa-gym-pool-leisure",
+      label: "Spa, gym, pool & leisure",
+      group: "Leisure",
+      audience: "both",
+      issues: [
+        "Spa booking requested", "Spa booking missing", "Spa treatment delayed", "Treatment concern",
+        "Changing room dirty", "Locker not working", "Towel unavailable", "Robe or slippers unavailable",
+        "Pool closed", "Pool temperature concern", "Pool cleanliness concern", "Pool safety concern",
+        "Sauna not working", "Steam room not working", "Hot tub not working", "Gym closed",
+        "Gym equipment out of order", "Gym equipment unsafe", "Gym cleanliness concern", "Water station empty",
+        "Leisure area too hot or cold", "Noise in leisure area", "Class booking issue", "Age restriction question",
+        "Accessibility problem in leisure area", "Spa or leisure charge incorrect"
+      ]
+    },
+    {
+      key: "outdoor-grounds-smoking",
+      label: "Outdoor areas, grounds & smoking",
+      group: "Property",
+      audience: "both",
+      issues: [
+        "Outdoor area dirty", "Terrace table dirty", "Outdoor furniture damaged", "Garden lighting fault",
+        "Path obstructed", "Path slippery or icy", "Uneven paving or trip hazard", "Flooding outside",
+        "Smoking area location question", "Smoking outside designated area", "Cigarette smoke entering room",
+        "Ashtray overflowing", "Noise from outdoor area", "Outdoor heater not working", "Outdoor area closed",
+        "Gate or fence damaged", "Poor external signage", "Snow or ice clearance needed", "Animal or bird nuisance"
+      ]
+    },
+    {
+      key: "staff-service-recovery",
+      label: "Staff service, conduct & complaint",
+      group: "Guest services",
+      audience: "both",
+      issues: [
+        "Staff member was helpful - compliment", "Guest felt unwelcome", "Staff member was rude", "Staff communication unclear",
+        "Request was ignored", "Request was forgotten", "Promised callback not received", "Complaint follow-up delayed",
+        "No ownership of issue", "Conflicting information provided", "Privacy concern involving staff",
+        "Discrimination concern", "Harassment concern", "Language support needed", "Manager requested",
+        "Service recovery offer not delivered", "Compensation or goodwill request", "Complaint about contractor",
+        "Complaint about another guest handling", "General complaint", "General compliment or feedback"
+      ]
+    },
+    {
+      key: "medical-safety-emergency",
+      label: "Medical, fire, safety or emergency",
+      group: "Access & safety",
+      audience: "both",
+      emergency: true,
+      issues: [
+        "Medical emergency", "Guest injury", "Guest feeling unwell", "Allergic reaction", "Suspected food poisoning",
+        "Fire or smoke seen", "Fire alarm sounding", "Burning smell", "Gas smell", "Carbon monoxide alarm",
+        "Flooding or major water leak", "Electrical sparking or fire risk", "Person trapped in lift",
+        "Missing child or vulnerable person", "Threatening or violent behaviour", "Domestic abuse concern",
+        "Suspected theft in progress", "Suspicious package", "Weapon concern", "Drug-related concern",
+        "Self-harm or welfare concern", "Guest cannot be contacted and welfare check needed", "Slip, trip or fall",
+        "Unsafe balcony or window", "Blocked fire exit", "Emergency exit door fault", "Evacuation assistance needed",
+        "First aid requested", "Police requested", "Ambulance requested", "Fire service requested"
+      ]
+    },
+    {
+      key: "pest-hygiene-environment",
+      label: "Pest, hygiene & environmental concern",
+      group: "Property",
+      audience: "both",
+      issues: [
+        "Bedbug concern", "Cockroach sighting", "Rodent sighting", "Ants in room", "Flies or insects",
+        "Mosquito concern", "Bird inside building", "Pest evidence or droppings", "Bite or sting concern",
+        "Mould visible", "Damp patch", "Sewage smell", "Waste smell", "Overflowing rubbish",
+        "Needle or sharp object found", "Bodily fluid contamination", "Biohazard concern", "Water quality concern",
+        "Legionella or water hygiene concern", "Chemical smell", "Chemical spill", "Air pollution or smoke concern",
+        "Excessive dust", "Food waste hygiene concern"
+      ]
+    },
+    {
+      key: "sustainability-waste",
+      label: "Sustainability, recycling & waste",
+      group: "Property",
+      audience: "both",
+      issues: [
+        "Recycling information requested", "Recycling bin missing", "Waste not collected", "Bin overflowing",
+        "Food waste concern", "Water leak or waste", "Lights left on", "Heating or cooling waste concern",
+        "Towel reuse request not followed", "Linen reuse request not followed", "Single-use plastic concern",
+        "Electric vehicle charging question", "Bicycle facility question", "Sustainability policy question",
+        "Noise or light pollution concern", "Environmental complaint or suggestion"
+      ]
+    },
+    {
+      key: "building-maintenance",
+      label: "Building, maintenance & structural issue",
+      group: "Operations",
+      audience: "staff",
+      issues: [
+        "Roof leak", "Ceiling leak", "Burst pipe", "Major water ingress", "Wall crack", "Ceiling crack",
+        "Loose tile", "Damaged flooring", "Broken window", "Damaged glazing", "Door frame damaged",
+        "Ceiling panel loose", "External cladding concern", "Drain or gutter blocked", "Sewage backup",
+        "Boiler fault", "Hot-water plant fault", "HVAC plant fault", "Pump fault", "Generator fault",
+        "Building management system alarm", "Plant room alarm", "Gas supply fault", "Water supply fault",
+        "Contractor visit overdue", "Preventive maintenance overdue", "Room requires out-of-order status",
+        "Area requires isolation", "Structural safety concern"
+      ]
+    },
+    {
+      key: "kitchen-food-operations",
+      label: "Kitchen & food operations",
+      group: "Operations",
+      audience: "staff",
+      issues: [
+        "Fridge temperature out of range", "Freezer temperature out of range", "Hot-hold temperature out of range",
+        "Chilled delivery temperature out of range", "Food probe missing or faulty", "Temperature record missed",
+        "Fridge or freezer door not sealing", "Kitchen equipment out of order", "Dishwasher fault", "Extraction fault",
+        "Grease trap issue", "Food stock unavailable", "Food stock low", "Food item expired", "Incorrect date label",
+        "Allergen matrix out of date", "Allergen briefing gap", "Cross-contamination risk", "Cleaning schedule missed",
+        "Pest evidence in kitchen", "Waste collection overdue", "Broken or chipped crockery", "Cutlery not polished",
+        "Glassware not clean", "Breakfast setup incomplete", "Delivery missing or incorrect", "Supplier quality issue",
+        "Beer line cleaning overdue", "Beer nozzle cleaning missed", "Beer container cleaning issue"
+      ]
+    },
+    {
+      key: "stock-supplies",
+      label: "Stock, supplies & purchasing",
+      group: "Operations",
+      audience: "staff",
+      issues: [
+        "Housekeeping stock low", "Housekeeping stock unavailable", "Linen stock low", "Towel stock low",
+        "Toiletry stock low", "Cleaning chemical stock low", "Reception stationery low", "Key-card stock low",
+        "Breakfast stock low", "Restaurant stock low", "Bar stock low", "Vending stock low", "Minibar stock low",
+        "Maintenance spare part unavailable", "First-aid stock low", "Fire-safety consumable missing",
+        "Delivery overdue", "Delivery short", "Delivery damaged", "Wrong item delivered", "Purchase order issue",
+        "Supplier unavailable", "Stock count variance", "Stock item expired", "Storage area disorganised",
+        "Cold storage capacity issue", "Secure storage issue"
+      ]
+    },
+    {
+      key: "cash-pos-financial",
+      label: "Cash, tills, POS & financial control",
+      group: "Operations",
+      audience: "staff",
+      issues: [
+        "Till below target float", "Till count variance", "Cash-up variance", "Cash drop not completed",
+        "Cash pod number missing", "Cash pod colour missing", "Cash pod unavailable", "Safe access problem",
+        "Safe count variance", "Petty cash variance", "Card machine offline", "Card machine paper low",
+        "POS terminal offline", "POS order not printing", "Payment posted to wrong room", "Refund pending approval",
+        "Chargeback received", "Invoice posting problem", "Night audit imbalance", "Revenue report mismatch",
+        "Cash collection delayed", "Suspicious or counterfeit note", "Receipt printer fault", "Manager approval required"
+      ]
+    },
+    {
+      key: "hotel-systems-it",
+      label: "Hotel systems, IT & communications",
+      group: "Operations",
+      audience: "staff",
+      issues: [
+        "PMS not responding", "PMS login problem", "PMS interface not updating", "Reservation channel not syncing",
+        "OTA booking not received", "Rate or availability mismatch", "Door-lock encoder fault", "Key-card system outage",
+        "Staff Wi-Fi outage", "Hotel internet outage", "Network equipment alarm", "Telephone system outage",
+        "Reception phone fault", "Radio or walkie-talkie fault", "Printer not working", "Scanner not working",
+        "Email unavailable", "Shared drive unavailable", "Staff tablet fault", "Staff mobile device fault",
+        "CCTV system fault", "Access-control system fault", "Sound system fault", "Digital signage fault",
+        "Guest messaging not sending", "Data export or backup failed", "Cybersecurity concern", "Suspected phishing email",
+        "Account access or password problem"
+      ]
+    },
+    {
+      key: "fire-life-safety-compliance",
+      label: "Fire, life safety & compliance",
+      group: "Operations",
+      audience: "staff",
+      emergency: true,
+      issues: [
+        "Fire alarm activation", "Fire panel fault", "Fire detector fault", "Manual call point fault",
+        "Fire alarm test overdue", "Fire walk missed", "Fire exit obstructed", "Fire door propped open",
+        "Fire door not closing", "Emergency lighting fault", "Exit sign damaged", "Extinguisher missing or damaged",
+        "Fire blanket missing or damaged", "Sprinkler concern", "Smoke-control system fault", "Evacuation chair missing or faulty",
+        "Evacuation plan unavailable", "Guest evacuation assistance not recorded", "First-aid kit incomplete",
+        "Accident report required", "RIDDOR review required", "COSHH record issue", "Risk assessment overdue",
+        "Safety inspection overdue", "Licence or certificate expiry", "Pool safety check missed", "Security patrol missed",
+        "Lone-worker check missed", "Emergency contact list out of date"
+      ]
+    },
+    {
+      key: "security-incident",
+      label: "Security incident & safeguarding",
+      group: "Operations",
+      audience: "staff",
+      emergency: true,
+      issues: [
+        "Unauthorised person on property", "Aggressive or violent person", "Domestic abuse concern", "Child safeguarding concern",
+        "Vulnerable adult concern", "Missing person", "Welfare check required", "Theft reported", "Burglary concern",
+        "Fraud or payment concern", "Drug use or dealing concern", "Weapon concern", "Suspicious package",
+        "Bomb threat", "Police attendance", "Ambulance attendance", "Fire service attendance", "Guest ejection required",
+        "Banned guest identified", "Room occupancy concern", "Human trafficking concern", "Modern slavery concern",
+        "CCTV footage request", "Master key lost", "Staff key lost", "Data or privacy incident", "Noise escalation required",
+        "Night entrance control problem"
+      ]
+    },
+    {
+      key: "staffing-operations",
+      label: "Staffing, shift & operational continuity",
+      group: "Operations",
+      audience: "staff",
+      issues: [
+        "Shift handover incomplete", "Open issue has no owner", "Guest callback overdue", "Scheduled shift check missed",
+        "End-of-shift process delayed", "Staff absence", "Shift understaffed", "Agency staff required",
+        "Department cover unavailable", "Training gap identified", "Uniform or PPE unavailable", "Radio not issued",
+        "Staff meal issue", "Break cover problem", "Contractor late or absent", "Manager escalation required",
+        "Daily briefing missed", "VIP or special-arrival briefing missed", "Group arrival plan incomplete",
+        "Event staffing issue", "Housekeeping room-release delay", "Maintenance response delay", "Reception queue escalation",
+        "Guest recovery action overdue", "Policy or procedure unclear"
+      ]
+    }
+  ];
+
+  function slugify(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80);
+  }
+
+  function flatten(options) {
+    var audience = options && options.audience;
+    var rows = [];
+    categories.forEach(function (category) {
+      if (audience === "guest" && category.audience === "staff") return;
+      category.issues.forEach(function (issue) {
+        rows.push({
+          code: category.key + ":" + slugify(issue),
+          label: issue,
+          categoryKey: category.key,
+          categoryLabel: category.label,
+          group: category.group,
+          audience: category.audience,
+          emergency: Boolean(category.emergency)
+        });
+      });
+    });
+    return rows;
+  }
+
+  function toIssueLibrary(options) {
+    var guestOnly = options && options.guestOnly;
+    var result = {};
+    categories.forEach(function (category) {
+      if (guestOnly && category.audience === "staff") return;
+      result[category.label] = category.issues.slice().concat(["Other / something else"]);
+    });
+    return result;
+  }
+
+  function search(query, options) {
+    var term = String(query || "").trim().toLowerCase();
+    var rows = flatten(options);
+    if (!term) return rows;
+    return rows.filter(function (row) {
+      return [row.label, row.categoryLabel, row.group].join(" ").toLowerCase().indexOf(term) > -1;
+    });
+  }
+
+  var allIssues = flatten();
+  var guestIssues = flatten({ audience: "guest" });
+
+  global.InnRelayCatalog = {
+    version: "2026.07.13",
+    categories: categories,
+    guestCategories: categories.filter(function (category) { return category.audience !== "staff"; }),
+    slugify: slugify,
+    flatten: flatten,
+    search: search,
+    toIssueLibrary: toIssueLibrary,
+    stats: {
+      categories: categories.length,
+      issues: allIssues.length,
+      guestCategories: categories.filter(function (category) { return category.audience !== "staff"; }).length,
+      guestIssues: guestIssues.length
+    }
+  };
+}(window));
+  </script>
+  <script src="./innrelay-supabase-config.js"></script>
+  <script>
+    // Public fallback configuration keeps the single-file guest build usable
+    // when it is previewed or downloaded without its sibling config file.
+    window.INNRELAY_CONFIG = window.INNRELAY_CONFIG || {
+      supabaseUrl: "https://bkwzfoleuwhnuhqzxyqo.supabase.co",
+      supabasePublishableKey: "sb_publishable_hWv_41IDXZ4LsWaHLFHKXA_NkDI8QTf",
+      propertySlug: "exhibition-court",
+      propertyName: "Exhibition Court Hotel",
+      receptionPhone: "Use the room phone and select Reception",
+      emergencyNumber: "999",
+      demoMode: false,
+      catalogueVersion: "2026.07.13"
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var config = window.INNRELAY_CONFIG || {};
+      var catalog = window.InnRelayCatalog;
+      var params = new URLSearchParams(window.location.search);
+      var DEMO_KEY = "innrelay_guest_reports_v1";
+      var client = null;
+      var sessionUser = null;
+      var property = null;
+      var channel = null;
+      var broadcast = "BroadcastChannel" in window ? new BroadcastChannel("innrelay-guest-reports") : null;
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (character) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character];
+        });
+      }
+
+      function setConnection(message, state) {
+        var target = document.getElementById("connection");
+        target.textContent = message;
+        target.className = "connection" + (state ? " " + state : "");
+      }
+
+      function statusLabel(value) {
+        return {
+          reported: "Sent", acknowledged: "Acknowledged", in_progress: "In progress",
+          waiting_guest: "Needs your reply", resolved: "Resolved", closed: "Closed", cancelled: "Cancelled"
+        }[value] || String(value || "Sent").replace(/_/g, " ");
+      }
+
+      function formatDate(value) {
+        try { return new Date(value).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }); }
+        catch (error) { return value || "Just now"; }
+      }
+
+      function demoReports() {
+        try { return JSON.parse(window.localStorage.getItem(DEMO_KEY) || "[]"); }
+        catch (error) { return []; }
+      }
+
+      function saveDemoReports(rows) {
+        window.localStorage.setItem(DEMO_KEY, JSON.stringify(rows));
+        if (broadcast) broadcast.postMessage({ type: "reports-changed" });
+      }
+
+      function currentCategory() {
+        var key = document.getElementById("guest-category").value;
+        return catalog.guestCategories.filter(function (item) { return item.key === key; })[0];
+      }
+
+      function populateIssues(selectedLabel) {
+        var category = currentCategory();
+        var target = document.getElementById("guest-issue");
+        target.innerHTML = "";
+        (category ? category.issues : []).concat(["Other / something else"]).forEach(function (label) {
+          var option = document.createElement("option");
+          option.value = label;
+          option.textContent = label;
+          target.appendChild(option);
+        });
+        if (selectedLabel && Array.prototype.some.call(target.options, function (item) { return item.value === selectedLabel; })) target.value = selectedLabel;
+        updateCustomAndEmergency();
+      }
+
+      function updateCustomAndEmergency() {
+        var category = currentCategory();
+        var custom = document.getElementById("guest-issue").value === "Other / something else";
+        document.getElementById("custom-issue-field").hidden = !custom;
+        document.getElementById("custom-issue").required = custom;
+        document.getElementById("emergency-note").hidden = !(category && category.emergency);
+      }
+
+      function chooseIssue(categoryKey, label) {
+        document.getElementById("guest-category").value = categoryKey;
+        populateIssues(label);
+        document.getElementById("catalog-search").value = label || "";
+        document.getElementById("search-results").hidden = true;
+        document.getElementById("guest-issue").focus();
+      }
+
+      function renderSearch() {
+        var query = document.getElementById("catalog-search").value.trim();
+        var target = document.getElementById("search-results");
+        if (query.length < 2) { target.hidden = true; target.innerHTML = ""; return; }
+        var rows = catalog.search(query, { audience: "guest" }).slice(0, 14);
+        target.innerHTML = rows.length ? rows.map(function (row) {
+          return '<button class="search-result" type="button" data-category="' + escapeHtml(row.categoryKey) + '" data-label="' + escapeHtml(row.label) + '"><strong>' + escapeHtml(row.label) + '</strong><span>' + escapeHtml(row.categoryLabel) + '</span></button>';
+        }).join("") : '<div class="empty" style="padding:12px">No exact match. Choose “Other / something else” and describe it.</div>';
+        target.hidden = false;
+      }
+
+      function renderPopular() {
+        var popularKeys = ["linen-towels-toiletries", "bathroom-plumbing", "heating-cooling-air", "wifi-tv-phone-technology", "noise-disturbance", "breakfast"];
+        document.getElementById("popular").innerHTML = popularKeys.map(function (key) {
+          var category = catalog.guestCategories.filter(function (item) { return item.key === key; })[0];
+          return '<button type="button" data-popular="' + key + '">' + escapeHtml(category.label) + '</button>';
+        }).join("");
+      }
+
+      function populateCategories() {
+        var target = document.getElementById("guest-category");
+        target.innerHTML = "";
+        catalog.guestCategories.forEach(function (category) {
+          var option = document.createElement("option");
+          option.value = category.key;
+          option.textContent = category.label;
+          target.appendChild(option);
+        });
+        var requested = params.get("category");
+        if (requested && catalog.guestCategories.some(function (item) { return item.key === requested; })) target.value = requested;
+        populateIssues();
+      }
+
+      function renderRequests(rows) {
+        var target = document.getElementById("request-list");
+        if (!rows || !rows.length) {
+          target.innerHTML = '<div class="empty">No requests sent from this browser yet.</div>';
+          return;
+        }
+        rows.sort(function (a, b) { return new Date(b.created_at) - new Date(a.created_at); });
+        target.innerHTML = rows.map(function (row) {
+          var note = row.staff_note || row.resolution_note || (row.status === "reported" ? "Waiting for the hotel to acknowledge it." : "The hotel team is handling this request.");
+          return '<article class="request"><div class="request-top"><strong>' + escapeHtml(row.title) + '</strong><span class="badge ' + escapeHtml(row.status) + '">' + escapeHtml(statusLabel(row.status)) + '</span></div><p>' + escapeHtml(row.location) + ' · ' + escapeHtml(formatDate(row.created_at)) + '</p><p>' + escapeHtml(note) + '</p></article>';
+        }).join("");
+      }
+
+      async function loadLiveRequests() {
+        if (!client || !sessionUser) return;
+        var result = await client.from("guest_reports").select("id,title,location,status,staff_note,resolution_note,created_at,updated_at").eq("guest_user_id", sessionUser.id).order("created_at", { ascending: false });
+        if (result.error) { setConnection("Connected, but requests could not be refreshed: " + result.error.message, "error"); return; }
+        renderRequests(result.data || []);
+      }
+
+      function loadDemoRequests() {
+        renderRequests(demoReports());
+      }
+
+      async function initialiseData() {
+        var liveConfigured = Boolean(config.supabaseUrl && config.supabasePublishableKey && !config.demoMode && window.supabase);
+        if (!liveConfigured) {
+          setConnection("Demo mode · reports sync between guest and staff tabs on this device", "");
+          loadDemoRequests();
+          return;
+        }
+        try {
+          client = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey, {
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: "innrelay-guest-auth" }
+          });
+          var sessionResult = await client.auth.getSession();
+          if (sessionResult.error) throw sessionResult.error;
+          if (!sessionResult.data.session) {
+            var signInResult = await client.auth.signInAnonymously();
+            if (signInResult.error) throw signInResult.error;
+            sessionUser = signInResult.data.user;
+          } else {
+            sessionUser = sessionResult.data.session.user;
+          }
+          var slug = params.get("property") || config.propertySlug;
+          var propertyResult = await client.from("properties").select("id,name,slug,reception_phone,emergency_notice").eq("slug", slug).eq("active", true).single();
+          if (propertyResult.error) throw propertyResult.error;
+          property = propertyResult.data;
+          document.getElementById("property-name").textContent = property.name;
+          if (property.reception_phone) document.getElementById("reception-copy").textContent = property.reception_phone;
+          setConnection("Secure live connection · hotel staff will receive reports in realtime", "live");
+          await loadLiveRequests();
+          channel = client.channel("guest-requests-" + sessionUser.id)
+            .on("postgres_changes", { event: "*", schema: "public", table: "guest_reports", filter: "guest_user_id=eq." + sessionUser.id }, loadLiveRequests)
+            .subscribe();
+        } catch (error) {
+          client = null;
+          sessionUser = null;
+          setConnection("Live connection unavailable. Using this-device demo mode: " + error.message, "error");
+          loadDemoRequests();
+        }
+      }
+
+      async function submitReport(event) {
+        event.preventDefault();
+        var submit = document.getElementById("submit-report");
+        var category = currentCategory();
+        var selectedIssue = document.getElementById("guest-issue").value;
+        var title = selectedIssue === "Other / something else" ? document.getElementById("custom-issue").value.trim() : selectedIssue;
+        if (!title) return;
+        var payload = {
+          property_id: property ? property.id : null,
+          guest_user_id: sessionUser ? sessionUser.id : null,
+          source: "guest",
+          location: document.getElementById("guest-location").value.trim(),
+          category_key: category.key,
+          category_label: category.label,
+          issue_code: category.key + ":" + catalog.slugify(title),
+          title: title,
+          description: document.getElementById("guest-description").value.trim(),
+          urgency: document.getElementById("guest-urgency").value,
+          guest_impact: document.getElementById("guest-urgency").value === "urgent" ? "guest_waiting" : "guest_affected",
+          guest_name: document.getElementById("guest-name").value.trim() || null,
+          contact_preference: document.getElementById("contact-preference").value,
+          status: "reported"
+        };
+        submit.disabled = true;
+        submit.textContent = "Sending…";
+        try {
+          if (client && sessionUser && property) {
+            var result = await client.from("guest_reports").insert(payload).select("id,title,status,location,created_at").single();
+            if (result.error) throw result.error;
+            await loadLiveRequests();
+          } else {
+            var rows = demoReports();
+            payload.id = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : String(Date.now());
+            payload.property_slug = params.get("property") || config.propertySlug;
+            payload.created_at = new Date().toISOString();
+            payload.updated_at = payload.created_at;
+            rows.unshift(payload);
+            saveDemoReports(rows);
+            loadDemoRequests();
+          }
+          document.getElementById("report-panel").hidden = true;
+          document.getElementById("success-panel").hidden = false;
+          document.getElementById("success-copy").textContent = category.emergency ? "Your report is recorded. Continue following the emergency guidance given by reception or emergency services." : "The hotel team can now acknowledge, assign and update it.";
+        } catch (error) {
+          setConnection("Report could not be sent: " + error.message, "error");
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Send to hotel team";
+        }
+      }
+
+      function resetForm() {
+        var currentLocation = document.getElementById("guest-location").value.trim();
+        document.getElementById("guest-report-form").reset();
+        document.getElementById("guest-location").value = currentLocation;
+        populateIssues();
+        document.getElementById("success-panel").hidden = true;
+        document.getElementById("report-panel").hidden = false;
+        document.getElementById("catalog-search").value = "";
+        document.getElementById("guest-category").focus();
+      }
+
+      document.getElementById("guest-category").addEventListener("change", function () { populateIssues(); });
+      document.getElementById("guest-issue").addEventListener("change", updateCustomAndEmergency);
+      document.getElementById("catalog-search").addEventListener("input", renderSearch);
+      document.getElementById("search-results").addEventListener("click", function (event) {
+        var button = event.target.closest("[data-category]");
+        if (button) chooseIssue(button.getAttribute("data-category"), button.getAttribute("data-label"));
+      });
+      document.getElementById("popular").addEventListener("click", function (event) {
+        var button = event.target.closest("[data-popular]");
+        if (button) chooseIssue(button.getAttribute("data-popular"));
+      });
+      document.addEventListener("click", function (event) {
+        if (!event.target.closest(".search-wrap")) document.getElementById("search-results").hidden = true;
+      });
+      document.getElementById("guest-report-form").addEventListener("submit", submitReport);
+      document.getElementById("report-another").addEventListener("click", resetForm);
+      document.getElementById("change-room").addEventListener("click", function () {
+        var locationInput = document.getElementById("guest-location");
+        locationInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        window.setTimeout(function () { locationInput.focus(); locationInput.select(); }, 350);
+      });
+      document.getElementById("guest-location").addEventListener("input", function (event) {
+        var value = event.target.value.trim();
+        document.getElementById("room-display").textContent = value || "Choose your room below";
+        try { window.localStorage.setItem("innrelay-guest-location", value); } catch (error) {}
+      });
+      window.addEventListener("storage", function (event) { if (event.key === DEMO_KEY && !client) loadDemoRequests(); });
+      if (broadcast) broadcast.addEventListener("message", function () { if (!client) loadDemoRequests(); });
+
+      var propertyName = params.get("propertyName") || config.propertyName || "Your hotel";
+      var savedRoom = "";
+      try { savedRoom = window.localStorage.getItem("innrelay-guest-location") || ""; } catch (error) {}
+      var room = params.get("room") || savedRoom;
+      document.getElementById("property-name").textContent = propertyName;
+      document.getElementById("reception-copy").textContent = config.receptionPhone || "Use the room phone and select Reception.";
+      document.getElementById("emergency-link").href = "tel:" + (config.emergencyNumber || "999");
+      document.getElementById("emergency-link").textContent = "Emergency services: " + (config.emergencyNumber || "999");
+      var initialLocation = room ? (/^room\s/i.test(room) || /\D/.test(room) ? room : "Room " + room) : "";
+      document.getElementById("guest-location").value = initialLocation;
+      document.getElementById("room-display").textContent = initialLocation || "Choose your room below";
+      renderPopular();
+      populateCategories();
+      initialiseData();
+
+      if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
+        navigator.serviceWorker.register("./innrelay-service-worker.js").catch(function () {});
+      }
+    }());
+  </script>
+</body>
+</html>
