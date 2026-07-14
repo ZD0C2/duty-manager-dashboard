@@ -1113,6 +1113,10 @@
       var activeFilter = "all";
       var selectedId = null;
       var appConfig = window.INNRELAY_CONFIG || {};
+      // Production-safe fallbacks prevent an older cached config file from
+      // breaking OAuth returns or generating an empty QR code.
+      if (!appConfig.publicStaffUrl) appConfig.publicStaffUrl = "https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html";
+      if (!appConfig.publicGuestUrl) appConfig.publicGuestUrl = "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html";
       var GUEST_DEMO_KEY = "innrelay_guest_reports_v1";
       var staffClient = null;
       var staffSession = null;
@@ -1501,7 +1505,10 @@
         };
         form.hidden = true;
         signOut.hidden = false;
-        setStaffSync("Connected as " + staffMembership.display_name + " · loading guest reports…", "live");
+        document.getElementById("landing").hidden = true;
+        document.getElementById("app").hidden = false;
+        showView("guest");
+        setStaffSync("Connected as " + staffMembership.display_name + " · " + (staffSession.user.email || "staff account") + " · loading guest reports…", "live");
         await fetchLiveGuestReports();
         startStaffRealtime();
       }
@@ -1524,12 +1531,22 @@
         staffClient.auth.onAuthStateChange(function (event, session) {
           window.setTimeout(function () { handleStaffSession(session); }, 0);
         });
+        var authReturn = new URLSearchParams(window.location.search);
+        var authFailureMessage = "";
+        if (authReturn.get("error")) {
+          document.getElementById("landing").hidden = true;
+          document.getElementById("app").hidden = false;
+          showView("guest");
+          authFailureMessage = "Google sign-in did not complete: " + (authReturn.get("error_description") || authReturn.get("error"));
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
         var result = await staffClient.auth.getSession();
         if (result.error) {
           setStaffSync("Staff session could not be opened: " + result.error.message, "error");
           return;
         }
         await handleStaffSession(result.data.session);
+        if (authFailureMessage) setStaffSync(authFailureMessage, "error");
       }
 
       function fillSelect(id, values, placeholder) {
