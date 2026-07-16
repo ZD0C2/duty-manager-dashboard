@@ -2139,12 +2139,15 @@
         document.getElementById(containerId).replaceChildren(picker);
         var choosePlace = async function (event) {
           var prediction = event.placePrediction || (event.detail && event.detail.placePrediction);
-          if (!prediction || !prediction.toPlace) return;
+          if (!prediction) return;
           status.textContent = "Loading the selected hotel…";
-          var place = prediction.toPlace();
-          await place.fetchFields({ fields: ["id", "displayName", "formattedAddress"] });
-          if (!place.id || !place.displayName) throw new Error("Select a hotel from the results menu.");
-          onSelect(String(place.displayName), String(place.formattedAddress || ""), String(place.id));
+          var name = prediction.mainText && prediction.mainText.text
+            ? String(prediction.mainText.text)
+            : prediction.text && prediction.text.text ? String(prediction.text.text) : "";
+          var address = prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
+          var placeId = prediction.placeId ? String(prediction.placeId) : "";
+          if (!placeId || !name) throw new Error("Select a hotel from the results menu.");
+          onSelect(name, address, placeId);
         };
         ["gmp-select", "gmp-placeselect"].forEach(function (eventName) {
           picker.addEventListener(eventName, function (event) {
