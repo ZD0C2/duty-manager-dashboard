@@ -6,7 +6,7 @@ const APP_SHELL = [
   "./innrelay-guest.webmanifest",
   "./innrelay-issue-catalog.js",
   "./innrelay-supabase-config.js",
-  "./innrelay-qr.js",
+  "./innrelay-qr.js?v=9",
   "./innrelay-icon.svg"
 ];
 
