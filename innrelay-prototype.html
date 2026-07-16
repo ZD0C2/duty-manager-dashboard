@@ -1158,6 +1158,15 @@
                 <h3>Property profile</h3>
                 <p class="section-note">These details appear on the guest portal and printed QR cards.</p>
                 <form id="property-profile-form">
+                  <div class="hotel-lookup">
+                    <h3>Choose the hotel from the directory</h3>
+                    <p>Use the menu to correct or verify the hotel name and address instead of retyping them.</p>
+                    <div id="property-place-picker" class="hotel-place-picker"></div>
+                    <p id="property-lookup-status" class="hotel-lookup-status" role="status">Preparing hotel search…</p>
+                    <div id="property-selected-hotel" class="selected-hotel" hidden></div>
+                    <input id="property-external-provider" type="hidden">
+                    <input id="property-external-place-id" type="hidden">
+                  </div>
                   <div class="field"><label for="property-name">Property name</label><input id="property-name" required maxlength="120"></div>
                   <div class="field"><label for="property-address">Address</label><input id="property-address" maxlength="240"></div>
                   <div class="field-grid">
@@ -2091,6 +2100,24 @@
         document.getElementById("hotel-lookup-status").textContent = "Verified directory selection ready.";
       }
 
+      function clearPropertyHotelSelection(message) {
+        document.getElementById("property-external-provider").value = "";
+        document.getElementById("property-external-place-id").value = "";
+        document.getElementById("property-selected-hotel").hidden = true;
+        if (message) document.getElementById("property-lookup-status").textContent = message;
+      }
+
+      function useSelectedPropertyHotel(name, address, placeId) {
+        document.getElementById("property-external-provider").value = "google_places";
+        document.getElementById("property-external-place-id").value = placeId;
+        document.getElementById("property-name").value = name;
+        document.getElementById("property-address").value = address || "";
+        var selected = document.getElementById("property-selected-hotel");
+        selected.textContent = "Verified: " + name + (address ? " · " + address : "");
+        selected.hidden = false;
+        document.getElementById("property-lookup-status").textContent = "Verified directory selection ready. Save the property to apply it.";
+      }
+
       function loadGooglePlacesLibrary(apiKey) {
         if (window.google && window.google.maps) return Promise.resolve(window.google.maps);
         return new Promise(function (resolve, reject) {
@@ -2103,39 +2130,47 @@
         });
       }
 
+      function addHotelPlacePicker(placesLibrary, containerId, statusId, onSelect) {
+        var status = document.getElementById(statusId);
+        var picker = new placesLibrary.PlaceAutocompleteElement();
+        picker.placeholder = "Search hotel name or address";
+        try { picker.includedPrimaryTypes = ["lodging"]; } catch (error) {}
+        try { picker.componentRestrictions = { country: appConfig.hotelSearchCountry || "gb" }; } catch (error) {}
+        document.getElementById(containerId).replaceChildren(picker);
+        var choosePlace = async function (event) {
+          var prediction = event.placePrediction || (event.detail && event.detail.placePrediction);
+          if (!prediction || !prediction.toPlace) return;
+          status.textContent = "Loading the selected hotel…";
+          var place = prediction.toPlace();
+          await place.fetchFields({ fields: ["id", "displayName", "formattedAddress"] });
+          if (!place.id || !place.displayName) throw new Error("Select a hotel from the results menu.");
+          onSelect(String(place.displayName), String(place.formattedAddress || ""), String(place.id));
+        };
+        ["gmp-select", "gmp-placeselect"].forEach(function (eventName) {
+          picker.addEventListener(eventName, function (event) {
+            choosePlace(event).catch(function (error) { status.textContent = error.message; });
+          });
+        });
+        status.textContent = "Start typing, then choose the hotel from the menu.";
+      }
+
       async function initialiseHotelPicker() {
-        var status = document.getElementById("hotel-lookup-status");
+        var onboardingStatus = document.getElementById("hotel-lookup-status");
+        var profileStatus = document.getElementById("property-lookup-status");
         var apiKey = String(appConfig.googlePlacesApiKey || "").trim();
         if (!apiKey) {
-          status.textContent = "Hotel menu is ready for a restricted Google Places browser key. Manual entry is available meanwhile.";
+          onboardingStatus.textContent = "Hotel menu is ready for a restricted Google Places browser key. Manual entry is available meanwhile.";
+          profileStatus.textContent = "Hotel menu needs a restricted Google Places browser key. The current saved details remain editable meanwhile.";
           return;
         }
         try {
           await loadGooglePlacesLibrary(apiKey);
           var placesLibrary = await window.google.maps.importLibrary("places");
-          var picker = new placesLibrary.PlaceAutocompleteElement();
-          picker.placeholder = "Search hotel name or address";
-          try { picker.includedPrimaryTypes = ["lodging"]; } catch (error) {}
-          try { picker.componentRestrictions = { country: appConfig.hotelSearchCountry || "gb" }; } catch (error) {}
-          document.getElementById("hotel-place-picker").replaceChildren(picker);
-          var choosePlace = async function (event) {
-            var prediction = event.placePrediction || (event.detail && event.detail.placePrediction);
-            if (!prediction || !prediction.toPlace) return;
-            status.textContent = "Loading the selected hotel…";
-            var place = prediction.toPlace();
-            await place.fetchFields({ fields: ["id", "displayName", "formattedAddress"] });
-            if (!place.id || !place.displayName) throw new Error("Select a hotel from the results menu.");
-            useSelectedHotel(String(place.displayName), String(place.formattedAddress || ""), String(place.id));
-          };
-          picker.addEventListener("gmp-select", function (event) {
-            choosePlace(event).catch(function (error) { status.textContent = error.message; });
-          });
-          picker.addEventListener("gmp-placeselect", function (event) {
-            choosePlace(event).catch(function (error) { status.textContent = error.message; });
-          });
-          status.textContent = "Start typing, then choose the hotel from the menu.";
+          addHotelPlacePicker(placesLibrary, "hotel-place-picker", "hotel-lookup-status", useSelectedHotel);
+          addHotelPlacePicker(placesLibrary, "property-place-picker", "property-lookup-status", useSelectedPropertyHotel);
         } catch (error) {
-          status.textContent = "Hotel search is unavailable: " + error.message + " Use manual entry below.";
+          onboardingStatus.textContent = "Hotel search is unavailable: " + error.message + " Use manual entry below.";
+          profileStatus.textContent = "Hotel search is unavailable: " + error.message + " The saved details can still be edited below.";
         }
       }
 
@@ -2183,6 +2218,16 @@
         document.getElementById("property-phone").value = staffMembership.property.reception_phone || "";
         document.getElementById("property-brand-colour").value = staffMembership.property.brand_colour || "#ff8a68";
         document.getElementById("property-retention").value = String(staffMembership.property.data_retention_days || 90);
+        document.getElementById("property-external-provider").value = staffMembership.property.external_place_provider || "";
+        document.getElementById("property-external-place-id").value = staffMembership.property.external_place_id || "";
+        var selectedPropertyHotel = document.getElementById("property-selected-hotel");
+        if (staffMembership.property.external_place_id) {
+          selectedPropertyHotel.textContent = "Verified: " + staffMembership.property.name + (staffMembership.property.address ? " · " + staffMembership.property.address : "");
+          selectedPropertyHotel.hidden = false;
+          document.getElementById("property-lookup-status").textContent = "This property is linked to its directory identity. Search above to change it.";
+        } else {
+          selectedPropertyHotel.hidden = true;
+        }
 
         setDepartmentOptions();
         document.getElementById("department-list").innerHTML = propertyDepartments.map(function (department) {
@@ -2208,7 +2253,10 @@
           return '<option value="' + escapeHtml(location.name) + '">' + escapeHtml(location.code + " · " + location.location_type.replace(/_/g, " ")) + '</option>';
         }).join("");
         if (previousQr) qrInput.value = previousQr;
-        else if (activeLocations.length) qrInput.value = activeLocations[0].name;
+        else if (activeLocations.length) {
+          var preferredLocation = activeLocations.filter(function (location) { return location.location_type === "room"; })[0] || activeLocations[0];
+          qrInput.value = preferredLocation.name;
+        }
 
         locations = activeLocations.map(function (location) { return location.name; });
         fillSelect("location", locations);
@@ -2316,7 +2364,7 @@
         }
         await acceptPendingInvite();
         var membershipResult = await staffClient.from("property_staff")
-          .select("property_id,department_id,display_name,role,active,properties!inner(id,name,slug,public_id,reception_phone,emergency_notice,brand_colour,timezone,address,guest_welcome,data_retention_days,active)")
+          .select("property_id,department_id,display_name,role,active,properties!inner(id,name,slug,public_id,reception_phone,emergency_notice,brand_colour,timezone,address,guest_welcome,data_retention_days,external_place_provider,external_place_id,active)")
           .eq("user_id", staffSession.user.id)
           .eq("active", true);
         if (membershipResult.error) {
@@ -2926,6 +2974,8 @@
         var payload = {
           name: document.getElementById("property-name").value.trim(),
           address: document.getElementById("property-address").value.trim() || null,
+          external_place_provider: document.getElementById("property-external-provider").value || null,
+          external_place_id: document.getElementById("property-external-place-id").value || null,
           reception_phone: document.getElementById("property-phone").value.trim() || null,
           brand_colour: document.getElementById("property-brand-colour").value,
           data_retention_days: Number(document.getElementById("property-retention").value)
@@ -2935,6 +2985,13 @@
         showToast("Property profile saved.");
         await handleStaffSession(staffSession);
         showView("settings");
+      });
+      ["property-name", "property-address"].forEach(function (id) {
+        document.getElementById(id).addEventListener("input", function () {
+          if (document.getElementById("property-external-place-id").value) {
+            clearPropertyHotelSelection("The directory-linked details were edited. Search and select the hotel again to keep it verified, or save as a manual entry.");
+          }
+        });
       });
       document.getElementById("department-form").addEventListener("submit", async function (event) {
         event.preventDefault();
@@ -2986,8 +3043,8 @@
       });
       document.getElementById("room-batch-form").addEventListener("submit", async function (event) {
         event.preventDefault();
-        await submitRoomRange("room-start", "room-end", "room-floor", "room-department", true);
-        showView("guest");
+        var created = await submitRoomRange("room-start", "room-end", "room-floor", "room-department", true);
+        if (created) showView("guest");
       });
       document.getElementById("staff-invite-form").addEventListener("submit", async function (event) {
         event.preventDefault();
