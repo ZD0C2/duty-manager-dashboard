@@ -1,122 +1,125 @@
-# InnRelay Guest + Staff Supabase Free Pilot
+# InnRelay Multi-Hotel Supabase Setup
 
-This build contains two connected browser experiences:
+InnRelay now has two connected browser experiences:
 
-- `innrelay-guest.html` - the QR guest portal.
-- `innrelay-prototype.html` - the staff dashboard, Guest Inbox, Live Board and Shift Run.
+- `innrelay-prototype.html` — authenticated owner and staff operations portal.
+- `innrelay-guest.html` — no-install guest portal opened from a hotel/location QR code.
 
-Both pages are connected to the dedicated InnRelay Supabase project. They retain a same-device demo fallback so the interface remains reviewable if the live service is unavailable.
+The guest portal never asks the guest to choose a hotel. A valid QR establishes one property boundary, and the guest may correct only the room or area inside that property.
 
-## 1. InnRelay project and database (complete)
+## Live project
 
-The dedicated **InnRelay** Free project is active in the London region (`eu-west-2`):
-
-- Project reference: `bkwzfoleuwhnuhqzxyqo`
+- Supabase project reference: `bkwzfoleuwhnuhqzxyqo`
 - API URL: `https://bkwzfoleuwhnuhqzxyqo.supabase.co`
-- Seed property: `Exhibition Court Hotel` / `exhibition-court`
+- Public staff page: `https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html`
+- Public guest page: `https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html`
 
-Clinic Companion was paused before this project was created, so the confirmed current project charge is **US$0 per month** on the organisation's Free plan. Supabase Free projects can be paused for inactivity or become chargeable if the organisation is upgraded; review the dashboard before changing plans or resuming other projects.
+`innrelay-supabase-config.js` contains only a publishable browser key. Never add a `service_role` key, database password, OAuth client secret, or JWT secret to the repository.
 
-Apply:
+## Database foundation
 
-`supabase/migrations/20260713181500_innrelay_guest_staff_pilot.sql`
+The original two pilot migrations and the multi-hotel migration are applied to the live project:
 
-Then apply:
+1. `supabase/migrations/20260713181500_innrelay_guest_staff_pilot.sql`
+2. `supabase/migrations/20260713181600_consolidate_insert_policies.sql`
+3. `SUPABASE-MULTI-HOTEL-MIGRATION.sql`
 
-`supabase/migrations/20260713181600_consolidate_insert_policies.sql`
+The multi-hotel layer adds:
 
-The migration creates:
+- self-service properties with separate public and internal identities;
+- owner membership created atomically with a new property;
+- property departments and category routing;
+- rooms and public-area records with non-guessable QR capabilities;
+- email-bound staff invitations;
+- property-scoped staff assignment;
+- guest portal capability sessions;
+- automatic acknowledgement, escalation and retention deadlines;
+- basic guest submission rate limiting;
+- Row Level Security for property, staff, invitation, room and report isolation.
 
-- `properties`
-- `property_staff`
-- `guest_reports`
-- `guest_report_updates`
-- indexes, timestamp triggers and Realtime publication entries
-- explicit Data API grants
-- Row Level Security on every exposed table
+## Google sign-in configuration
 
-Both migrations are already applied to the live project. Supabase Security Advisor reported no findings after deployment. Performance Advisor reported only expected unused-index information because the new tables contain no guest reports yet.
+In Google Cloud, use a **Web application** OAuth client.
 
-## 2. Enable anonymous guest sessions (manual action required)
-
-In Supabase Dashboard, open **Authentication > Providers > Anonymous Sign-Ins** and enable anonymous sign-ins.
-
-Guests do not create passwords. Each browser receives a private Supabase user ID, and RLS permits it to read only reports created by that ID. Anonymous sessions use the `authenticated` database role; the policies differentiate ownership using `auth.uid()`.
-
-Before sharing the portal publicly, enable Cloudflare Turnstile or another supported CAPTCHA in **Authentication > Bot and Abuse Protection**. Also review the Auth rate limits.
-
-## 3. Create and link the first staff user
-
-Create a permanent staff user under **Authentication > Users**. Then run this once in the SQL editor, replacing the example email and display name:
-
-```sql
-insert into public.property_staff (property_id, user_id, display_name, role)
-select property.id, staff.id, 'Duty Manager', 'owner'
-from public.properties property
-join auth.users staff on lower(staff.email) = lower('manager@example.com')
-where property.slug = 'exhibition-court'
-on conflict (property_id, user_id) do update set
-  display_name = excluded.display_name,
-  role = excluded.role,
-  active = true;
-```
-
-That user can sign in from **Guest Inbox** on the staff dashboard. Add more staff through the same table or a later manager screen.
-
-## 4. Public browser configuration (complete)
-
-`innrelay-supabase-config.js` now contains the live API URL and modern publishable key, with `demoMode: false`.
-
-For a different deployment, enter only:
-
-```js
-supabaseUrl: "https://YOUR_PROJECT_REF.supabase.co",
-supabasePublishableKey: "sb_publishable_YOUR_KEY",
-demoMode: false
-```
-
-A Supabase publishable key is designed for public browser clients. Security comes from RLS. Never place a secret key, JWT secret or legacy `service_role` key in an HTML or JavaScript file.
-
-## 5. Test the end-to-end flow
-
-Serve the folder through HTTP rather than opening files directly:
-
-```bash
-python3 -m http.server 8080
-```
-
-Then:
-
-1. Open `http://localhost:8080/innrelay-prototype.html` and sign in under Guest Inbox.
-2. Open `http://localhost:8080/innrelay-guest.html?property=exhibition-court&room=208` in another browser or private profile.
-3. Submit a guest request.
-4. Confirm it appears in Guest Inbox and on the Live Board.
-5. Acknowledge it, start work, add an update and resolve it.
-6. Confirm the guest page receives each status change.
-
-## 6. Create room QR codes
-
-Each room QR uses the same guest page with a different room parameter:
+Authorized JavaScript origins:
 
 ```text
-https://YOUR_DOMAIN/innrelay-guest.html?property=exhibition-court&room=208
+https://zd0c2.github.io
+http://localhost:8080
 ```
 
-The room parameter improves convenience; it is not proof of booking identity. Staff must still verify unusual, high-value or security-sensitive requests before acting.
+Authorized redirect URI — this must match character for character:
 
-## Required controls before a public launch
+```text
+https://bkwzfoleuwhnuhqzxyqo.supabase.co/auth/v1/callback
+```
 
-- Add CAPTCHA and rate limiting for anonymous sign-ins and submissions.
-- Use HTTPS and move the commercial build away from GitHub Pages.
-- Add a concise guest privacy notice, retention period and deletion process.
-- Do not accept card numbers, passport scans or sensitive documents in notes.
-- Keep medical, fire, violence and immediate-danger guidance outside the request queue: guests must call reception and emergency services first.
-- Review Supabase Security Advisor after every schema or policy change.
-- Test RLS with separate guest, staff and unrelated-user accounts.
-- Decide how long anonymous users, reports and operational history are retained.
+In Supabase **Authentication > URL Configuration** set the production Site URL and allowed redirect URL to:
 
-## Catalogue coverage
+```text
+https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html
+```
 
-`innrelay-issue-catalog.js` is the shared staff and guest catalogue. It includes guest-room, housekeeping, plumbing, climate, electrical, technology, access, food and drink, reservations, billing, accessibility, leisure, events, safety, security, maintenance, kitchen, stock, cash, IT and staffing issues.
+Keep `http://localhost:8080/innrelay-prototype.html` as an additional redirect only while developing locally. In Supabase **Authentication > Providers > Google**, enable Google and store the Google client ID and client secret there. The secret belongs in Supabase/Google Cloud only, never in the app files.
 
-Every category includes **Other / something else**, and both apps accept a custom title and description. That is intentional: no fixed catalogue can predict every real hotel situation.
+## Owner onboarding
+
+1. Open the public staff page.
+2. Select **Continue with Google**.
+3. If the account has no hotel, InnRelay opens **Register your first property**.
+4. Enter the property name, URL name, reception contact, address and colour.
+5. InnRelay creates the owner membership, five default departments, sensible category routes, and common public areas.
+6. Use **Property settings** to add numbered room ranges, change routing, invite staff and register another hotel.
+
+Owners can switch between their authorised hotels from the property selector. Staff see only properties represented by an active membership.
+
+## Staff invitations
+
+The owner creates an invitation for the employee's exact email address. Send the generated link privately. The employee must open it and sign in with the same Google email. The invitation is single-use, expires after seven days and cannot grant access to another property.
+
+## QR generation
+
+Create rooms and areas first, then use **Guest Inbox > Guest-room QR code**. InnRelay generates QR images locally in the browser and can print one card or a batch of all active locations.
+
+The GitHub Pages pilot URL contains secure query capabilities plus a readable route hint, for example:
+
+```text
+https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html?pid=PROPERTY_ID&lid=LOCATION_ID&p=PROPERTY_TOKEN&l=LOCATION_TOKEN#/g/exhibition-court/r/208
+```
+
+Do not hand-edit or reuse the IDs/tokens between hotels. On a production host that supports rewrites, expose the cleaner public route:
+
+```text
+https://innrelay.com/g/exhibition-court/r/208
+```
+
+The server or edge layer should resolve that route to the same non-guessable property/location capabilities. Verify the exact public guest page on a phone before printing any QR cards.
+
+## End-to-end release test
+
+1. Register a second test hotel with the owner account.
+2. Add two rooms and one public area.
+3. Invite a separate staff email and accept the link with that exact account.
+4. Confirm that account cannot see the first hotel.
+5. Generate and scan one room QR in a private browser.
+6. Confirm the guest may choose another location only inside the scanned hotel.
+7. Submit a request and confirm its department and deadlines are assigned automatically.
+8. Assign it to a property team member, acknowledge it, start work and resolve it with a note.
+9. Confirm the guest sees the staff update.
+10. Run Supabase Security and Performance Advisors after every migration.
+
+## Controls before selling the service
+
+- Enable CAPTCHA/bot protection for anonymous sign-in and review Auth rate limits.
+- Enable leaked-password protection for password fallback, or remove password fallback if Google-only access is chosen.
+- Add background push/email delivery; the current build has opt-in alerts while the staff portal is open.
+- Add private Supabase Storage policies before enabling photos or attachments.
+- Automate retention deletion and owner-requested property deletion.
+- Add privacy terms, processor agreements, audit logging and a support process.
+- Use HTTPS on a production host and configure the final custom domain before printing commercial QR stock.
+- Do not accept payment-card numbers, passport scans or sensitive medical documents in request notes.
+- Keep fire, violence, serious illness and immediate danger outside the queue: guests must call reception and emergency services first.
+
+## Deliberately deferred
+
+Do not build a native guest app or PMS integration yet. The initial product is a no-install guest web portal plus an optional installable staff PWA. Background push/email delivery, attachments, subscription billing and automated GDPR deletion are the next production phases on top of this property-safe foundation.
