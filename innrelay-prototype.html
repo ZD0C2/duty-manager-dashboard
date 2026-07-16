@@ -579,6 +579,19 @@
     .hotel-lookup p { margin: 0; color: rgba(255,255,255,.58); font-size: 12px; }
     .hotel-place-picker { width: 100%; margin-top: 12px; }
     .hotel-place-picker gmp-place-autocomplete { width: 100%; color-scheme: light; }
+    .hotel-place-picker input {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: 1px solid #9ba8b8;
+      border-radius: 11px;
+      color: #071427;
+      background: #fffdf8;
+      font-size: 16px;
+      opacity: 1;
+    }
+    .hotel-place-picker input:focus { border-color: #45b898; outline: 3px solid rgba(182,239,217,.22); }
     .hotel-lookup-status { margin-top: 10px !important; color: var(--mint) !important; }
     .selected-hotel { margin-top: 10px; padding: 10px 12px; border: 1px solid #5dc6a5; border-radius: 11px; color: #071427; background: #d8f7ea; font-size: 12px; font-weight: 800; }
     .field-help { margin: 0; color: rgba(255,255,255,.52); font-size: 11px; }
@@ -1297,6 +1310,7 @@
   <script src="./innrelay-issue-catalog.js"></script>
   <script src="./innrelay-supabase-config.js"></script>
   <script src="./innrelay-qr.js?v=10"></script>
+  <script src="./innrelay-jspdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
   <script>
     (function () {
@@ -1595,16 +1609,62 @@
         document.getElementById("test-guest-portal").href = url;
       }
 
-      function printGuestQr() {
+      function svgDataUrlToPng(svgUrl, size) {
+        return new Promise(function (resolve, reject) {
+          var image = new Image();
+          image.onload = function () {
+            var canvas = document.createElement("canvas");
+            canvas.width = size;
+            canvas.height = size;
+            var context = canvas.getContext("2d");
+            context.fillStyle = "#ffffff";
+            context.fillRect(0, 0, size, size);
+            context.drawImage(image, 0, 0, size, size);
+            resolve(canvas.toDataURL("image/png"));
+          };
+          image.onerror = function () { reject(new Error("A QR image could not be prepared for PDF.")); };
+          image.src = svgUrl;
+        });
+      }
+
+      function openPdfInViewer(pdf, viewerWindow, filename) {
+        var blob = pdf.output("blob");
+        var url = URL.createObjectURL(blob);
+        viewerWindow.location.replace(url);
+        viewerWindow.document.title = filename;
+        window.setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
+      }
+
+      async function printGuestQr() {
         var location = selectedQrLocation();
         var room = location ? location.name : "Guest portal";
         var imageUrl = document.getElementById("guest-qr-image").src;
         var portalUrl = document.getElementById("guest-qr-url").textContent;
         if (!location || !portalUrl) { showToast("Select a location and generate its QR code first."); return; }
-        var printWindow = window.open("", "_blank", "noopener,noreferrer");
-        if (!printWindow) { showToast("Allow pop-ups to print the QR code."); return; }
-        printWindow.document.write('<!doctype html><html><head><title>InnRelay QR · ' + escapeHtml(room) + '</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:40px;color:#0b1220}img{width:280px;height:280px}h1{margin-bottom:4px}p{margin:5px auto;max-width:520px}.url{font-size:9px;overflow-wrap:anywhere}@media print{button{display:none}}</style></head><body><h1>' + escapeHtml(staffMembership.property_name) + '</h1><p><strong>' + escapeHtml(room) + '</strong></p><p>Scan for hotel help or to report a problem. No app required.</p><img src="' + imageUrl + '" alt="Guest QR code"><p class="url">InnRelay secure location code</p><button onclick="window.print()">Print</button></body></html>');
-        printWindow.document.close();
+        var viewerWindow = window.open("", "_blank");
+        if (!viewerWindow) { showToast("Allow pop-ups to open the QR PDF."); return; }
+        viewerWindow.document.body.textContent = "Preparing QR PDF…";
+        try {
+          if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("The PDF generator did not load.");
+          var pdf = new window.jspdf.jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+          var png = await svgDataUrlToPng(imageUrl, 700);
+          pdf.setTextColor(11, 18, 32);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(22);
+          pdf.text(staffMembership.property_name, 105, 42, { align: "center" });
+          pdf.setFontSize(30);
+          pdf.text(room, 105, 60, { align: "center" });
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(13);
+          pdf.text("Scan for hotel help or to report a problem. No app required.", 105, 73, { align: "center", maxWidth: 170 });
+          pdf.addImage(png, "PNG", 55, 88, 100, 100);
+          pdf.setFontSize(10);
+          pdf.text("Powered by InnRelay - secure location code", 105, 203, { align: "center" });
+          openPdfInViewer(pdf, viewerWindow, "InnRelay-" + room.replace(/[^a-z0-9]+/gi, "-") + ".pdf");
+        } catch (error) {
+          viewerWindow.close();
+          showToast("QR PDF could not be generated: " + error.message);
+        }
       }
 
       function qrBatchLocations() {
@@ -1670,34 +1730,52 @@
         var batch = qrBatchLocations();
         if (!staffMembership || !batch.length) { showToast("There are no rooms to print."); return; }
         var base = document.getElementById("qr-base-url").value.trim() || appConfig.publicGuestUrl;
-        var printWindow = window.open("", "_blank", "noopener,noreferrer");
-        if (!printWindow) { showToast("Allow pop-ups to print QR cards."); return; }
-        printWindow.document.write('<!doctype html><html><body style="font-family:Arial,sans-serif;padding:40px">Preparing secure QR cards…</body></html>');
-        printWindow.document.close();
-        var cards;
+        var viewerWindow = window.open("", "_blank");
+        if (!viewerWindow) { showToast("Allow pop-ups to open the QR PDF."); return; }
+        viewerWindow.document.body.textContent = "Preparing secure QR cards PDF…";
         try {
           if (!window.InnRelayQRCode) throw new Error("The local QR generator did not load.");
+          if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("The PDF generator did not load.");
           var entries = await generateQrEntries(batch, base, 320, function (done, total) {
-            printWindow.document.body.textContent = "Preparing " + done + " of " + total + " secure QR cards…";
+            viewerWindow.document.body.textContent = "Preparing " + done + " of " + total + " secure QR cards…";
             setQrBatchSummary("Preparing print sheet: " + done + " of " + total + "…");
           });
-          var sheets = [];
-          for (var offset = 0; offset < entries.length; offset += 6) {
-            sheets.push('<section class="sheet">' + entries.slice(offset, offset + 6).map(function (entry) {
-              return '<article><h2>' + escapeHtml(staffMembership.property_name) + '</h2><h1>' + escapeHtml(entry.location.name) + '</h1><p>Scan for hotel help or to report a problem. No app required.</p><img src="' + escapeHtml(entry.qr) + '"><small>Powered by InnRelay · secure location code</small></article>';
-            }).join("") + '</section>');
+          var pdf = new window.jspdf.jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+          var cardWidth = 94.5;
+          var cardHeight = 90.3;
+          for (var index = 0; index < entries.length; index += 1) {
+            if (index && index % 6 === 0) pdf.addPage();
+            var slot = index % 6;
+            var column = slot % 2;
+            var row = Math.floor(slot / 2);
+            var x = 8 + column * 99.5;
+            var y = 8 + row * 95.3;
+            pdf.setDrawColor(82, 97, 115);
+            pdf.setLineDashPattern([2, 1.5], 0);
+            pdf.roundedRect(x, y, cardWidth, cardHeight, 3, 3, "S");
+            pdf.setLineDashPattern([], 0);
+            pdf.setTextColor(11, 18, 32);
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(10);
+            pdf.text(staffMembership.property_name, x + cardWidth / 2, y + 8, { align: "center", maxWidth: cardWidth - 8 });
+            pdf.setFontSize(15);
+            pdf.text(entries[index].location.name, x + cardWidth / 2, y + 16, { align: "center", maxWidth: cardWidth - 8 });
+            pdf.setFont("helvetica", "normal");
+            pdf.setFontSize(7.5);
+            pdf.text("Scan for hotel help or to report a problem. No app required.", x + cardWidth / 2, y + 22, { align: "center", maxWidth: cardWidth - 12 });
+            var png = await svgDataUrlToPng(entries[index].qr, 500);
+            pdf.addImage(png, "PNG", x + 27.25, y + 28, 40, 40);
+            pdf.setFontSize(6.5);
+            pdf.text("Powered by InnRelay - secure location code", x + cardWidth / 2, y + 76, { align: "center" });
+            setQrBatchSummary("Building PDF: " + (index + 1) + " of " + entries.length + " cards…");
           }
-          cards = sheets.join("");
+          openPdfInViewer(pdf, viewerWindow, "InnRelay-QR-cards.pdf");
         } catch (error) {
-          printWindow.close();
-          showToast("QR cards could not be generated: " + error.message);
+          viewerWindow.close();
+          showToast("QR PDF could not be generated: " + error.message);
           return;
         }
-        printWindow.document.open();
-        printWindow.document.write('<!doctype html><html><head><title>InnRelay QR cards</title><style>@page{size:A4 portrait;margin:8mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#0b1220}.sheet{width:194mm;height:281mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:5mm;page-break-after:always}.sheet:last-child{page-break-after:auto}article{display:flex;min-height:0;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1.5px dashed #526173;border-radius:10px;padding:5mm;overflow:hidden}h2{margin:0 0 2px;font-size:13px}h1{margin:0 0 3px;font-size:20px}p{margin:0 0 3px;font-size:9px;line-height:1.25}img{width:38mm;height:38mm}small{margin-top:3px;font-size:7px}@media screen{body{padding:18px;background:#ddd}.sheet{margin:0 auto 18px;background:white;box-shadow:0 5px 20px rgba(0,0,0,.18)}}</style></head><body>' + cards + '</body></html>');
-        printWindow.document.close();
-        setQrBatchSummary(batch.length + " cards arranged on " + Math.ceil(batch.length / 6) + " A4 sheet(s).");
-        window.setTimeout(function () { printWindow.print(); }, 1000);
+        setQrBatchSummary(batch.length + " cards opened as a " + Math.ceil(batch.length / 6) + "-page A4 PDF. Use the viewer's print or download icons.");
       }
 
       async function createRoomRange(start, end, floor, departmentId) {
@@ -2135,6 +2213,26 @@
 
       function addHotelPlacePicker(placesLibrary, containerId, statusId, onSelect) {
         var status = document.getElementById(statusId);
+        if (placesLibrary.PlaceAutocompleteElement) {
+          var modernPicker = new placesLibrary.PlaceAutocompleteElement();
+          modernPicker.placeholder = "Search hotel name or address";
+          try { modernPicker.includedPrimaryTypes = ["lodging"]; } catch (error) {}
+          try { modernPicker.includedRegionCodes = [String(appConfig.hotelSearchCountry || "gb").toLowerCase()]; } catch (error) {}
+          document.getElementById(containerId).replaceChildren(modernPicker);
+          modernPicker.addEventListener("gmp-select", function (event) {
+            var prediction = event.placePrediction || (event.detail && event.detail.placePrediction);
+            var name = prediction && prediction.mainText && prediction.mainText.text ? String(prediction.mainText.text) : "";
+            var address = prediction && prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
+            var placeId = prediction && prediction.placeId ? String(prediction.placeId) : "";
+            if (!name || !placeId) {
+              status.textContent = "Choose a hotel from the suggestions menu.";
+              return;
+            }
+            onSelect(name, address, placeId);
+          });
+          status.textContent = "Start typing, then choose the hotel from the menu.";
+          return;
+        }
         var input = document.createElement("input");
         input.type = "search";
         input.className = "input";
@@ -2236,7 +2334,7 @@
 
         setDepartmentOptions();
         document.getElementById("department-list").innerHTML = propertyDepartments.map(function (department) {
-          return '<div class="management-row"><div><strong>' + escapeHtml(department.name) + '</strong><span>Acknowledge ' + department.response_target_minutes + ' min · escalate ' + department.escalation_minutes + ' min</span></div><span class="role-chip">' + (department.active ? "active" : "paused") + '</span></div>';
+          return '<div class="management-row"><div><strong>' + escapeHtml(department.name) + '</strong><span>Acknowledge ' + department.response_target_minutes + ' min · escalate ' + department.escalation_minutes + ' min</span></div><div class="drawer-actions" style="margin-top:0"><span class="role-chip">' + (department.active ? "active" : "disabled") + '</span><button class="button button-quiet button-small" type="button" data-toggle-department="' + escapeHtml(department.id) + '" data-department-active="' + (department.active ? "true" : "false") + '">' + (department.active ? "Disable" : "Activate") + '</button></div></div>';
         }).join("") || '<div class="demo-empty">No departments yet.</div>';
 
         renderDepartmentRoutes();
@@ -3008,6 +3106,20 @@
         document.getElementById("department-target").value = "10";
         await loadPropertyConfiguration();
         showToast("Department added.");
+      });
+      document.getElementById("department-list").addEventListener("click", async function (event) {
+        var button = event.target.closest("[data-toggle-department]");
+        if (!button || !staffClient || !staffMembership) return;
+        var nextActive = button.getAttribute("data-department-active") !== "true";
+        button.disabled = true;
+        var result = await staffClient.from("property_departments").update({ active: nextActive }).eq("id", button.getAttribute("data-toggle-department")).eq("property_id", staffMembership.property_id).select("id").single();
+        if (result.error) {
+          button.disabled = false;
+          showToast("Department status could not be changed: " + result.error.message);
+          return;
+        }
+        await loadPropertyConfiguration();
+        showToast(nextActive ? "Department activated." : "Department disabled. Existing records are preserved.");
       });
       document.getElementById("route-search").addEventListener("input", renderDepartmentRoutes);
       document.getElementById("route-filter").addEventListener("change", renderDepartmentRoutes);
