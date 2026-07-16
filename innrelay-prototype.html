@@ -2122,10 +2122,13 @@
         if (window.google && window.google.maps) return Promise.resolve(window.google.maps);
         return new Promise(function (resolve, reject) {
           var script = document.createElement("script");
-          script.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(apiKey) + "&loading=async&libraries=places&v=weekly";
+          script.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(apiKey) + "&libraries=places&v=quarterly";
           script.async = true;
           script.onerror = function () { reject(new Error("Google Places could not be loaded.")); };
-          script.onload = function () { resolve(window.google.maps); };
+          script.onload = function () {
+            if (window.google && window.google.maps) resolve(window.google.maps);
+            else reject(new Error("Google Maps did not initialise."));
+          };
           document.head.appendChild(script);
         });
       }
