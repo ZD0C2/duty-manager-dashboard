@@ -2281,6 +2281,46 @@
             menu.replaceChildren();
           }
 
+          function predictionName(prediction) {
+            return prediction.mainText && prediction.mainText.text ? String(prediction.mainText.text) : String(prediction.text && prediction.text.text || "Hotel result");
+          }
+
+          function predictionAddress(prediction) {
+            return prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
+          }
+
+          function showPredictions(items) {
+            predictions = items.filter(Boolean).slice(0, 8);
+            menu.innerHTML = predictions.map(function (prediction, index) {
+              return '<button class="hotel-search-option" type="button" role="option" data-hotel-result="' + index + '"><strong>' + escapeHtml(predictionName(prediction)) + '</strong><span>' + escapeHtml(predictionAddress(prediction) || "Select this property") + '</span></button>';
+            }).join("");
+            menu.hidden = predictions.length === 0;
+            status.textContent = predictions.length ? "Choose the correct hotel from the menu below." : "No matching places found. Try the full hotel name or town.";
+          }
+
+          async function fetchGooglePlacesFallback(query) {
+            var response = await fetch("https://places.googleapis.com/v1/places:autocomplete", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Goog-Api-Key": String(appConfig.googlePlacesApiKey || "")
+              },
+              body: JSON.stringify({ input: query })
+            });
+            var payload = await response.json();
+            if (!response.ok) throw new Error(payload.error && payload.error.status ? payload.error.status : "Google Places request failed");
+            return (payload.suggestions || []).map(function (suggestion) {
+              var prediction = suggestion.placePrediction;
+              if (!prediction) return null;
+              return {
+                placeId: prediction.placeId,
+                text: prediction.text,
+                mainText: prediction.structuredFormat && prediction.structuredFormat.mainText,
+                secondaryText: prediction.structuredFormat && prediction.structuredFormat.secondaryText
+              };
+            }).filter(Boolean);
+          }
+
           input.addEventListener("input", function () {
             window.clearTimeout(searchTimer);
             var query = input.value.trim();
@@ -2295,19 +2335,18 @@
               try {
                 var request = { input: query };
                 if (sessionToken) request.sessionToken = sessionToken;
-                var response = await placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+                var response;
+                try {
+                  response = await placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+                } catch (libraryError) {
+                  console.warn("Google Maps library autocomplete failed; using the Places web fallback.", libraryError);
+                  response = { suggestions: (await fetchGooglePlacesFallback(query)).map(function (prediction) { return { placePrediction: prediction }; }) };
+                }
                 if (thisRequest !== requestNumber) return;
-                predictions = (response.suggestions || []).map(function (suggestion) { return suggestion.placePrediction; }).filter(Boolean).slice(0, 8);
-                menu.innerHTML = predictions.map(function (prediction, index) {
-                  var name = prediction.mainText && prediction.mainText.text ? String(prediction.mainText.text) : String(prediction.text && prediction.text.text || "Hotel result");
-                  var address = prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
-                  return '<button class="hotel-search-option" type="button" role="option" data-hotel-result="' + index + '"><strong>' + escapeHtml(name) + '</strong><span>' + escapeHtml(address || "Select this property") + '</span></button>';
-                }).join("");
-                menu.hidden = predictions.length === 0;
-                status.textContent = predictions.length ? "Choose the correct hotel from the menu below." : "No matching places found. Try the full hotel name or town.";
+                showPredictions((response.suggestions || []).map(function (suggestion) { return suggestion.placePrediction; }));
               } catch (error) {
                 hideMenu();
-                status.textContent = "Google hotel search failed. Check that billing is active and Places API (New) is enabled for this key.";
+                status.textContent = "Hotel search could not connect to Google. Please try again in a minute.";
                 console.error("InnRelay hotel directory search failed", error);
               }
             }, 280);
@@ -2318,8 +2357,8 @@
             if (!option) return;
             var prediction = predictions[Number(option.getAttribute("data-hotel-result"))];
             if (!prediction || !prediction.placeId) return;
-            var name = prediction.mainText && prediction.mainText.text ? String(prediction.mainText.text) : String(prediction.text && prediction.text.text || "Selected hotel");
-            var address = prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
+            var name = predictionName(prediction);
+            var address = predictionAddress(prediction);
             input.value = name;
             hideMenu();
             onSelect(name, address, String(prediction.placeId));
