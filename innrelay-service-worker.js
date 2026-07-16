@@ -1,4 +1,4 @@
-const CACHE_NAME = "innrelay-prototype-v8";
+const CACHE_NAME = "innrelay-prototype-v9";
 const APP_SHELL = [
   "./innrelay-prototype.html",
   "./innrelay-guest.html",
@@ -29,7 +29,9 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const requestUrl = new URL(event.request.url);
-  const needsFreshCopy = event.request.mode === "navigate" || requestUrl.pathname.endsWith("innrelay-supabase-config.js");
+  const needsFreshCopy = event.request.mode === "navigate" ||
+    requestUrl.pathname.endsWith("innrelay-supabase-config.js") ||
+    requestUrl.pathname.endsWith("innrelay-qr.js");
   if (needsFreshCopy) {
     event.respondWith(
       fetch(event.request).then((response) => {
