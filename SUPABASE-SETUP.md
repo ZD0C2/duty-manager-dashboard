@@ -62,12 +62,30 @@ https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html
 
 Keep `http://localhost:8080/innrelay-prototype.html` as an additional redirect only while developing locally. In Supabase **Authentication > Providers > Google**, enable Google and store the Google client ID and client secret there. The secret belongs in Supabase/Google Cloud only, never in the app files.
 
+## Hotel directory menu
+
+Google sign-in and Google hotel search use different credentials. The OAuth client above cannot power the hotel menu.
+
+1. In the same Google Cloud project, enable **Places API (New)** and billing.
+2. Create a separate browser API key.
+3. Restrict the key to **Maps JavaScript API** and **Places API (New)**.
+4. Restrict website access to:
+
+```text
+https://zd0c2.github.io/duty-manager-dashboard/*
+http://localhost:8080/*
+```
+
+5. Put that restricted browser key in `innrelay-supabase-config.js` as `googlePlacesApiKey`.
+
+Add the future `https://innrelay.com/*` referrer before moving to the custom domain. The key is deliberately blank in source until these restrictions exist. Owners can still use manual entry, but a directory selection stores Google's place ID and prevents the same hotel being registered twice.
+
 ## Owner onboarding
 
 1. Open the public staff page.
 2. Select **Continue with Google**.
 3. If the account has no hotel, InnRelay opens **Register your first property**.
-4. Enter the property name, URL name, reception contact, address and colour.
+4. Choose the property from the hotel menu, or use manual entry for an unlisted property; then confirm the URL name, reception contact and colour.
 5. InnRelay creates the owner membership, five default departments, sensible category routes, and common public areas.
 6. Use **Property settings** to add numbered room ranges, change routing, invite staff and register another hotel.
 
@@ -79,7 +97,7 @@ The owner creates an invitation for the employee's exact email address. Send the
 
 ## QR generation
 
-Create rooms and areas first, then use **Guest Inbox > Guest-room QR code**. InnRelay generates QR images locally in the browser and can print one card or a batch of all active locations.
+Create rooms and areas first, then use **Guest Inbox > Guest-room QR code**. A staff member can type any single room number, or create a numbered range of up to 500 rooms in one action. InnRelay generates QR images locally in the browser and prints batch cards on A4 sheets, six cards per page. Existing room codes are kept rather than duplicated.
 
 The GitHub Pages pilot URL contains secure query capabilities plus a readable route hint, for example:
 
