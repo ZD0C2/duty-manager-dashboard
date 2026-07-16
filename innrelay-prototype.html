@@ -502,6 +502,8 @@
     .guest-note { width: 100%; padding: 9px 10px; border: 1px solid rgba(255,255,255,.13); border-radius: 10px; color: var(--white); background: rgba(0,0,0,.12); outline: none; font-size: 11px; }
     .guest-note:focus { border-color: var(--mint); }
     .guest-action-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .assignment-control { display: grid; gap: 3px; color: rgba(255,255,255,.48); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+    .assignment-control select { min-width: 140px; padding: 7px 9px; border: 1px solid rgba(255,255,255,.14); border-radius: 9px; color: var(--white); background: #132039; font-size: 10px; font-weight: 750; text-transform: none; letter-spacing: 0; }
     .guest-action { padding: 8px 10px; border: 1px solid rgba(255,255,255,.14); border-radius: 9px; color: rgba(255,255,255,.75); background: transparent; font-size: 10px; font-weight: 850; }
     .guest-action:hover { color: var(--white); background: rgba(255,255,255,.08); }
     .guest-action.primary { color: var(--ink); border-color: var(--mint); background: var(--mint); }
@@ -520,6 +522,27 @@
     .qr-controls .field { flex: 1 1 180px; margin-top: 0; }
     .qr-url { margin-top: 9px; overflow-wrap: anywhere; color: var(--mint); font-size: 11px; }
     .catalog-stat { display: inline-flex; margin-left: 8px; padding: 4px 8px; border-radius: 999px; color: var(--mint-ink); background: var(--mint); font-size: 10px; font-weight: 850; }
+    .property-switcher { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.07); }
+    .property-switcher span { color: rgba(255,255,255,.45); font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .property-switcher select { max-width: 260px; border: 0; color: rgba(255,255,255,.86); background: transparent; outline: none; font-size: 12px; font-weight: 750; }
+    .property-switcher option { color: var(--ink); background: var(--white); }
+    .management-stack { display: grid; gap: 16px; }
+    .management-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+    .management-grid .handover-card { min-width: 0; }
+    .management-list { display: grid; gap: 8px; margin-top: 14px; }
+    .management-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 12px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; background: rgba(255,255,255,.035); }
+    .management-row strong { display: block; color: var(--white); font-size: 13px; }
+    .management-row span { display: block; color: rgba(255,255,255,.48); font-size: 11px; }
+    .management-row code { max-width: 45%; overflow: hidden; color: var(--mint); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .onboarding-card { max-width: 820px; padding: 28px; border-color: rgba(182,239,217,.28); background: linear-gradient(145deg, #132039, #172946); }
+    .onboarding-card h2 { margin-bottom: 8px; color: var(--white); font-size: 30px; letter-spacing: -.05em; }
+    .section-note { color: rgba(255,255,255,.5); font-size: 12px; }
+    .qr-batch { display: grid; grid-template-columns: repeat(auto-fill,minmax(185px,1fr)); gap: 12px; margin: 14px 0 18px; }
+    .qr-batch-card { padding: 14px; border: 1px solid rgba(255,255,255,.1); border-radius: 15px; background: rgba(255,255,255,.035); text-align: center; }
+    .qr-batch-card img { width: 132px; height: 132px; padding: 7px; border-radius: 9px; background: white; }
+    .qr-batch-card strong { display: block; margin-top: 8px; color: var(--white); font-size: 13px; }
+    .qr-batch-card span { display: block; color: rgba(255,255,255,.48); font-size: 10px; }
+    .role-chip { display: inline-flex; padding: 4px 7px; border-radius: 999px; color: var(--mint-ink); background: var(--mint); font-size: 9px; font-weight: 850; text-transform: uppercase; }
 
     .overlay { position: fixed; z-index: 30; inset: 0; display: grid; justify-items: end; background: rgba(3, 8, 16, .58); }
     .drawer { width: min(480px, 100%); min-height: 100%; padding: 24px; color: var(--ink); background: var(--paper); box-shadow: -22px 0 60px rgba(0,0,0,.25); overflow-y: auto; }
@@ -587,7 +610,7 @@
       .form-row { flex-direction: column; }
       .form-row .button { width: 100%; }
       .app-topbar { padding: 12px 14px; }
-      .app-topbar .property-pill { display: none; }
+      .app-topbar .property-pill, .property-switcher { display: none; }
       .app-title { font-size: 30px; }
       .app-header-row { align-items: flex-end; }
       .quick-button { padding: 10px 12px; font-size: 12px; }
@@ -599,6 +622,7 @@
       .shift-task { grid-template-columns: 1fr; }
       .task-actions { justify-content: flex-start; }
       .guest-report-actions, .auth-grid, .auth-options, .qr-setup { grid-template-columns: 1fr; }
+      .management-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -755,9 +779,9 @@
   <section id="app" class="app-screen" hidden>
     <header class="app-topbar">
       <button class="brand" data-close-app aria-label="Return to InnRelay landing page"><span class="brand-mark" aria-hidden="true"></span>InnRelay</button>
-      <div class="property-pill">Exhibition Court Hotel · Pilot workspace</div>
+      <label class="property-switcher" for="property-switcher"><span>Property</span><select id="property-switcher" disabled><option>Sign in to select a hotel</option></select></label>
       <div style="display:flex;gap:8px">
-        <a class="button button-light button-small" href="./innrelay-guest.html?property=exhibition-court&room=208" target="_blank" rel="noopener">Guest portal</a>
+        <a id="top-guest-portal" class="button button-light button-small" href="./innrelay-guest.html" target="_blank" rel="noopener">Guest portal</a>
         <button class="button button-light button-small" data-close-app>Exit demo</button>
       </div>
     </header>
@@ -769,6 +793,7 @@
         <button class="side-link" data-view="shift"><span class="side-icon">✓</span>Shift Run</button>
         <button class="side-link" data-view="report"><span class="side-icon">＋</span>Quick Report</button>
         <button class="side-link" data-view="handover"><span class="side-icon">→</span>Handover</button>
+        <button id="analytics-nav" class="side-link" data-view="analytics" hidden><span class="side-icon">↗</span>Owner dashboard</button>
         <p class="sidebar-label">Pilot set-up</p>
         <button class="side-link" data-view="settings"><span class="side-icon">◌</span>Property settings</button>
       </aside>
@@ -794,6 +819,22 @@
               </div>
             </div>
             <div id="issue-list" class="issue-list"></div>
+          </section>
+        </section>
+
+        <section id="analytics-view" hidden>
+          <div class="app-header-row">
+            <div>
+              <p class="app-kicker">Property performance</p>
+              <h1 class="app-title">See where guest recovery slows down.</h1>
+              <p class="app-subtitle">Response, backlog and repeat-problem signals from the latest 200 guest requests for this property.</p>
+            </div>
+            <button id="download-management-report" class="button button-light button-small" type="button">Download CSV</button>
+          </div>
+          <div id="analytics-metrics" class="risk-grid"></div>
+          <section class="board-panel">
+            <div class="board-toolbar"><h3>Repeated guest problems</h3><span class="section-note">Use this list to fix root causes, not only individual tickets.</span></div>
+            <div id="repeated-problems" class="management-list"></div>
           </section>
         </section>
 
@@ -890,7 +931,7 @@
               <h1 class="app-title">Acknowledge the guest. Own the next action.</h1>
               <p class="app-subtitle">Reports submitted from the QR guest portal arrive here and are also placed on the Live Board.</p>
             </div>
-            <a class="button quick-button" href="./innrelay-guest.html?property=exhibition-court&room=208" target="_blank" rel="noopener">Open guest portal</a>
+            <a id="open-guest-portal" class="button quick-button" href="./innrelay-guest.html" target="_blank" rel="noopener">Open guest portal</a>
           </div>
 
           <div id="staff-sync-status" class="sync-strip" role="status">Preparing guest-report connection…</div>
@@ -902,13 +943,16 @@
               <p>Enter a room, update the code, then print it for that room. Guests may still correct their room after scanning.</p>
               <div class="qr-controls">
                 <div class="field" style="flex-basis:100%"><label for="qr-base-url">Public guest-page URL</label><input id="qr-base-url" type="url" placeholder="https://your-site.example/innrelay-guest.html"><p style="margin:5px 0 0;color:rgba(255,255,255,.55);font-size:11px">This exact page must open successfully on a phone before printing room QR codes.</p></div>
-                <div class="field"><label for="qr-room">Room number or area</label><input id="qr-room" value="208" maxlength="80" placeholder="208 or Lobby"></div>
+                <div class="field"><label for="qr-location">Room number or area</label><select id="qr-location"><option value="">Sign in and select a property</option></select></div>
                 <button id="update-qr" class="button button-primary button-small" type="button">Update QR</button>
                 <button id="print-qr" class="button button-quiet button-small" type="button">Print QR</button>
+                <button id="build-qr-batch" class="button button-quiet button-small" type="button">Generate all QR cards</button>
+                <button id="print-qr-batch" class="button button-quiet button-small" type="button">Print all</button>
               </div>
               <div id="guest-qr-url" class="qr-url"></div>
             </div>
           </section>
+          <div id="qr-batch-list" class="qr-batch" hidden></div>
 
           <section id="staff-auth-card" class="handover-card" style="margin-bottom:16px">
             <div id="staff-auth-entry">
@@ -935,7 +979,10 @@
           <section class="board-panel">
             <div class="guest-toolbar">
               <h3>Guest reports <span id="catalog-stat" class="catalog-stat">catalogue loading</span></h3>
-              <a href="./innrelay-guest.html?property=exhibition-court&room=208" target="_blank" rel="noopener">Test Room 208 QR link ↗</a>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+                <button id="enable-notifications" class="button button-quiet button-small" type="button">Enable browser alerts</button>
+                <a id="test-guest-portal" href="./innrelay-guest.html" target="_blank" rel="noopener">Test selected QR link ↗</a>
+              </div>
             </div>
             <div id="guest-inbox-list" class="guest-inbox"><div class="demo-empty">No guest reports yet.</div></div>
           </section>
@@ -1008,24 +1055,130 @@
         <section id="settings-view" hidden>
           <div class="app-header-row">
             <div>
-              <p class="app-kicker">Pilot set-up</p>
-              <h1 class="app-title">Keep configuration small.</h1>
-              <p class="app-subtitle">In the live product, this is where a manager adds rooms, areas, categories, and a shared property PIN.</p>
+              <p class="app-kicker">Property administration</p>
+              <h1 class="app-title">Set up every hotel as its own workspace.</h1>
+              <p class="app-subtitle">Owners control property branding, departments, rooms, public areas, QR cards and staff access.</p>
             </div>
+            <button id="show-property-onboarding" class="button button-light button-small" type="button" hidden>Register another hotel</button>
           </div>
-          <section class="handover-card" style="max-width: 740px">
-            <h3>Recommended first setup</h3>
-            <div class="checklist">
-              <div class="checkline"><span class="check">✓</span><span>Rooms 001–200 and common areas.</span></div>
-              <div class="checkline"><span class="check">✓</span><span>Reception, housekeeping, maintenance, and food & beverage categories.</span></div>
-              <div class="checkline"><span class="check">✓</span><span>Individual Google or email staff accounts linked to this property; no shared PIN.</span></div>
-              <div class="checkline"><span class="check">✓</span><span>Automatic handover at shift change, with a printable daily summary.</span></div>
-            </div>
-            <div class="drawer-actions">
-              <button id="backup-demo" class="button button-quiet" type="button">Download pilot backup</button>
-              <button id="reset-demo" class="button button-quiet" type="button">Reset demo data</button>
-            </div>
+          <section id="property-onboarding" class="handover-card onboarding-card" hidden>
+            <p class="app-kicker">New hotel workspace</p>
+            <h2 id="property-onboarding-title">Register your first property.</h2>
+            <p>Your Google account becomes the owner. InnRelay creates a separate property ID and secure QR namespace automatically.</p>
+            <form id="property-onboarding-form">
+              <div class="field-grid">
+                <div class="field"><label for="onboard-property-name">Hotel or serviced-apartment name</label><input id="onboard-property-name" required maxlength="120" placeholder="e.g. Riverside Court Hotel"></div>
+                <div class="field"><label for="onboard-property-slug">Public URL name</label><input id="onboard-property-slug" required maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="riverside-court"></div>
+              </div>
+              <div class="field"><label for="onboard-property-address">Property address</label><input id="onboard-property-address" maxlength="240" placeholder="Town or full business address"></div>
+              <div class="field-grid">
+                <div class="field"><label for="onboard-property-phone">Reception contact</label><input id="onboard-property-phone" maxlength="80" placeholder="Use the room phone or +44..."></div>
+                <div class="field"><label for="onboard-property-colour">Brand colour</label><input id="onboard-property-colour" type="color" value="#ff8a68"></div>
+              </div>
+              <div class="drawer-actions">
+                <button class="button button-primary" type="submit">Create hotel workspace</button>
+                <button id="cancel-property-onboarding" class="button button-quiet" type="button" hidden>Cancel</button>
+              </div>
+            </form>
           </section>
+
+          <div id="property-management" class="management-stack" hidden>
+            <div class="management-grid">
+              <section class="handover-card">
+                <h3>Property profile</h3>
+                <p class="section-note">These details appear on the guest portal and printed QR cards.</p>
+                <form id="property-profile-form">
+                  <div class="field"><label for="property-name">Property name</label><input id="property-name" required maxlength="120"></div>
+                  <div class="field"><label for="property-address">Address</label><input id="property-address" maxlength="240"></div>
+                  <div class="field-grid">
+                    <div class="field"><label for="property-phone">Reception contact</label><input id="property-phone" maxlength="80"></div>
+                    <div class="field"><label for="property-brand-colour">Brand colour</label><input id="property-brand-colour" type="color"></div>
+                  </div>
+                  <div class="field"><label for="property-retention">Request retention</label><select id="property-retention"><option value="30">30 days</option><option value="90">90 days</option><option value="180">180 days</option><option value="365">1 year</option></select></div>
+                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Save property</button></div>
+                </form>
+              </section>
+
+              <section class="handover-card">
+                <h3>Departments</h3>
+                <p class="section-note">Set the team and acknowledgement target used for routing and escalation.</p>
+                <form id="department-form">
+                  <div class="field-grid">
+                    <div class="field"><label for="department-name">Department name</label><input id="department-name" required maxlength="80" placeholder="Housekeeping"></div>
+                    <div class="field"><label for="department-target">Acknowledge within</label><input id="department-target" type="number" min="1" max="240" value="10"></div>
+                  </div>
+                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Add department</button></div>
+                </form>
+                <div id="department-list" class="management-list"></div>
+                <form id="department-route-form" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+                  <p class="section-note">Route each request category to the right team before anyone touches it.</p>
+                  <div class="field-grid">
+                    <div class="field"><label for="route-category">Request category</label><select id="route-category" required></select></div>
+                    <div class="field"><label for="route-department">Send to</label><select id="route-department" required><option value="">Choose department</option></select></div>
+                  </div>
+                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Save route</button></div>
+                </form>
+                <div id="department-route-list" class="management-list"></div>
+              </section>
+            </div>
+
+            <div class="management-grid">
+              <section class="handover-card">
+                <h3>Rooms and areas</h3>
+                <p class="section-note">Add a public area or create a complete numbered room range in one action.</p>
+                <form id="location-form">
+                  <div class="field-grid">
+                    <div class="field"><label for="location-name">Area name</label><input id="location-name" required maxlength="100" placeholder="Reception"></div>
+                    <div class="field"><label for="location-type">Type</label><select id="location-type"><option value="room">Room</option><option value="reception">Reception</option><option value="bar">Bar</option><option value="restaurant">Restaurant</option><option value="gym">Gym</option><option value="public_area">Public area</option><option value="other">Other</option></select></div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field"><label for="location-code">Short code</label><input id="location-code" required maxlength="80" placeholder="reception"></div>
+                    <div class="field"><label for="location-department">Default department</label><select id="location-department"><option value="">No default</option></select></div>
+                  </div>
+                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Add area</button></div>
+                </form>
+                <form id="room-batch-form" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+                  <div class="field-grid">
+                    <div class="field"><label for="room-start">First room</label><input id="room-start" type="number" min="1" max="9999" value="101"></div>
+                    <div class="field"><label for="room-end">Last room</label><input id="room-end" type="number" min="1" max="9999" value="120"></div>
+                  </div>
+                  <div class="field-grid">
+                    <div class="field"><label for="room-floor">Floor</label><input id="room-floor" maxlength="50" placeholder="1"></div>
+                    <div class="field"><label for="room-department">Default department</label><select id="room-department"><option value="">No default</option></select></div>
+                  </div>
+                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Create room range</button></div>
+                </form>
+                <div id="location-list" class="management-list"></div>
+              </section>
+
+              <section class="handover-card">
+                <h3>Invite staff</h3>
+                <p class="section-note">Create a secure invitation link for the employee’s exact email address. They sign in with Google, then InnRelay links only the authorised property.</p>
+                <form id="staff-invite-form">
+                  <div class="field"><label for="invite-email">Staff work email</label><input id="invite-email" type="email" required maxlength="320" placeholder="staff@hotel.com"></div>
+                  <div class="field-grid">
+                    <div class="field"><label for="invite-role">Role</label><select id="invite-role"><option value="staff">Staff</option><option value="supervisor">Supervisor</option><option value="manager">Manager</option></select></div>
+                    <div class="field"><label for="invite-department">Department</label><select id="invite-department"><option value="">All departments</option></select></div>
+                  </div>
+                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Create invitation link</button></div>
+                </form>
+                <div id="invitation-list" class="management-list"></div>
+              </section>
+            </div>
+
+            <section class="handover-card">
+              <h3>Workspace safety</h3>
+              <div class="checklist">
+                <div class="checkline"><span class="check">✓</span><span>Every staff account is individually authenticated and property-scoped.</span></div>
+                <div class="checkline"><span class="check">✓</span><span>Guest QR links carry non-guessable hotel and location capabilities.</span></div>
+                <div class="checkline"><span class="check">✓</span><span>Guests may correct their location only within the scanned hotel.</span></div>
+              </div>
+              <div class="drawer-actions">
+                <button id="backup-demo" class="button button-quiet" type="button">Download pilot backup</button>
+                <button id="reset-demo" class="button button-quiet" type="button">Reset local demo data</button>
+              </div>
+            </section>
+          </div>
         </section>
       </main>
     </div>
@@ -1065,6 +1218,7 @@
 
   <script src="./innrelay-issue-catalog.js"></script>
   <script src="./innrelay-supabase-config.js"></script>
+  <script src="./innrelay-qr.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
   <script>
     (function () {
@@ -1127,6 +1281,12 @@
       var staffClient = null;
       var staffSession = null;
       var staffMembership = null;
+      var staffMemberships = [];
+      var propertyDepartments = [];
+      var propertyDepartmentRoutes = [];
+      var propertyLocations = [];
+      var propertyInvitations = [];
+      var propertyStaffMembers = [];
       var staffChannel = null;
       var guestReports = [];
       var guestBroadcast = "BroadcastChannel" in window ? new BroadcastChannel("innrelay-guest-reports") : null;
@@ -1257,19 +1417,28 @@
         target.className = "sync-strip" + (state ? " " + state : "");
       }
 
-      function guestPortalUrl(room, suppliedBase) {
+      function selectedQrLocation() {
+        var locationId = document.getElementById("qr-location").value;
+        return propertyLocations.filter(function (location) { return location.id === locationId; })[0] || null;
+      }
+
+      function guestPortalUrl(location, suppliedBase) {
         var base = suppliedBase || appConfig.publicGuestUrl;
         if (!base) {
           base = new URL("./innrelay-guest.html", window.location.href).href;
         }
         var url = new URL(base);
-        url.searchParams.set("property", appConfig.propertySlug || "exhibition-court");
-        if (room) url.searchParams.set("room", room.replace(/^room\s*/i, ""));
+        if (!staffMembership || !location) return url.href;
+        url.searchParams.set("pid", staffMembership.property_id);
+        url.searchParams.set("lid", location.id);
+        url.searchParams.set("p", staffMembership.property_public_id);
+        url.searchParams.set("l", location.public_id);
+        url.hash = "/g/" + encodeURIComponent(staffMembership.property_slug) + "/" + (location.location_type === "room" ? "r" : "a") + "/" + encodeURIComponent(location.code);
         return url.href;
       }
 
-      function renderGuestQr() {
-        var room = document.getElementById("qr-room").value.trim();
+      async function renderGuestQr() {
+        var location = selectedQrLocation();
         var baseInput = document.getElementById("qr-base-url");
         var base = baseInput.value.trim();
         if (!base) {
@@ -1277,23 +1446,92 @@
           baseInput.focus();
           return;
         }
+        if (!staffMembership || !location) {
+          document.getElementById("guest-qr-url").textContent = "Select a property and room or area to generate its secure QR code.";
+          document.getElementById("guest-qr-image").removeAttribute("src");
+          return;
+        }
         var url;
-        try { url = guestPortalUrl(room, base); }
+        try { url = guestPortalUrl(location, base); }
         catch (error) { setStaffSync("The guest-page URL is not valid.", "error"); baseInput.focus(); return; }
         try { window.localStorage.setItem("innrelay-public-guest-url", base); } catch (error) {}
         document.getElementById("guest-qr-url").textContent = url;
-        document.getElementById("guest-qr-image").src = "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=" + encodeURIComponent(url);
-        document.getElementById("guest-qr-image").alt = "QR code for " + (room || "the guest portal");
+        try {
+          if (!window.InnRelayQRCode) throw new Error("The local QR generator did not load.");
+          document.getElementById("guest-qr-image").src = await window.InnRelayQRCode.toSvgDataUrl(url, 320);
+          document.getElementById("guest-qr-image").alt = "QR code for " + location.name;
+        } catch (error) {
+          document.getElementById("guest-qr-image").removeAttribute("src");
+          setStaffSync("QR image could not be generated: " + error.message, "error");
+          return;
+        }
+        document.getElementById("top-guest-portal").href = url;
+        document.getElementById("open-guest-portal").href = url;
+        document.getElementById("test-guest-portal").href = url;
       }
 
       function printGuestQr() {
-        var room = document.getElementById("qr-room").value.trim() || "Guest portal";
+        var location = selectedQrLocation();
+        var room = location ? location.name : "Guest portal";
         var imageUrl = document.getElementById("guest-qr-image").src;
         var portalUrl = document.getElementById("guest-qr-url").textContent;
+        if (!location || !portalUrl) { showToast("Select a location and generate its QR code first."); return; }
         var printWindow = window.open("", "_blank", "noopener,noreferrer");
         if (!printWindow) { showToast("Allow pop-ups to print the QR code."); return; }
-        printWindow.document.write('<!doctype html><html><head><title>InnRelay QR · ' + escapeHtml(room) + '</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:40px;color:#0b1220}img{width:280px;height:280px}h1{margin-bottom:4px}p{margin:5px auto;max-width:520px}.url{font-size:10px;overflow-wrap:anywhere}@media print{button{display:none}}</style></head><body><h1>InnRelay Guest</h1><p><strong>' + escapeHtml(/^room\s/i.test(room) ? room : "Room " + room) + '</strong></p><p>Scan to request help or report a problem.</p><img src="' + imageUrl + '" alt="Guest QR code"><p class="url">' + escapeHtml(portalUrl) + '</p><button onclick="window.print()">Print</button></body></html>');
+        printWindow.document.write('<!doctype html><html><head><title>InnRelay QR · ' + escapeHtml(room) + '</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:40px;color:#0b1220}img{width:280px;height:280px}h1{margin-bottom:4px}p{margin:5px auto;max-width:520px}.url{font-size:9px;overflow-wrap:anywhere}@media print{button{display:none}}</style></head><body><h1>' + escapeHtml(staffMembership.property_name) + '</h1><p><strong>' + escapeHtml(room) + '</strong></p><p>Scan for hotel help or to report a problem. No app required.</p><img src="' + imageUrl + '" alt="Guest QR code"><p class="url">InnRelay secure location code</p><button onclick="window.print()">Print</button></body></html>');
         printWindow.document.close();
+      }
+
+      async function renderQrBatch() {
+        var target = document.getElementById("qr-batch-list");
+        if (!staffMembership || !propertyLocations.length) {
+          target.hidden = true;
+          showToast("Add rooms or areas before generating QR cards.");
+          return;
+        }
+        var base = document.getElementById("qr-base-url").value.trim() || appConfig.publicGuestUrl;
+        target.hidden = false;
+        target.innerHTML = '<div class="demo-empty">Generating secure QR cards on this device…</div>';
+        try {
+          if (!window.InnRelayQRCode) throw new Error("The local QR generator did not load.");
+          var cards = await Promise.all(propertyLocations.filter(function (location) { return location.active; }).map(async function (location) {
+            var url = guestPortalUrl(location, base);
+            var qr = await window.InnRelayQRCode.toSvgDataUrl(url, 260);
+            return '<article class="qr-batch-card"><img src="' + escapeHtml(qr) + '" alt="QR for ' + escapeHtml(location.name) + '"><strong>' + escapeHtml(location.name) + '</strong><span>' + escapeHtml(location.location_type.replace(/_/g, " ")) + ' · secure InnRelay code</span></article>';
+          }));
+          target.innerHTML = cards.join("");
+        } catch (error) {
+          target.innerHTML = '<div class="demo-empty">QR cards could not be generated: ' + escapeHtml(error.message) + '</div>';
+          return;
+        }
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      async function printQrBatch() {
+        if (!staffMembership || !propertyLocations.length) { showToast("There are no locations to print."); return; }
+        var base = document.getElementById("qr-base-url").value.trim() || appConfig.publicGuestUrl;
+        var printWindow = window.open("", "_blank", "noopener,noreferrer");
+        if (!printWindow) { showToast("Allow pop-ups to print QR cards."); return; }
+        printWindow.document.write('<!doctype html><html><body style="font-family:Arial,sans-serif;padding:40px">Preparing secure QR cards…</body></html>');
+        printWindow.document.close();
+        var cards;
+        try {
+          if (!window.InnRelayQRCode) throw new Error("The local QR generator did not load.");
+          var generatedCards = await Promise.all(propertyLocations.filter(function (location) { return location.active; }).map(async function (location) {
+            var url = guestPortalUrl(location, base);
+            var qr = await window.InnRelayQRCode.toSvgDataUrl(url, 360);
+            return '<article><h2>' + escapeHtml(staffMembership.property_name) + '</h2><h1>' + escapeHtml(location.name) + '</h1><p>Scan for hotel help or to report a problem. No app required.</p><img src="' + escapeHtml(qr) + '"><small>Powered by InnRelay · secure location code</small></article>';
+          }));
+          cards = generatedCards.join("");
+        } catch (error) {
+          printWindow.close();
+          showToast("QR cards could not be generated: " + error.message);
+          return;
+        }
+        printWindow.document.open();
+        printWindow.document.write('<!doctype html><html><head><title>InnRelay QR cards</title><style>@page{size:A6 portrait;margin:10mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#0b1220}article{height:128mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;border:2px solid #0b1220;border-radius:14px;padding:12mm}article:last-child{page-break-after:auto}h2{margin:0 0 5px;font-size:18px}h1{margin:0 0 8px;font-size:27px}p{font-size:13px;max-width:90mm}img{width:66mm;height:66mm}small{margin-top:8px;font-size:9px}@media screen{body{padding:20px;background:#ddd}article{width:105mm;margin:0 auto 20px;background:white}}</style></head><body>' + cards + '</body></html>');
+        printWindow.document.close();
+        window.setTimeout(function () { printWindow.print(); }, 800);
       }
 
       function loadDemoGuestReports() {
@@ -1379,6 +1617,7 @@
           issues.unshift(guestReportAsIssue(report));
         });
         renderGuestInbox();
+        renderAnalytics();
         renderBoard();
         renderHandover();
       }
@@ -1393,11 +1632,17 @@
         target.innerHTML = guestReports.map(function (report) {
           var issue = guestReportAsIssue(report);
           var closed = ["resolved", "closed", "cancelled", "duplicate"].indexOf(report.status) > -1;
+          var department = propertyDepartments.filter(function (item) { return item.id === report.department_id; })[0];
+          var selectedOwner = report.owner_user_id || (staffSession && staffSession.user ? staffSession.user.id : "");
+          var assignmentOptions = propertyStaffMembers.length ? propertyStaffMembers.map(function (member) {
+            return '<option value="' + escapeHtml(member.user_id) + '"' + (member.user_id === selectedOwner ? " selected" : "") + '>' + escapeHtml(member.display_name) + ' · ' + escapeHtml(member.role) + '</option>';
+          }).join("") : '<option value="">Demo Duty Manager</option>';
           return '<article class="guest-report-card" data-guest-report="' + escapeHtml(report.id) + '">' +
             '<div class="guest-report-head"><div><span class="room-label">' + escapeHtml(report.location) + ' · ' + escapeHtml(report.category_label || "Guest portal") + '</span><h3>' + escapeHtml(report.title) + '</h3></div><span class="' + statusClass(issue) + '">' + escapeHtml(guestStatusLabel(report.status)) + '</span></div>' +
-            '<div class="guest-report-meta">' + escapeHtml(report.guest_name || "Guest") + ' · ' + escapeHtml(report.contact_preference || "app update") + ' · ' + escapeHtml(report.created_at ? new Date(report.created_at).toLocaleString() : "Just now") + '</div>' +
+            '<div class="guest-report-meta">' + escapeHtml(report.guest_name || "Guest") + ' · ' + escapeHtml(report.contact_preference || "app update") + (department ? ' · ' + escapeHtml(department.name) : '') + (report.escalated_at ? ' · escalated' : '') + ' · ' + escapeHtml(report.created_at ? new Date(report.created_at).toLocaleString() : "Just now") + '</div>' +
             '<p class="guest-report-description">' + escapeHtml(report.description || "No additional detail supplied.") + (report.staff_note ? '<br><strong>Latest staff update:</strong> ' + escapeHtml(report.staff_note) : '') + '</p>' +
             (closed ? '' : '<div class="guest-report-actions"><input class="guest-note" data-guest-note placeholder="Update visible to the guest, or resolution note"><div class="guest-action-row">' +
+              '<label class="assignment-control">Assign to<select data-guest-owner>' + assignmentOptions + '</select></label>' +
               '<button class="guest-action primary" data-guest-action="acknowledged" type="button">Acknowledge</button>' +
               '<button class="guest-action" data-guest-action="in_progress" type="button">Start work</button>' +
               '<button class="guest-action resolve" data-guest-action="resolved" type="button">Resolve</button>' +
@@ -1405,10 +1650,79 @@
         }).join("");
       }
 
+      function elapsedMinutes(start, end) {
+        if (!start || !end) return null;
+        return Math.max(0, Math.round((new Date(end) - new Date(start)) / 60000));
+      }
+
+      function renderAnalytics() {
+        var metrics = document.getElementById("analytics-metrics");
+        var repeated = document.getElementById("repeated-problems");
+        if (!metrics || !repeated) return;
+        var closedStatuses = ["resolved", "closed", "cancelled", "duplicate"];
+        var unresolved = guestReports.filter(function (report) { return closedStatuses.indexOf(report.status) === -1; });
+        var overdue = unresolved.filter(function (report) { return report.status === "reported" && !report.acknowledged_at && report.escalation_due_at && new Date(report.escalation_due_at) < new Date(); });
+        var responseTimes = guestReports.map(function (report) { return elapsedMinutes(report.created_at, report.acknowledged_at); }).filter(function (minutes) { return minutes !== null; });
+        var averageResponse = responseTimes.length ? Math.round(responseTimes.reduce(function (total, minutes) { return total + minutes; }, 0) / responseTimes.length) : null;
+        var problemGroups = {};
+        guestReports.forEach(function (report) {
+          var key = report.issue_code || (report.category_key + ":" + String(report.title || "").toLowerCase());
+          if (!problemGroups[key]) problemGroups[key] = { title: report.title, category: report.category_label, count: 0, open: 0, locations: {} };
+          problemGroups[key].count += 1;
+          if (closedStatuses.indexOf(report.status) === -1) problemGroups[key].open += 1;
+          problemGroups[key].locations[report.location] = true;
+        });
+        var repeatRows = Object.keys(problemGroups).map(function (key) { return problemGroups[key]; }).filter(function (group) { return group.count > 1; }).sort(function (a, b) { return b.count - a.count; });
+
+        metrics.innerHTML =
+          '<div class="risk-card mint"><strong>' + (averageResponse === null ? "—" : averageResponse + "m") + '</strong><span>Average acknowledgement</span></div>' +
+          '<div class="risk-card coral"><strong>' + unresolved.length + '</strong><span>Unresolved requests</span></div>' +
+          '<div class="risk-card amber"><strong>' + overdue.length + '</strong><span>Past escalation target</span></div>' +
+          '<div class="risk-card"><strong>' + repeatRows.length + '</strong><span>Repeated problem types</span></div>';
+
+        repeated.innerHTML = repeatRows.slice(0, 12).map(function (group) {
+          return '<div class="management-row"><div><strong>' + escapeHtml(group.title) + '</strong><span>' + escapeHtml(group.category || "Guest request") + ' · ' + Object.keys(group.locations).length + ' location(s) · ' + group.open + ' still open</span></div><span class="role-chip">' + group.count + ' reports</span></div>';
+        }).join("") || '<div class="demo-empty">No repeated guest problem appears in the current reporting window.</div>';
+      }
+
+      function csvCell(value) {
+        var output = value === null || value === undefined ? "" : String(value);
+        if (/^[=+\-@]/.test(output)) output = "'" + output;
+        return '"' + output.replace(/"/g, '""') + '"';
+      }
+
+      function downloadManagementReport() {
+        if (!staffMembership) { showToast("Sign in to a property before downloading a report."); return; }
+        var headings = ["Created", "Location", "Department", "Category", "Problem", "Status", "Assigned to", "Acknowledgement minutes", "Resolution minutes"];
+        var rows = guestReports.map(function (report) {
+          var department = propertyDepartments.filter(function (item) { return item.id === report.department_id; })[0];
+          return [
+            report.created_at,
+            report.location,
+            department ? department.name : "",
+            report.category_label,
+            report.title,
+            report.status,
+            report.owner_display,
+            elapsedMinutes(report.created_at, report.acknowledged_at),
+            elapsedMinutes(report.created_at, report.resolved_at)
+          ];
+        });
+        var csv = [headings].concat(rows).map(function (row) { return row.map(csvCell).join(","); }).join("\r\n");
+        var blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+        var link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "innrelay-" + slugify(staffMembership.property_slug || staffMembership.property_name) + "-management-report.csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.setTimeout(function () { URL.revokeObjectURL(link.href); }, 500);
+      }
+
       async function fetchLiveGuestReports() {
         if (!staffClient || !staffSession || !staffMembership) return;
         var result = await staffClient.from("guest_reports")
-          .select("id,property_id,guest_user_id,location,category_key,category_label,issue_code,title,description,urgency,guest_impact,guest_name,contact_preference,status,owner_user_id,owner_display,staff_note,resolution_note,created_at,updated_at")
+          .select("id,property_id,guest_user_id,location_id,department_id,location,category_key,category_label,issue_code,title,description,urgency,guest_impact,guest_name,contact_preference,status,owner_user_id,owner_display,staff_note,resolution_note,acknowledged_at,resolved_at,acknowledge_due_at,escalation_due_at,escalated_at,created_at,updated_at")
           .eq("property_id", staffMembership.property_id)
           .order("created_at", { ascending: false })
           .limit(200);
@@ -1423,17 +1737,23 @@
         mergeGuestReportsIntoBoard(loadDemoGuestReports());
       }
 
-      async function updateGuestReport(reportId, nextStatus, note) {
+      async function updateGuestReport(reportId, nextStatus, note, assigneeId) {
         var message = note || ({ acknowledged: "Your request has been acknowledged by the hotel team.", in_progress: "A team member is now working on your request.", resolved: "The hotel team has marked this request resolved." }[nextStatus]);
         if (nextStatus === "resolved" && !note) {
           showToast("Add a short resolution note before resolving the request.");
           return false;
         }
         if (staffClient && staffSession && staffMembership) {
+          var assignee = propertyStaffMembers.filter(function (member) { return member.user_id === assigneeId; })[0]
+            || propertyStaffMembers.filter(function (member) { return member.user_id === staffSession.user.id; })[0];
+          if (!assignee) {
+            setStaffSync("Choose an active team member for this property.", "error");
+            return false;
+          }
           var updatePayload = {
             status: nextStatus,
-            owner_user_id: staffSession.user.id,
-            owner_display: staffMembership.display_name,
+            owner_user_id: assignee.user_id,
+            owner_display: assignee.display_name,
             staff_note: message
           };
           if (nextStatus === "resolved") updatePayload.resolution_note = note;
@@ -1470,10 +1790,203 @@
         if (!staffClient || !staffMembership) return;
         if (staffChannel) staffClient.removeChannel(staffChannel);
         staffChannel = staffClient.channel("innrelay-staff-" + staffMembership.property_id)
-          .on("postgres_changes", { event: "*", schema: "public", table: "guest_reports", filter: "property_id=eq." + staffMembership.property_id }, fetchLiveGuestReports)
+          .on("postgres_changes", { event: "*", schema: "public", table: "guest_reports", filter: "property_id=eq." + staffMembership.property_id }, function (payload) {
+            if (payload.eventType === "INSERT" && "Notification" in window && Notification.permission === "granted") {
+              var alert = new Notification((payload.new.location || "Hotel") + " · " + (payload.new.title || "New guest request"), {
+                body: "Open InnRelay to acknowledge and assign this request.",
+                icon: "./innrelay-icon.svg",
+                tag: "innrelay-report-" + payload.new.id
+              });
+              alert.onclick = function () { window.focus(); showView("guest"); alert.close(); };
+            }
+            fetchLiveGuestReports();
+          })
           .subscribe(function (status) {
             if (status === "SUBSCRIBED") setStaffSync("Connected as " + staffMembership.display_name + " · " + (staffSession.user.email || "staff account") + " · Live with " + staffMembership.property_name, "live");
           });
+      }
+
+      function slugify(value) {
+        return String(value || "").toLowerCase().trim()
+          .replace(/&/g, " and ")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 80);
+      }
+
+      function newUuid() {
+        if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (character) {
+          var random = Math.random() * 16 | 0;
+          return (character === "x" ? random : (random & 3 | 8)).toString(16);
+        });
+      }
+
+      function membershipFromRow(row) {
+        return {
+          property_id: row.property_id,
+          department_id: row.department_id || null,
+          display_name: row.display_name,
+          role: row.role,
+          property_name: row.properties.name,
+          property_slug: row.properties.slug,
+          property_public_id: row.properties.public_id,
+          property: row.properties
+        };
+      }
+
+      function renderPropertySwitcher() {
+        var switcher = document.getElementById("property-switcher");
+        if (!staffMemberships.length) {
+          switcher.innerHTML = "<option>No hotel workspace yet</option>";
+          switcher.disabled = true;
+          return;
+        }
+        switcher.innerHTML = staffMemberships.map(function (membership) {
+          return '<option value="' + escapeHtml(membership.property_id) + '">' + escapeHtml(membership.property_name) + '</option>';
+        }).join("");
+        switcher.value = staffMembership ? staffMembership.property_id : staffMemberships[0].property_id;
+        switcher.disabled = staffMemberships.length < 2;
+      }
+
+      function setDepartmentOptions() {
+        ["location-department", "room-department", "invite-department", "route-department"].forEach(function (id) {
+          var select = document.getElementById(id);
+          var first = id === "invite-department" ? "All departments" : id === "route-department" ? "Choose department" : "No default";
+          select.innerHTML = '<option value="">' + first + '</option>' + propertyDepartments.filter(function (department) { return department.active; }).map(function (department) {
+            return '<option value="' + escapeHtml(department.id) + '">' + escapeHtml(department.name) + '</option>';
+          }).join("");
+        });
+        var categories = window.InnRelayCatalog ? window.InnRelayCatalog.categories : [];
+        document.getElementById("route-category").innerHTML = categories.map(function (category) {
+          return '<option value="' + escapeHtml(category.key) + '">' + escapeHtml(category.label) + '</option>';
+        }).join("");
+      }
+
+      function invitationUrl(invitation) {
+        var url = new URL(appConfig.publicStaffUrl || window.location.href);
+        url.search = "";
+        url.hash = "";
+        url.searchParams.set("invite", invitation.token);
+        return url.href;
+      }
+
+      function renderPropertyManagement() {
+        var manager = staffMembership && ["owner", "manager"].indexOf(staffMembership.role) > -1;
+        document.getElementById("property-onboarding").hidden = true;
+        document.getElementById("property-management").hidden = !manager;
+        document.getElementById("show-property-onboarding").hidden = !(staffMembership && staffMembership.role === "owner");
+        document.getElementById("analytics-nav").hidden = !manager;
+        if (!staffMembership) return;
+
+        document.documentElement.style.setProperty("--coral", staffMembership.property.brand_colour || "#ff8a68");
+        document.getElementById("property-name").value = staffMembership.property.name || "";
+        document.getElementById("property-address").value = staffMembership.property.address || "";
+        document.getElementById("property-phone").value = staffMembership.property.reception_phone || "";
+        document.getElementById("property-brand-colour").value = staffMembership.property.brand_colour || "#ff8a68";
+        document.getElementById("property-retention").value = String(staffMembership.property.data_retention_days || 90);
+
+        setDepartmentOptions();
+        document.getElementById("department-list").innerHTML = propertyDepartments.map(function (department) {
+          return '<div class="management-row"><div><strong>' + escapeHtml(department.name) + '</strong><span>Acknowledge ' + department.response_target_minutes + ' min · escalate ' + department.escalation_minutes + ' min</span></div><span class="role-chip">' + (department.active ? "active" : "paused") + '</span></div>';
+        }).join("") || '<div class="demo-empty">No departments yet.</div>';
+
+        document.getElementById("department-route-list").innerHTML = propertyDepartmentRoutes.map(function (route) {
+          var category = window.InnRelayCatalog && window.InnRelayCatalog.categories.filter(function (item) { return item.key === route.category_key; })[0];
+          var department = propertyDepartments.filter(function (item) { return item.id === route.department_id; })[0];
+          return '<div class="management-row"><div><strong>' + escapeHtml(category ? category.label : route.category_key) + '</strong><span>Automatically routed on submission</span></div><span class="role-chip">' + escapeHtml(department ? department.name : "Unavailable") + '</span></div>';
+        }).join("") || '<div class="demo-empty">Location defaults will be used until category routes are added.</div>';
+
+        document.getElementById("location-list").innerHTML = propertyLocations.map(function (location) {
+          var department = propertyDepartments.filter(function (item) { return item.id === location.department_id; })[0];
+          return '<div class="management-row"><div><strong>' + escapeHtml(location.name) + '</strong><span>' + escapeHtml(location.location_type.replace(/_/g, " ")) + (department ? " · " + escapeHtml(department.name) : "") + '</span></div><code>' + escapeHtml(location.public_id) + '</code></div>';
+        }).join("") || '<div class="demo-empty">No rooms or areas yet.</div>';
+
+        document.getElementById("invitation-list").innerHTML = propertyInvitations.map(function (invitation) {
+          var status = invitation.accepted_at ? "accepted" : !invitation.active ? "revoked" : new Date(invitation.expires_at) <= new Date() ? "expired" : "pending";
+          return '<div class="management-row"><div><strong>' + escapeHtml(invitation.email) + '</strong><span>' + escapeHtml(invitation.role) + ' · ' + status + '</span></div>' + (status === "pending" ? '<button class="button button-quiet button-small" type="button" data-copy-invite="' + escapeHtml(invitationUrl(invitation)) + '">Copy link</button>' : '<span class="role-chip">' + status + '</span>') + '</div>';
+        }).join("") || '<div class="demo-empty">No staff invitations yet.</div>';
+
+        var qrSelect = document.getElementById("qr-location");
+        var previousQr = qrSelect.value;
+        qrSelect.innerHTML = propertyLocations.filter(function (location) { return location.active; }).map(function (location) {
+          return '<option value="' + escapeHtml(location.id) + '">' + escapeHtml(location.name) + '</option>';
+        }).join("");
+        if (propertyLocations.some(function (location) { return location.id === previousQr; })) qrSelect.value = previousQr;
+
+        locations = propertyLocations.filter(function (location) { return location.active; }).map(function (location) { return location.name; });
+        fillSelect("location", locations);
+        renderGuestQr();
+      }
+
+      async function loadPropertyConfiguration() {
+        if (!staffClient || !staffMembership) return;
+        var manager = ["owner", "manager"].indexOf(staffMembership.role) > -1;
+        var queries = [
+          staffClient.from("property_departments").select("id,property_id,name,code,response_target_minutes,escalation_minutes,active").eq("property_id", staffMembership.property_id).order("name"),
+          staffClient.from("property_locations").select("id,property_id,department_id,public_id,name,code,location_type,floor,allows_guest_correction,active,sort_order").eq("property_id", staffMembership.property_id).order("sort_order").order("name"),
+          staffClient.from("department_routes").select("property_id,category_key,department_id").eq("property_id", staffMembership.property_id).order("category_key"),
+          staffClient.from("property_staff").select("property_id,user_id,department_id,display_name,role,active").eq("property_id", staffMembership.property_id).eq("active", true).order("display_name")
+        ];
+        if (manager) queries.push(staffClient.from("property_invitations").select("id,property_id,department_id,token,email,role,active,expires_at,accepted_at,created_at").eq("property_id", staffMembership.property_id).order("created_at", { ascending: false }));
+        var results = await Promise.all(queries);
+        var configurationError = results.map(function (result) { return result.error; }).filter(Boolean)[0];
+        if (configurationError) {
+          setStaffSync("Property configuration could not be loaded: " + configurationError.message, "error");
+          return;
+        }
+        propertyDepartments = results[0].data || [];
+        propertyLocations = results[1].data || [];
+        propertyDepartmentRoutes = results[2].data || [];
+        propertyStaffMembers = results[3].data || [];
+        propertyInvitations = manager && results[4] ? results[4].data || [] : [];
+        renderPropertyManagement();
+      }
+
+      async function activateMembership(membership) {
+        if (!membership) return;
+        if (staffChannel) await staffClient.removeChannel(staffChannel);
+        staffChannel = null;
+        staffMembership = membership;
+        try { window.localStorage.setItem("innrelay-active-property", membership.property_id); } catch (error) {}
+        renderPropertySwitcher();
+        document.getElementById("staff-auth-identity").textContent = staffMembership.display_name + " · " + (staffSession.user.email || "staff account") + " · " + staffMembership.role + " at " + staffMembership.property_name;
+        setStaffSync("Connected as " + staffMembership.display_name + " · " + (staffSession.user.email || "staff account") + " · loading " + staffMembership.property_name + "…", "live");
+        await loadPropertyConfiguration();
+        await fetchLiveGuestReports();
+        startStaffRealtime();
+      }
+
+      async function acceptPendingInvite() {
+        var inviteToken = new URLSearchParams(window.location.search).get("invite");
+        if (!inviteToken || !staffClient || !staffSession) return;
+        var invitationResult = await staffClient.from("property_invitations")
+          .select("id,property_id,department_id,email,role,active,expires_at,accepted_at")
+          .eq("token", inviteToken)
+          .maybeSingle();
+        if (invitationResult.error || !invitationResult.data) {
+          setStaffSync("This staff invitation is invalid, expired, or belongs to another Google account.", "error");
+          return;
+        }
+        var metadata = staffSession.user.user_metadata || {};
+        var displayName = metadata.full_name || metadata.name || (staffSession.user.email || "Hotel staff").split("@")[0];
+        var membershipResult = await staffClient.from("property_staff").insert({
+          property_id: invitationResult.data.property_id,
+          user_id: staffSession.user.id,
+          display_name: displayName.slice(0, 100),
+          role: invitationResult.data.role,
+          department_id: invitationResult.data.department_id,
+          invite_id: invitationResult.data.id,
+          active: true
+        });
+        if (membershipResult.error && membershipResult.error.code !== "23505") {
+          setStaffSync("The staff invitation could not be accepted: " + membershipResult.error.message, "error");
+          return;
+        }
+        var cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("invite");
+        window.history.replaceState({}, document.title, cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+        showToast("Staff invitation accepted.");
       }
 
       async function handleStaffSession(session) {
@@ -1485,48 +1998,73 @@
         var authIdentity = document.getElementById("staff-auth-identity");
         var signOut = document.getElementById("staff-sign-out");
         if (!staffSession) {
+          staffMemberships = [];
+          propertyDepartments = [];
+          propertyDepartmentRoutes = [];
+          propertyLocations = [];
+          propertyInvitations = [];
+          propertyStaffMembers = [];
           form.hidden = false;
           authEntry.hidden = false;
           authSummary.hidden = true;
           authIdentity.textContent = "";
           signOut.hidden = true;
+          document.getElementById("show-property-onboarding").hidden = true;
+          document.getElementById("analytics-nav").hidden = true;
+          document.getElementById("property-onboarding").hidden = true;
+          document.getElementById("property-management").hidden = true;
           setStaffSync("Sign in with a property staff account to receive live guest reports.", "");
+          renderPropertySwitcher();
           mergeGuestReportsIntoBoard([]);
           return;
         }
+        await acceptPendingInvite();
         var membershipResult = await staffClient.from("property_staff")
-          .select("property_id,display_name,role,active,properties!inner(name,slug)")
+          .select("property_id,department_id,display_name,role,active,properties!inner(id,name,slug,public_id,reception_phone,emergency_notice,brand_colour,timezone,address,guest_welcome,data_retention_days,active)")
           .eq("user_id", staffSession.user.id)
           .eq("active", true);
-        if (membershipResult.error || !membershipResult.data || !membershipResult.data.length) {
+        if (membershipResult.error) {
+          setStaffSync("Hotel memberships could not be loaded: " + membershipResult.error.message, "error");
+          return;
+        }
+        if (!membershipResult.data || !membershipResult.data.length) {
+          staffMemberships = [];
+          propertyDepartments = [];
+          propertyDepartmentRoutes = [];
+          propertyLocations = [];
+          propertyInvitations = [];
+          propertyStaffMembers = [];
           authEntry.hidden = true;
           authSummary.hidden = false;
-          authIdentity.textContent = (staffSession.user.email || "This account") + " is authenticated, but is not linked to a hotel workspace.";
+          authIdentity.textContent = (staffSession.user.email || "This account") + " is authenticated and ready to create a hotel workspace.";
           signOut.hidden = false;
-          setStaffSync("Signed in, but this account is not linked to an InnRelay property.", "error");
+          document.getElementById("landing").hidden = true;
+          document.getElementById("app").hidden = false;
+          document.getElementById("property-onboarding").hidden = false;
+          document.getElementById("property-onboarding-title").textContent = "Register your first property.";
+          document.getElementById("cancel-property-onboarding").hidden = true;
+          document.getElementById("property-management").hidden = true;
+          document.getElementById("show-property-onboarding").hidden = true;
+          document.getElementById("analytics-nav").hidden = true;
+          renderPropertySwitcher();
+          showView("settings");
+          setStaffSync("Google account connected · register your first hotel workspace.", "live");
           mergeGuestReportsIntoBoard([]);
           return;
         }
-        var preferred = membershipResult.data.filter(function (membership) {
-          return membership.properties && membership.properties.slug === appConfig.propertySlug;
-        })[0] || membershipResult.data[0];
-        staffMembership = {
-          property_id: preferred.property_id,
-          display_name: preferred.display_name,
-          role: preferred.role,
-          property_name: preferred.properties.name,
-          property_slug: preferred.properties.slug
-        };
+        staffMemberships = membershipResult.data.map(membershipFromRow);
+        var savedProperty = "";
+        try { savedProperty = window.localStorage.getItem("innrelay-active-property") || ""; } catch (error) {}
+        var preferred = staffMemberships.filter(function (membership) { return membership.property_id === savedProperty; })[0]
+          || staffMemberships.filter(function (membership) { return membership.property_slug === appConfig.propertySlug; })[0]
+          || staffMemberships[0];
         authEntry.hidden = true;
         authSummary.hidden = false;
-        authIdentity.textContent = staffMembership.display_name + " · " + (staffSession.user.email || "staff account") + " · " + staffMembership.role + " at " + staffMembership.property_name;
         signOut.hidden = false;
         document.getElementById("landing").hidden = true;
         document.getElementById("app").hidden = false;
         showView("guest");
-        setStaffSync("Connected as " + staffMembership.display_name + " · " + (staffSession.user.email || "staff account") + " · loading guest reports…", "live");
-        await fetchLiveGuestReports();
-        startStaffRealtime();
+        await activateMembership(preferred);
       }
 
       async function initialiseStaffSync() {
@@ -1809,7 +2347,7 @@
       }
 
       function showView(view) {
-        ["board", "guest", "shift", "report", "handover", "settings"].forEach(function (name) {
+        ["board", "guest", "shift", "report", "handover", "analytics", "settings"].forEach(function (name) {
           document.getElementById(name + "-view").hidden = name !== view;
         });
         Array.prototype.forEach.call(document.querySelectorAll(".side-link"), function (button) {
@@ -1820,6 +2358,7 @@
         if (view === "report") prepareReportForm();
         if (view === "shift") renderShiftRun();
         if (view === "guest") renderGuestInbox();
+        if (view === "analytics") renderAnalytics();
       }
 
       function showToast(message) {
@@ -1959,9 +2498,210 @@
         });
         if (result.error) setStaffSync("Google sign-in failed: " + result.error.message, "error");
       });
+      document.getElementById("enable-notifications").addEventListener("click", async function () {
+        if (!("Notification" in window)) { showToast("This browser does not support notifications."); return; }
+        var permission = await Notification.requestPermission();
+        this.textContent = permission === "granted" ? "Browser alerts enabled" : "Browser alerts blocked";
+        if (permission === "granted") showToast("New guest requests can now alert this device while InnRelay is open.");
+      });
+      if (!("Notification" in window)) document.getElementById("enable-notifications").hidden = true;
+      else if (Notification.permission === "granted") document.getElementById("enable-notifications").textContent = "Browser alerts enabled";
       document.getElementById("update-qr").addEventListener("click", renderGuestQr);
       document.getElementById("print-qr").addEventListener("click", printGuestQr);
-      document.getElementById("qr-room").addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); renderGuestQr(); } });
+      document.getElementById("qr-location").addEventListener("change", renderGuestQr);
+      document.getElementById("build-qr-batch").addEventListener("click", renderQrBatch);
+      document.getElementById("print-qr-batch").addEventListener("click", printQrBatch);
+      document.getElementById("property-switcher").addEventListener("change", async function () {
+        var selected = staffMemberships.filter(function (membership) { return membership.property_id === this.value; }, this)[0];
+        if (selected) await activateMembership(selected);
+      });
+      document.getElementById("show-property-onboarding").addEventListener("click", function () {
+        document.getElementById("property-onboarding-title").textContent = "Register another property.";
+        document.getElementById("cancel-property-onboarding").hidden = false;
+        document.getElementById("property-onboarding").hidden = false;
+        document.getElementById("property-onboarding").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      document.getElementById("cancel-property-onboarding").addEventListener("click", function () {
+        document.getElementById("property-onboarding").hidden = true;
+      });
+      document.getElementById("onboard-property-name").addEventListener("input", function () {
+        var slugInput = document.getElementById("onboard-property-slug");
+        if (!slugInput.dataset.edited) slugInput.value = slugify(this.value);
+      });
+      document.getElementById("onboard-property-slug").addEventListener("input", function () {
+        this.dataset.edited = this.value ? "true" : "";
+        this.value = slugify(this.value);
+      });
+      document.getElementById("property-onboarding-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        if (!staffClient || !staffSession) return;
+        var submit = event.submitter;
+        if (submit) submit.disabled = true;
+        var propertyId = newUuid();
+        var propertyPayload = {
+          id: propertyId,
+          public_id: newUuid(),
+          created_by: staffSession.user.id,
+          name: document.getElementById("onboard-property-name").value.trim(),
+          slug: slugify(document.getElementById("onboard-property-slug").value),
+          address: document.getElementById("onboard-property-address").value.trim() || null,
+          reception_phone: document.getElementById("onboard-property-phone").value.trim() || null,
+          brand_colour: document.getElementById("onboard-property-colour").value,
+          timezone: "Europe/London",
+          data_retention_days: 90,
+          active: true
+        };
+        // The ID is generated in the browser, so no RETURNING query is needed.
+        // This lets the after-insert trigger create the owner membership before
+        // the following department/location writes are evaluated by RLS.
+        var propertyResult = await staffClient.from("properties").insert(propertyPayload);
+        if (propertyResult.error) {
+          setStaffSync("Hotel registration failed: " + (propertyResult.error.code === "23505" ? "That public URL name is already used. Choose another." : propertyResult.error.message), "error");
+          if (submit) submit.disabled = false;
+          return;
+        }
+        var departmentSeeds = [
+          { name: "Reception", code: "reception", response_target_minutes: 5, escalation_minutes: 10 },
+          { name: "Housekeeping", code: "housekeeping", response_target_minutes: 10, escalation_minutes: 20 },
+          { name: "Maintenance", code: "maintenance", response_target_minutes: 10, escalation_minutes: 25 },
+          { name: "Food & Beverage", code: "food-beverage", response_target_minutes: 10, escalation_minutes: 20 },
+          { name: "Duty Management", code: "duty-management", response_target_minutes: 5, escalation_minutes: 10 }
+        ].map(function (department) { department.property_id = propertyId; return department; });
+        var departmentsResult = await staffClient.from("property_departments").insert(departmentSeeds).select("id,code");
+        if (departmentsResult.error) {
+          setStaffSync("Hotel created, but default departments need attention: " + departmentsResult.error.message, "error");
+        } else {
+          function departmentId(code) { var match = departmentsResult.data.filter(function (item) { return item.code === code; })[0]; return match ? match.id : null; }
+          var routeDepartmentByCategory = {};
+          ["housekeeping-cleanliness", "linen-towels-toiletries", "laundry-dry-cleaning", "pest-hygiene-environment"].forEach(function (key) { routeDepartmentByCategory[key] = "housekeeping"; });
+          ["bathroom-plumbing", "heating-cooling-air", "electrical-lighting", "room-furniture-fixtures", "wifi-tv-phone-technology", "public-areas-lifts", "accessibility-mobility", "spa-gym-pool-leisure", "outdoor-grounds-smoking", "sustainability-waste", "building-maintenance", "hotel-systems-it"].forEach(function (key) { routeDepartmentByCategory[key] = "maintenance"; });
+          ["breakfast", "restaurant-room-service", "bar-beverages", "food-allergy-dietary-safety", "minibar-vending-retail", "kitchen-food-operations", "stock-supplies"].forEach(function (key) { routeDepartmentByCategory[key] = "food-beverage"; });
+          ["medical-safety-emergency", "fire-life-safety-compliance", "security-incident", "staffing-operations", "cash-pos-financial"].forEach(function (key) { routeDepartmentByCategory[key] = "duty-management"; });
+          var routeRows = (window.InnRelayCatalog ? window.InnRelayCatalog.categories : []).map(function (category) {
+            var departmentCode = routeDepartmentByCategory[category.key] || "reception";
+            return { property_id: propertyId, category_key: category.key, department_id: departmentId(departmentCode) };
+          });
+          if (routeRows.length) {
+            var routesResult = await staffClient.from("department_routes").insert(routeRows);
+            if (routesResult.error) setStaffSync("Hotel created, but category routing needs attention: " + routesResult.error.message, "error");
+          }
+          var commonLocations = [
+            { name: "Reception", code: "reception", location_type: "reception", department_id: departmentId("reception"), sort_order: 10 },
+            { name: "Bar", code: "bar", location_type: "bar", department_id: departmentId("food-beverage"), sort_order: 20 },
+            { name: "Restaurant", code: "restaurant", location_type: "restaurant", department_id: departmentId("food-beverage"), sort_order: 30 },
+            { name: "Gym", code: "gym", location_type: "gym", department_id: departmentId("maintenance"), sort_order: 40 },
+            { name: "Lobby & public areas", code: "public-areas", location_type: "public_area", department_id: departmentId("reception"), sort_order: 50 }
+          ].map(function (location) { location.property_id = propertyId; return location; });
+          var locationsResult = await staffClient.from("property_locations").insert(commonLocations);
+          if (locationsResult.error) setStaffSync("Hotel created, but common areas need attention: " + locationsResult.error.message, "error");
+        }
+        event.target.reset();
+        document.getElementById("onboard-property-colour").value = "#ff8a68";
+        try { window.localStorage.setItem("innrelay-active-property", propertyId); } catch (error) {}
+        if (submit) submit.disabled = false;
+        showToast("Hotel workspace created.");
+        await handleStaffSession(staffSession);
+        showView("settings");
+      });
+      document.getElementById("property-profile-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        if (!staffMembership) return;
+        var payload = {
+          name: document.getElementById("property-name").value.trim(),
+          address: document.getElementById("property-address").value.trim() || null,
+          reception_phone: document.getElementById("property-phone").value.trim() || null,
+          brand_colour: document.getElementById("property-brand-colour").value,
+          data_retention_days: Number(document.getElementById("property-retention").value)
+        };
+        var result = await staffClient.from("properties").update(payload).eq("id", staffMembership.property_id).select("id").single();
+        if (result.error) { showToast("Property update failed: " + result.error.message); return; }
+        showToast("Property profile saved.");
+        await handleStaffSession(staffSession);
+        showView("settings");
+      });
+      document.getElementById("department-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        var name = document.getElementById("department-name").value.trim();
+        var target = Number(document.getElementById("department-target").value || 10);
+        var result = await staffClient.from("property_departments").insert({ property_id: staffMembership.property_id, name: name, code: slugify(name), response_target_minutes: target, escalation_minutes: Math.min(1440, Math.max(target + 1, target * 2)) });
+        if (result.error) { showToast("Department could not be added: " + result.error.message); return; }
+        event.target.reset();
+        document.getElementById("department-target").value = "10";
+        await loadPropertyConfiguration();
+        showToast("Department added.");
+      });
+      document.getElementById("department-route-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        var result = await staffClient.from("department_routes").upsert({
+          property_id: staffMembership.property_id,
+          category_key: document.getElementById("route-category").value,
+          department_id: document.getElementById("route-department").value
+        }, { onConflict: "property_id,category_key" });
+        if (result.error) { showToast("Route could not be saved: " + result.error.message); return; }
+        await loadPropertyConfiguration();
+        showToast("Department route saved.");
+      });
+      document.getElementById("location-name").addEventListener("input", function () {
+        var code = document.getElementById("location-code");
+        if (!code.dataset.edited) code.value = slugify(this.value);
+      });
+      document.getElementById("location-code").addEventListener("input", function () { this.dataset.edited = this.value ? "true" : ""; this.value = slugify(this.value); });
+      document.getElementById("location-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        var result = await staffClient.from("property_locations").insert({
+          property_id: staffMembership.property_id,
+          department_id: document.getElementById("location-department").value || null,
+          name: document.getElementById("location-name").value.trim(),
+          code: document.getElementById("location-code").value.trim(),
+          location_type: document.getElementById("location-type").value,
+          sort_order: propertyLocations.length * 10 + 10
+        });
+        if (result.error) { showToast("Area could not be added: " + result.error.message); return; }
+        event.target.reset();
+        document.getElementById("location-code").dataset.edited = "";
+        await loadPropertyConfiguration();
+        showToast("Hotel area added.");
+      });
+      document.getElementById("room-batch-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        var start = Number(document.getElementById("room-start").value);
+        var end = Number(document.getElementById("room-end").value);
+        if (!Number.isInteger(start) || !Number.isInteger(end) || end < start || end - start + 1 > 500) {
+          showToast("Enter a valid ascending range of no more than 500 rooms.");
+          return;
+        }
+        var width = Math.max(3, String(end).length);
+        var rows = [];
+        for (var roomNumber = start; roomNumber <= end; roomNumber += 1) {
+          var roomCode = String(roomNumber).padStart(width, "0");
+          rows.push({ property_id: staffMembership.property_id, department_id: document.getElementById("room-department").value || null, name: "Room " + roomCode, code: roomCode, location_type: "room", floor: document.getElementById("room-floor").value.trim() || null, sort_order: roomNumber });
+        }
+        var result = await staffClient.from("property_locations").insert(rows);
+        if (result.error) { showToast("Room range could not be created: " + result.error.message); return; }
+        await loadPropertyConfiguration();
+        showToast(rows.length + " rooms created with secure QR identities.");
+      });
+      document.getElementById("staff-invite-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        var result = await staffClient.from("property_invitations").insert({
+          property_id: staffMembership.property_id,
+          department_id: document.getElementById("invite-department").value || null,
+          email: document.getElementById("invite-email").value.trim().toLowerCase(),
+          role: document.getElementById("invite-role").value,
+          invited_by: staffSession.user.id,
+          expires_at: new Date(Date.now() + 7 * 86400000).toISOString()
+        });
+        if (result.error) { showToast("Invitation could not be created: " + result.error.message); return; }
+        event.target.reset();
+        await loadPropertyConfiguration();
+        showToast("Invitation link created. Use Copy link to send it securely.");
+      });
+      document.getElementById("invitation-list").addEventListener("click", async function (event) {
+        var button = event.target.closest("[data-copy-invite]");
+        if (!button) return;
+        try { await navigator.clipboard.writeText(button.getAttribute("data-copy-invite")); showToast("Invitation link copied."); }
+        catch (error) { window.prompt("Copy this staff invitation link:", button.getAttribute("data-copy-invite")); }
+      });
       document.getElementById("staff-sign-out").addEventListener("click", async function () {
         if (!staffClient) return;
         if (staffChannel) await staffClient.removeChannel(staffChannel);
@@ -1973,9 +2713,10 @@
         if (!actionButton) return;
         var card = actionButton.closest("[data-guest-report]");
         var noteInput = card.querySelector("[data-guest-note]");
+        var ownerInput = card.querySelector("[data-guest-owner]");
         var note = noteInput ? noteInput.value.trim() : "";
         actionButton.disabled = true;
-        var saved = await updateGuestReport(card.getAttribute("data-guest-report"), actionButton.getAttribute("data-guest-action"), note);
+        var saved = await updateGuestReport(card.getAttribute("data-guest-report"), actionButton.getAttribute("data-guest-action"), note, ownerInput ? ownerInput.value : "");
         actionButton.disabled = false;
         if (saved) showToast("Guest report updated and reflected on the Live Board.");
       });
@@ -2260,6 +3001,7 @@
       document.getElementById("export-handover").addEventListener("click", function () {
         exportHandover();
       });
+      document.getElementById("download-management-report").addEventListener("click", downloadManagementReport);
       document.getElementById("backup-demo").addEventListener("click", function () {
         downloadBackup();
         showToast("Pilot backup downloaded.");
