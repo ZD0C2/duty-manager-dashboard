@@ -869,10 +869,6 @@
       supabasePublishableKey: "sb_publishable_hWv_41IDXZ4LsWaHLFHKXA_NkDI8QTf",
       propertySlug: "exhibition-court",
       propertyName: "Exhibition Court Hotel",
-      pilotPropertyId: "14ab50cd-8fde-4a2d-85d4-d6b2eb27a607",
-      pilotPropertyToken: "f3f4a03f-d49a-4477-a79a-a0d170de3eeb",
-      pilotLocationId: "02eb3ca7-56d7-4ffd-a51d-46b9d33451dd",
-      pilotLocationToken: "239f5485-7c81-4662-aa26-183b2f239032",
       receptionPhone: "Use the room phone and select Reception",
       emergencyNumber: "999",
       demoMode: false,
@@ -1030,13 +1026,6 @@
           propertyToken: params.get("p"),
           locationToken: params.get("l")
         };
-        if ((!credentials.propertyId || !credentials.locationId || !credentials.propertyToken || !credentials.locationToken)
-            && params.get("property") === "exhibition-court") {
-          credentials.propertyId = config.pilotPropertyId;
-          credentials.locationId = config.pilotLocationId;
-          credentials.propertyToken = config.pilotPropertyToken;
-          credentials.locationToken = config.pilotLocationToken;
-        }
         return credentials;
       }
 
