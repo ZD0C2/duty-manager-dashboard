@@ -2132,27 +2132,25 @@
 
       function addHotelPlacePicker(placesLibrary, containerId, statusId, onSelect) {
         var status = document.getElementById(statusId);
-        var picker = new placesLibrary.PlaceAutocompleteElement();
-        picker.placeholder = "Search hotel name or address";
-        try { picker.includedPrimaryTypes = ["lodging"]; } catch (error) {}
-        try { picker.componentRestrictions = { country: appConfig.hotelSearchCountry || "gb" }; } catch (error) {}
-        document.getElementById(containerId).replaceChildren(picker);
-        var choosePlace = async function (event) {
-          var prediction = event.placePrediction || (event.detail && event.detail.placePrediction);
-          if (!prediction) return;
-          status.textContent = "Loading the selected hotel…";
-          var name = prediction.mainText && prediction.mainText.text
-            ? String(prediction.mainText.text)
-            : prediction.text && prediction.text.text ? String(prediction.text.text) : "";
-          var address = prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
-          var placeId = prediction.placeId ? String(prediction.placeId) : "";
-          if (!placeId || !name) throw new Error("Select a hotel from the results menu.");
-          onSelect(name, address, placeId);
-        };
-        ["gmp-select", "gmp-placeselect"].forEach(function (eventName) {
-          picker.addEventListener(eventName, function (event) {
-            choosePlace(event).catch(function (error) { status.textContent = error.message; });
-          });
+        var input = document.createElement("input");
+        input.type = "search";
+        input.className = "input";
+        input.placeholder = "Search hotel name or address";
+        input.autocomplete = "off";
+        input.setAttribute("aria-label", "Search hotel name or address");
+        document.getElementById(containerId).replaceChildren(input);
+        var picker = new placesLibrary.Autocomplete(input, {
+          types: ["lodging"],
+          componentRestrictions: { country: appConfig.hotelSearchCountry || "gb" },
+          fields: ["place_id", "name", "formatted_address"]
+        });
+        picker.addListener("place_changed", function () {
+          var place = picker.getPlace();
+          if (!place || !place.place_id || !place.name) {
+            status.textContent = "Choose a hotel from the suggestions menu.";
+            return;
+          }
+          onSelect(String(place.name), String(place.formatted_address || ""), String(place.place_id));
         });
         status.textContent = "Start typing, then choose the hotel from the menu.";
       }
@@ -2168,7 +2166,8 @@
         }
         try {
           await loadGooglePlacesLibrary(apiKey);
-          var placesLibrary = await window.google.maps.importLibrary("places");
+          var placesLibrary = window.google && window.google.maps && window.google.maps.places;
+          if (!placesLibrary || !placesLibrary.Autocomplete) throw new Error("Google Places did not finish loading.");
           addHotelPlacePicker(placesLibrary, "hotel-place-picker", "hotel-lookup-status", useSelectedHotel);
           addHotelPlacePicker(placesLibrary, "property-place-picker", "property-lookup-status", useSelectedPropertyHotel);
         } catch (error) {
