@@ -911,18 +911,24 @@
           </section>
 
           <section id="staff-auth-card" class="handover-card" style="margin-bottom:16px">
-            <h3>Staff sign in</h3>
-            <p>Use the Google account linked to this property. Only approved staff memberships can open hotel reports.</p>
-            <div class="auth-options">
-              <button id="staff-google-sign-in" class="button oauth-button" type="button"><span class="oauth-mark">G</span> Continue with Google</button>
-              <span>Recommended</span>
+            <div id="staff-auth-entry">
+              <h3>Staff sign in</h3>
+              <p>Use the Google account linked to this property. Only approved staff memberships can open hotel reports.</p>
+              <div class="auth-options">
+                <button id="staff-google-sign-in" class="button oauth-button" type="button"><span class="oauth-mark">G</span> Continue with Google</button>
+                <span>Recommended</span>
+              </div>
+              <div class="auth-divider">Fallback: work email and password</div>
+              <form id="staff-login-form" class="auth-grid">
+                <div class="field"><label for="staff-email">Work email</label><input id="staff-email" type="email" autocomplete="username" required placeholder="manager@hotel.com"></div>
+                <div class="field"><label for="staff-password">Password</label><input id="staff-password" type="password" autocomplete="current-password" required></div>
+                <button class="button button-primary button-small" type="submit">Sign in</button>
+              </form>
             </div>
-            <div class="auth-divider">Fallback: work email and password</div>
-            <form id="staff-login-form" class="auth-grid">
-              <div class="field"><label for="staff-email">Work email</label><input id="staff-email" type="email" autocomplete="username" required placeholder="manager@hotel.com"></div>
-              <div class="field"><label for="staff-password">Password</label><input id="staff-password" type="password" autocomplete="current-password" required></div>
-              <button class="button button-primary button-small" type="submit">Sign in</button>
-            </form>
+            <div id="staff-auth-summary" hidden>
+              <h3>Staff account connected</h3>
+              <p id="staff-auth-identity"></p>
+            </div>
             <div class="drawer-actions"><button id="staff-sign-out" class="button button-quiet button-small" type="button" hidden>Sign out</button></div>
           </section>
 
@@ -1466,7 +1472,7 @@
         staffChannel = staffClient.channel("innrelay-staff-" + staffMembership.property_id)
           .on("postgres_changes", { event: "*", schema: "public", table: "guest_reports", filter: "property_id=eq." + staffMembership.property_id }, fetchLiveGuestReports)
           .subscribe(function (status) {
-            if (status === "SUBSCRIBED") setStaffSync("Live · guest reports are synchronised with " + staffMembership.property_name, "live");
+            if (status === "SUBSCRIBED") setStaffSync("Connected as " + staffMembership.display_name + " · " + (staffSession.user.email || "staff account") + " · Live with " + staffMembership.property_name, "live");
           });
       }
 
@@ -1474,9 +1480,15 @@
         staffSession = session || null;
         staffMembership = null;
         var form = document.getElementById("staff-login-form");
+        var authEntry = document.getElementById("staff-auth-entry");
+        var authSummary = document.getElementById("staff-auth-summary");
+        var authIdentity = document.getElementById("staff-auth-identity");
         var signOut = document.getElementById("staff-sign-out");
         if (!staffSession) {
           form.hidden = false;
+          authEntry.hidden = false;
+          authSummary.hidden = true;
+          authIdentity.textContent = "";
           signOut.hidden = true;
           setStaffSync("Sign in with a property staff account to receive live guest reports.", "");
           mergeGuestReportsIntoBoard([]);
@@ -1487,7 +1499,9 @@
           .eq("user_id", staffSession.user.id)
           .eq("active", true);
         if (membershipResult.error || !membershipResult.data || !membershipResult.data.length) {
-          form.hidden = true;
+          authEntry.hidden = true;
+          authSummary.hidden = false;
+          authIdentity.textContent = (staffSession.user.email || "This account") + " is authenticated, but is not linked to a hotel workspace.";
           signOut.hidden = false;
           setStaffSync("Signed in, but this account is not linked to an InnRelay property.", "error");
           mergeGuestReportsIntoBoard([]);
@@ -1503,7 +1517,9 @@
           property_name: preferred.properties.name,
           property_slug: preferred.properties.slug
         };
-        form.hidden = true;
+        authEntry.hidden = true;
+        authSummary.hidden = false;
+        authIdentity.textContent = staffMembership.display_name + " · " + (staffSession.user.email || "staff account") + " · " + staffMembership.role + " at " + staffMembership.property_name;
         signOut.hidden = false;
         document.getElementById("landing").hidden = true;
         document.getElementById("app").hidden = false;
