@@ -23,6 +23,8 @@ The original two pilot migrations and the multi-hotel migration are applied to t
 1. `supabase/migrations/20260713181500_innrelay_guest_staff_pilot.sql`
 2. `supabase/migrations/20260713181600_consolidate_insert_policies.sql`
 3. `SUPABASE-MULTI-HOTEL-MIGRATION.sql`
+4. `supabase/migrations/20260716143000_room_qr_and_hotel_directory.sql`
+5. `supabase/migrations/20260716160000_consolidate_location_insert_policies.sql`
 
 The multi-hotel layer adds:
 
