@@ -560,6 +560,16 @@
       line-height: 1.2;
       text-transform: uppercase;
     }
+    .role-chip-disabled {
+      border-color: #ff8a68;
+      color: #fff4ef !important;
+      background: #8f3340;
+    }
+    .department-toggle-enable {
+      border-color: #f0b84e !important;
+      color: #071427 !important;
+      background: #f6cf78 !important;
+    }
     .qr-bulk-panel { margin: -2px 0 18px; padding: 18px; border: 1px solid rgba(182,239,217,.23); border-radius: 16px; background: #10203a; }
     .qr-bulk-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
     .qr-bulk-head h3 { margin: 0 0 4px; color: var(--white); font-size: 16px; }
@@ -579,6 +589,7 @@
     .hotel-lookup p { margin: 0; color: rgba(255,255,255,.58); font-size: 12px; }
     .hotel-place-picker { width: 100%; margin-top: 12px; }
     .hotel-place-picker gmp-place-autocomplete { width: 100%; color-scheme: light; }
+    .hotel-search-control { position: relative; }
     .hotel-place-picker input {
       display: block;
       width: 100%;
@@ -592,6 +603,36 @@
       opacity: 1;
     }
     .hotel-place-picker input:focus { border-color: #45b898; outline: 3px solid rgba(182,239,217,.22); }
+    .hotel-search-menu {
+      position: absolute;
+      z-index: 80;
+      top: calc(100% + 6px);
+      right: 0;
+      left: 0;
+      max-height: 310px;
+      margin: 0;
+      padding: 6px;
+      overflow-y: auto;
+      border: 1px solid #6f7f92;
+      border-radius: 12px;
+      background: #fffdf8;
+      box-shadow: 0 18px 42px rgba(3,8,16,.34);
+    }
+    .hotel-search-menu[hidden] { display: none; }
+    .hotel-search-option {
+      display: block;
+      width: 100%;
+      padding: 11px 12px;
+      border: 0;
+      border-radius: 8px;
+      color: #071427;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+    .hotel-search-option:hover, .hotel-search-option:focus { outline: none; background: #e5f7f0; }
+    .hotel-search-option strong { display: block; color: #071427; font-size: 13px; }
+    .hotel-search-option span { display: block; margin-top: 3px; color: #5d6977; font-size: 11px; }
     .hotel-lookup-status { margin-top: 10px !important; color: var(--mint) !important; }
     .selected-hotel { margin-top: 10px; padding: 10px 12px; border: 1px solid #5dc6a5; border-radius: 11px; color: #071427; background: #d8f7ea; font-size: 12px; font-weight: 800; }
     .field-help { margin: 0; color: rgba(255,255,255,.52); font-size: 11px; }
@@ -2200,7 +2241,7 @@
         if (window.google && window.google.maps) return Promise.resolve(window.google.maps);
         return new Promise(function (resolve, reject) {
           var script = document.createElement("script");
-          script.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(apiKey) + "&libraries=places&v=quarterly";
+          script.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(apiKey) + "&libraries=places&v=weekly";
           script.async = true;
           script.onerror = function () { reject(new Error("Google Places could not be loaded.")); };
           script.onload = function () {
@@ -2213,33 +2254,85 @@
 
       function addHotelPlacePicker(placesLibrary, containerId, statusId, onSelect) {
         var status = document.getElementById(statusId);
-        if (placesLibrary.PlaceAutocompleteElement) {
-          var modernPicker = new placesLibrary.PlaceAutocompleteElement();
-          modernPicker.placeholder = "Search hotel name or address";
-          try { modernPicker.includedPrimaryTypes = ["lodging"]; } catch (error) {}
-          try { modernPicker.includedRegionCodes = [String(appConfig.hotelSearchCountry || "gb").toLowerCase()]; } catch (error) {}
-          document.getElementById(containerId).replaceChildren(modernPicker);
-          modernPicker.addEventListener("gmp-select", function (event) {
-            var prediction = event.placePrediction || (event.detail && event.detail.placePrediction);
-            var name = prediction && prediction.mainText && prediction.mainText.text ? String(prediction.mainText.text) : "";
-            var address = prediction && prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
-            var placeId = prediction && prediction.placeId ? String(prediction.placeId) : "";
-            if (!name || !placeId) {
-              status.textContent = "Choose a hotel from the suggestions menu.";
-              return;
-            }
-            onSelect(name, address, placeId);
-          });
-          status.textContent = "Start typing, then choose the hotel from the menu.";
-          return;
-        }
         var input = document.createElement("input");
         input.type = "search";
         input.className = "input";
         input.placeholder = "Search hotel name or address";
         input.autocomplete = "off";
         input.setAttribute("aria-label", "Search hotel name or address");
-        document.getElementById(containerId).replaceChildren(input);
+        var control = document.createElement("div");
+        control.className = "hotel-search-control";
+        var menu = document.createElement("div");
+        menu.className = "hotel-search-menu";
+        menu.hidden = true;
+        menu.setAttribute("role", "listbox");
+        control.appendChild(input);
+        control.appendChild(menu);
+        document.getElementById(containerId).replaceChildren(control);
+
+        if (placesLibrary.AutocompleteSuggestion) {
+          var predictions = [];
+          var requestNumber = 0;
+          var searchTimer = null;
+          var sessionToken = placesLibrary.AutocompleteSessionToken ? new placesLibrary.AutocompleteSessionToken() : null;
+
+          function hideMenu() {
+            menu.hidden = true;
+            menu.replaceChildren();
+          }
+
+          input.addEventListener("input", function () {
+            window.clearTimeout(searchTimer);
+            var query = input.value.trim();
+            if (query.length < 2) {
+              hideMenu();
+              status.textContent = "Type at least 2 letters to search the worldwide hotel directory.";
+              return;
+            }
+            searchTimer = window.setTimeout(async function () {
+              var thisRequest = ++requestNumber;
+              status.textContent = "Searching hotels…";
+              try {
+                var request = { input: query };
+                if (sessionToken) request.sessionToken = sessionToken;
+                var response = await placesLibrary.AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+                if (thisRequest !== requestNumber) return;
+                predictions = (response.suggestions || []).map(function (suggestion) { return suggestion.placePrediction; }).filter(Boolean).slice(0, 8);
+                menu.innerHTML = predictions.map(function (prediction, index) {
+                  var name = prediction.mainText && prediction.mainText.text ? String(prediction.mainText.text) : String(prediction.text && prediction.text.text || "Hotel result");
+                  var address = prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
+                  return '<button class="hotel-search-option" type="button" role="option" data-hotel-result="' + index + '"><strong>' + escapeHtml(name) + '</strong><span>' + escapeHtml(address || "Select this property") + '</span></button>';
+                }).join("");
+                menu.hidden = predictions.length === 0;
+                status.textContent = predictions.length ? "Choose the correct hotel from the menu below." : "No matching places found. Try the full hotel name or town.";
+              } catch (error) {
+                hideMenu();
+                status.textContent = "Google hotel search failed. Check that billing is active and Places API (New) is enabled for this key.";
+                console.error("InnRelay hotel directory search failed", error);
+              }
+            }, 280);
+          });
+
+          menu.addEventListener("click", function (event) {
+            var option = event.target.closest("[data-hotel-result]");
+            if (!option) return;
+            var prediction = predictions[Number(option.getAttribute("data-hotel-result"))];
+            if (!prediction || !prediction.placeId) return;
+            var name = prediction.mainText && prediction.mainText.text ? String(prediction.mainText.text) : String(prediction.text && prediction.text.text || "Selected hotel");
+            var address = prediction.secondaryText && prediction.secondaryText.text ? String(prediction.secondaryText.text) : "";
+            input.value = name;
+            hideMenu();
+            onSelect(name, address, String(prediction.placeId));
+            sessionToken = placesLibrary.AutocompleteSessionToken ? new placesLibrary.AutocompleteSessionToken() : null;
+          });
+
+          document.addEventListener("click", function (event) {
+            if (!control.contains(event.target)) hideMenu();
+          });
+          status.textContent = "Start typing; matching hotels and addresses will appear below.";
+          return;
+        }
+
         var picker = new placesLibrary.Autocomplete(input, {
           types: ["lodging"],
           componentRestrictions: { country: appConfig.hotelSearchCountry || "gb" },
@@ -2268,7 +2361,7 @@
         try {
           await loadGooglePlacesLibrary(apiKey);
           var placesLibrary = window.google && window.google.maps && window.google.maps.places;
-          if (!placesLibrary || !placesLibrary.Autocomplete) throw new Error("Google Places did not finish loading.");
+          if (!placesLibrary || (!placesLibrary.AutocompleteSuggestion && !placesLibrary.Autocomplete)) throw new Error("Google Places did not finish loading.");
           addHotelPlacePicker(placesLibrary, "hotel-place-picker", "hotel-lookup-status", useSelectedHotel);
           addHotelPlacePicker(placesLibrary, "property-place-picker", "property-lookup-status", useSelectedPropertyHotel);
         } catch (error) {
@@ -2334,7 +2427,7 @@
 
         setDepartmentOptions();
         document.getElementById("department-list").innerHTML = propertyDepartments.map(function (department) {
-          return '<div class="management-row"><div><strong>' + escapeHtml(department.name) + '</strong><span>Acknowledge ' + department.response_target_minutes + ' min · escalate ' + department.escalation_minutes + ' min</span></div><div class="drawer-actions" style="margin-top:0"><span class="role-chip">' + (department.active ? "active" : "disabled") + '</span><button class="button button-quiet button-small" type="button" data-toggle-department="' + escapeHtml(department.id) + '" data-department-active="' + (department.active ? "true" : "false") + '">' + (department.active ? "Disable" : "Activate") + '</button></div></div>';
+          return '<div class="management-row"><div><strong>' + escapeHtml(department.name) + '</strong><span>Acknowledge ' + department.response_target_minutes + ' min · escalate ' + department.escalation_minutes + ' min</span></div><div class="drawer-actions" style="margin-top:0"><span class="role-chip' + (department.active ? '' : ' role-chip-disabled') + '">' + (department.active ? "active" : "disabled") + '</span><button class="button button-quiet button-small' + (department.active ? '' : ' department-toggle-enable') + '" type="button" data-toggle-department="' + escapeHtml(department.id) + '" data-department-active="' + (department.active ? "true" : "false") + '">' + (department.active ? "Disable" : "Activate") + '</button></div></div>';
         }).join("") || '<div class="demo-empty">No departments yet.</div>';
 
         renderDepartmentRoutes();
