@@ -16,7 +16,7 @@
     publicGuestUrl: "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html",
     // Optional browser-restricted Google Maps key for the hotel directory menu.
     // Keep the manual registration fallback enabled even after this is set.
-    googlePlacesApiKey: "",
+    googlePlacesApiKey: "AIzaSyBa6touizsMGMibua0DObLvxTVQbB9cwyI",
     hotelSearchCountry: "gb",
     receptionPhone: "Use the room phone and select Reception",
     emergencyNumber: "999",
