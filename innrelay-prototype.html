@@ -520,6 +520,7 @@
     .qr-copy p { margin: 0 0 12px; color: rgba(255,255,255,.62); font-size: 12px; }
     .qr-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
     .qr-controls .field { flex: 1 1 180px; margin-top: 0; }
+    .qr-controls .field-wide { flex-basis: 100%; }
     .qr-url { margin-top: 9px; overflow-wrap: anywhere; color: var(--mint); font-size: 11px; }
     .catalog-stat { display: inline-flex; margin-left: 8px; padding: 4px 8px; border-radius: 999px; color: var(--mint-ink); background: var(--mint); font-size: 10px; font-weight: 850; }
     .property-switcher { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.07); }
@@ -542,7 +543,40 @@
     .qr-batch-card img { width: 132px; height: 132px; padding: 7px; border-radius: 9px; background: white; }
     .qr-batch-card strong { display: block; margin-top: 8px; color: var(--white); font-size: 13px; }
     .qr-batch-card span { display: block; color: rgba(255,255,255,.48); font-size: 10px; }
-    .role-chip { display: inline-flex; padding: 4px 7px; border-radius: 999px; color: var(--mint-ink); background: var(--mint); font-size: 9px; font-weight: 850; text-transform: uppercase; }
+    .role-chip {
+      display: inline-flex;
+      padding: 5px 8px;
+      border: 1px solid #5dc6a5;
+      border-radius: 999px;
+      color: #071427 !important;
+      background: #b6efd9;
+      font-size: 9px;
+      font-weight: 900;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+    .qr-bulk-panel { margin: -2px 0 18px; padding: 18px; border: 1px solid rgba(182,239,217,.23); border-radius: 16px; background: #10203a; }
+    .qr-bulk-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .qr-bulk-head h3 { margin: 0 0 4px; color: var(--white); font-size: 16px; }
+    .qr-bulk-head p { margin: 0; color: rgba(255,255,255,.58); font-size: 12px; }
+    .qr-bulk-grid { display: grid; grid-template-columns: repeat(4, minmax(120px, 1fr)); gap: 10px; align-items: end; margin-top: 14px; }
+    .qr-bulk-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin-top: 12px; }
+    .qr-bulk-actions .field { min-width: 180px; margin: 0; }
+    .qr-batch-summary { min-height: 18px; margin-top: 10px; color: var(--mint); font-size: 11px; font-weight: 750; }
+    .route-toolbar { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(170px, .7fr); gap: 10px; margin: 16px 0 10px; }
+    .route-list { display: grid; gap: 8px; max-height: 560px; overflow: auto; padding-right: 3px; }
+    .route-row { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, .7fr); gap: 12px; align-items: center; padding: 11px 12px; border: 1px solid rgba(255,255,255,.11); border-radius: 12px; background: rgba(255,255,255,.045); }
+    .route-row strong { display: block; color: var(--white); font-size: 13px; line-height: 1.3; }
+    .route-row span { display: block; margin-top: 3px; color: rgba(255,255,255,.58); font-size: 11px; }
+    .route-row select { width: 100%; padding: 10px 11px; border: 1px solid #7f8ea3; border-radius: 10px; color: #071427; background: #fffdf8; font-size: 12px; font-weight: 850; }
+    .hotel-lookup { margin-bottom: 16px; padding: 16px; border: 1px solid rgba(182,239,217,.22); border-radius: 15px; background: rgba(0,0,0,.12); }
+    .hotel-lookup h3 { margin: 0 0 4px; color: var(--white); font-size: 16px; }
+    .hotel-lookup p { margin: 0; color: rgba(255,255,255,.58); font-size: 12px; }
+    .hotel-place-picker { width: 100%; margin-top: 12px; }
+    .hotel-place-picker gmp-place-autocomplete { width: 100%; color-scheme: light; }
+    .hotel-lookup-status { margin-top: 10px !important; color: var(--mint) !important; }
+    .selected-hotel { margin-top: 10px; padding: 10px 12px; border: 1px solid #5dc6a5; border-radius: 11px; color: #071427; background: #d8f7ea; font-size: 12px; font-weight: 800; }
+    .field-help { margin: 0; color: rgba(255,255,255,.52); font-size: 11px; }
 
     .overlay { position: fixed; z-index: 30; inset: 0; display: grid; justify-items: end; background: rgba(3, 8, 16, .58); }
     .drawer { width: min(480px, 100%); min-height: 100%; padding: 24px; color: var(--ink); background: var(--paper); box-shadow: -22px 0 60px rgba(0,0,0,.25); overflow-y: auto; }
@@ -623,6 +657,8 @@
       .task-actions { justify-content: flex-start; }
       .guest-report-actions, .auth-grid, .auth-options, .qr-setup { grid-template-columns: 1fr; }
       .management-grid { grid-template-columns: 1fr; }
+      .qr-bulk-grid { grid-template-columns: 1fr 1fr; }
+      .route-toolbar, .route-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -940,17 +976,36 @@
             <div class="qr-frame"><img id="guest-qr-image" alt="QR code for the selected guest room"></div>
             <div class="qr-copy">
               <h3 id="qr-title">Guest-room QR code</h3>
-              <p>Enter a room, update the code, then print it for that room. Guests may still correct their room after scanning.</p>
+              <p>Type any room number or choose an existing area. If the room does not exist, InnRelay creates it securely before making the QR.</p>
               <div class="qr-controls">
-                <div class="field" style="flex-basis:100%"><label for="qr-base-url">Public guest-page URL</label><input id="qr-base-url" type="url" placeholder="https://your-site.example/innrelay-guest.html"><p style="margin:5px 0 0;color:rgba(255,255,255,.55);font-size:11px">This exact page must open successfully on a phone before printing room QR codes.</p></div>
-                <div class="field"><label for="qr-location">Room number or area</label><select id="qr-location"><option value="">Sign in and select a property</option></select></div>
-                <button id="update-qr" class="button button-primary button-small" type="button">Update QR</button>
+                <div class="field field-wide"><label for="qr-base-url">Public guest-page URL</label><input id="qr-base-url" type="url" placeholder="https://your-site.example/innrelay-guest.html"><p class="field-help">This exact page must open successfully on a phone before printing room QR codes.</p></div>
+                <div class="field"><label for="qr-location">Room number or area</label><input id="qr-location" list="qr-location-options" autocomplete="off" placeholder="Type 209 or choose an area"><datalist id="qr-location-options"></datalist></div>
+                <button id="update-qr" class="button button-primary button-small" type="button">Create / update QR</button>
                 <button id="print-qr" class="button button-quiet button-small" type="button">Print QR</button>
-                <button id="build-qr-batch" class="button button-quiet button-small" type="button">Generate all QR cards</button>
-                <button id="print-qr-batch" class="button button-quiet button-small" type="button">Print all</button>
               </div>
               <div id="guest-qr-url" class="qr-url"></div>
             </div>
+          </section>
+          <section class="qr-bulk-panel" aria-labelledby="qr-bulk-title">
+            <div class="qr-bulk-head">
+              <div><h3 id="qr-bulk-title">Create hundreds of rooms in one action</h3><p>Enter the first and last room once. Existing rooms are kept, missing rooms are created, and QR cards are prepared six per A4 sheet.</p></div>
+              <span class="role-chip">Up to 500 rooms</span>
+            </div>
+            <form id="qr-room-batch-form">
+              <div class="qr-bulk-grid">
+                <div class="field"><label for="qr-room-start">First room</label><input id="qr-room-start" type="number" min="1" max="9999" value="101" required></div>
+                <div class="field"><label for="qr-room-end">Last room</label><input id="qr-room-end" type="number" min="1" max="9999" value="300" required></div>
+                <div class="field"><label for="qr-room-floor">Floor (optional)</label><input id="qr-room-floor" maxlength="50" placeholder="1"></div>
+                <div class="field"><label for="qr-room-department">Default department</label><select id="qr-room-department"><option value="">No default</option></select></div>
+              </div>
+              <div class="qr-bulk-actions">
+                <button class="button button-primary button-small" type="submit">Create rooms &amp; preview QR sheets</button>
+                <div class="field"><label for="qr-batch-scope">Cards to include</label><select id="qr-batch-scope"><option value="rooms">Rooms only</option><option value="all">Rooms and public areas</option></select></div>
+                <button id="build-qr-batch" class="button button-quiet button-small" type="button">Preview QR cards</button>
+                <button id="print-qr-batch" class="button button-quiet button-small" type="button">Print A4 sheets (6 per page)</button>
+              </div>
+              <div id="qr-batch-summary" class="qr-batch-summary" role="status"></div>
+            </form>
           </section>
           <div id="qr-batch-list" class="qr-batch" hidden></div>
 
@@ -1066,8 +1121,18 @@
             <h2 id="property-onboarding-title">Register your first property.</h2>
             <p>Your Google account becomes the owner. InnRelay creates a separate property ID and secure QR namespace automatically.</p>
             <form id="property-onboarding-form">
+              <section class="hotel-lookup" aria-labelledby="hotel-lookup-title">
+                <h3 id="hotel-lookup-title">Find and select the hotel</h3>
+                <p>Search the Google hotel directory to avoid spelling mistakes and duplicate workspaces. Manual entry remains available for a new or unlisted property.</p>
+                <div id="hotel-place-picker" class="hotel-place-picker"></div>
+                <p id="hotel-lookup-status" class="hotel-lookup-status" role="status">Preparing hotel search…</p>
+                <div id="selected-hotel" class="selected-hotel" hidden></div>
+                <div class="drawer-actions"><button id="manual-hotel-entry" class="button button-quiet button-small" type="button">Hotel not listed? Enter it manually</button></div>
+                <input id="onboard-property-provider" type="hidden">
+                <input id="onboard-property-place-id" type="hidden">
+              </section>
               <div class="field-grid">
-                <div class="field"><label for="onboard-property-name">Hotel or serviced-apartment name</label><input id="onboard-property-name" required maxlength="120" placeholder="e.g. Riverside Court Hotel"></div>
+                <div class="field"><label for="onboard-property-name">Selected hotel name</label><input id="onboard-property-name" required maxlength="120" placeholder="Choose above or enter manually"><p class="field-help">Selecting a directory result fills this automatically.</p></div>
                 <div class="field"><label for="onboard-property-slug">Public URL name</label><input id="onboard-property-slug" required maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="riverside-court"></div>
               </div>
               <div class="field"><label for="onboard-property-address">Property address</label><input id="onboard-property-address" maxlength="240" placeholder="Town or full business address"></div>
@@ -1110,15 +1175,14 @@
                   <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Add department</button></div>
                 </form>
                 <div id="department-list" class="management-list"></div>
-                <form id="department-route-form" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
-                  <p class="section-note">Route each request category to the right team before anyone touches it.</p>
-                  <div class="field-grid">
-                    <div class="field"><label for="route-category">Request category</label><select id="route-category" required></select></div>
-                    <div class="field"><label for="route-department">Send to</label><select id="route-department" required><option value="">Choose department</option></select></div>
+                <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+                  <p class="section-note">Every category has its own clear department menu. Changes save immediately.</p>
+                  <div class="route-toolbar">
+                    <div class="field" style="margin-top:0"><label for="route-search">Search categories</label><input id="route-search" type="search" placeholder="e.g. lighting, breakfast, Wi-Fi"></div>
+                    <div class="field" style="margin-top:0"><label for="route-filter">Show department</label><select id="route-filter"><option value="">All departments</option></select></div>
                   </div>
-                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Save route</button></div>
-                </form>
-                <div id="department-route-list" class="management-list"></div>
+                </div>
+                <div id="department-route-list" class="route-list"></div>
               </section>
             </div>
 
@@ -1146,7 +1210,7 @@
                     <div class="field"><label for="room-floor">Floor</label><input id="room-floor" maxlength="50" placeholder="1"></div>
                     <div class="field"><label for="room-department">Default department</label><select id="room-department"><option value="">No default</option></select></div>
                   </div>
-                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Create room range</button></div>
+                  <div class="drawer-actions"><button class="button button-primary button-small" type="submit">Create rooms &amp; prepare QR sheets</button></div>
                 </form>
                 <div id="location-list" class="management-list"></div>
               </section>
@@ -1218,7 +1282,7 @@
 
   <script src="./innrelay-issue-catalog.js"></script>
   <script src="./innrelay-supabase-config.js"></script>
-  <script src="./innrelay-qr.js?v=9"></script>
+  <script src="./innrelay-qr.js?v=10"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
   <script>
     (function () {
@@ -1417,9 +1481,55 @@
         target.className = "sync-strip" + (state ? " " + state : "");
       }
 
+      function normaliseQrLocationValue(value) {
+        return String(value || "").trim().replace(/^room\s+/i, "").toLowerCase();
+      }
+
       function selectedQrLocation() {
-        var locationId = document.getElementById("qr-location").value;
-        return propertyLocations.filter(function (location) { return location.id === locationId; })[0] || null;
+        var value = document.getElementById("qr-location").value.trim();
+        var normalised = normaliseQrLocationValue(value);
+        return propertyLocations.filter(function (location) {
+          return location.active && (
+            location.id === value ||
+            location.name.toLowerCase() === value.toLowerCase() ||
+            location.code.toLowerCase() === normalised
+          );
+        })[0] || null;
+      }
+
+      async function ensureTypedQrRoom() {
+        var input = document.getElementById("qr-location");
+        var supplied = input.value.trim();
+        var existing = selectedQrLocation();
+        if (existing) return existing;
+        if (!staffClient || !staffMembership) {
+          showToast("Sign in to create a room QR code.");
+          return null;
+        }
+        var roomCode = supplied.replace(/^room\s+/i, "").trim();
+        if (!roomCode || !/^[A-Za-z0-9][A-Za-z0-9._ -]{0,79}$/.test(roomCode)) {
+          showToast("Enter a room such as 209 or A12, or choose an existing area.");
+          input.focus();
+          return null;
+        }
+        var housekeeping = propertyDepartments.filter(function (department) { return department.code === "housekeeping" && department.active; })[0];
+        var payload = {
+          property_id: staffMembership.property_id,
+          department_id: housekeeping ? housekeeping.id : null,
+          name: "Room " + roomCode,
+          code: roomCode,
+          location_type: "room",
+          sort_order: /^\d+$/.test(roomCode) ? Number(roomCode) : propertyLocations.length * 10 + 10
+        };
+        var result = await staffClient.from("property_locations").insert(payload).select("id,property_id,department_id,public_id,name,code,location_type,floor,allows_guest_correction,active,sort_order").single();
+        if (result.error && result.error.code !== "23505") {
+          showToast("Room could not be created: " + result.error.message);
+          return null;
+        }
+        await loadPropertyConfiguration();
+        input.value = result.data ? result.data.name : "Room " + roomCode;
+        showToast(result.data ? result.data.name + " created." : "Existing room selected.");
+        return selectedQrLocation();
       }
 
       function guestPortalUrl(location, suppliedBase) {
@@ -1437,7 +1547,7 @@
         return url.href;
       }
 
-      async function renderGuestQr() {
+      async function renderGuestQr(options) {
         var location = selectedQrLocation();
         var baseInput = document.getElementById("qr-base-url");
         var base = baseInput.value.trim();
@@ -1446,8 +1556,9 @@
           baseInput.focus();
           return;
         }
+        if (!location && options && options.createMissing) location = await ensureTypedQrRoom();
         if (!staffMembership || !location) {
-          document.getElementById("guest-qr-url").textContent = "Select a property and room or area to generate its secure QR code.";
+          document.getElementById("guest-qr-url").textContent = "Type a room number and choose Create / update QR, or select an existing area.";
           document.getElementById("guest-qr-image").removeAttribute("src");
           return;
         }
@@ -1482,11 +1593,42 @@
         printWindow.document.close();
       }
 
+      function qrBatchLocations() {
+        var scope = document.getElementById("qr-batch-scope").value;
+        return propertyLocations.filter(function (location) {
+          return location.active && (scope === "all" || location.location_type === "room");
+        }).sort(function (a, b) {
+          var aNumber = /^\d+$/.test(a.code) ? Number(a.code) : Number.MAX_SAFE_INTEGER;
+          var bNumber = /^\d+$/.test(b.code) ? Number(b.code) : Number.MAX_SAFE_INTEGER;
+          return aNumber - bNumber || a.name.localeCompare(b.name);
+        });
+      }
+
+      function setQrBatchSummary(message) {
+        document.getElementById("qr-batch-summary").textContent = message || "";
+      }
+
+      async function generateQrEntries(batch, base, size, onProgress) {
+        var entries = [];
+        for (var index = 0; index < batch.length; index += 1) {
+          var location = batch[index];
+          var url = guestPortalUrl(location, base);
+          var qr = await window.InnRelayQRCode.toSvgDataUrl(url, size);
+          entries.push({ location: location, url: url, qr: qr });
+          if ((index + 1) % 20 === 0 || index + 1 === batch.length) {
+            if (onProgress) onProgress(index + 1, batch.length);
+            await new Promise(function (resolve) { window.setTimeout(resolve, 0); });
+          }
+        }
+        return entries;
+      }
+
       async function renderQrBatch() {
         var target = document.getElementById("qr-batch-list");
-        if (!staffMembership || !propertyLocations.length) {
+        var batch = qrBatchLocations();
+        if (!staffMembership || !batch.length) {
           target.hidden = true;
-          showToast("Add rooms or areas before generating QR cards.");
+          showToast("Add rooms before generating QR cards.");
           return;
         }
         var base = document.getElementById("qr-base-url").value.trim() || appConfig.publicGuestUrl;
@@ -1494,21 +1636,25 @@
         target.innerHTML = '<div class="demo-empty">Generating secure QR cards on this device…</div>';
         try {
           if (!window.InnRelayQRCode) throw new Error("The local QR generator did not load.");
-          var cards = await Promise.all(propertyLocations.filter(function (location) { return location.active; }).map(async function (location) {
-            var url = guestPortalUrl(location, base);
-            var qr = await window.InnRelayQRCode.toSvgDataUrl(url, 260);
-            return '<article class="qr-batch-card"><img src="' + escapeHtml(qr) + '" alt="QR for ' + escapeHtml(location.name) + '"><strong>' + escapeHtml(location.name) + '</strong><span>' + escapeHtml(location.location_type.replace(/_/g, " ")) + ' · secure InnRelay code</span></article>';
-          }));
-          target.innerHTML = cards.join("");
+          var entries = await generateQrEntries(batch, base, 260, function (done, total) {
+            target.innerHTML = '<div class="demo-empty">Generating ' + done + ' of ' + total + ' secure QR cards…</div>';
+            setQrBatchSummary("Generating " + done + " of " + total + " QR cards…");
+          });
+          target.innerHTML = entries.map(function (entry) {
+            return '<article class="qr-batch-card"><img src="' + escapeHtml(entry.qr) + '" alt="QR for ' + escapeHtml(entry.location.name) + '"><strong>' + escapeHtml(entry.location.name) + '</strong><span>' + escapeHtml(entry.location.location_type.replace(/_/g, " ")) + ' · secure InnRelay code</span></article>';
+          }).join("");
+          setQrBatchSummary(entries.length + " QR cards ready. Printing uses " + Math.ceil(entries.length / 6) + " A4 sheet(s).");
         } catch (error) {
           target.innerHTML = '<div class="demo-empty">QR cards could not be generated: ' + escapeHtml(error.message) + '</div>';
+          setQrBatchSummary("QR generation stopped.");
           return;
         }
         target.scrollIntoView({ behavior: "smooth", block: "start" });
       }
 
       async function printQrBatch() {
-        if (!staffMembership || !propertyLocations.length) { showToast("There are no locations to print."); return; }
+        var batch = qrBatchLocations();
+        if (!staffMembership || !batch.length) { showToast("There are no rooms to print."); return; }
         var base = document.getElementById("qr-base-url").value.trim() || appConfig.publicGuestUrl;
         var printWindow = window.open("", "_blank", "noopener,noreferrer");
         if (!printWindow) { showToast("Allow pop-ups to print QR cards."); return; }
@@ -1517,21 +1663,79 @@
         var cards;
         try {
           if (!window.InnRelayQRCode) throw new Error("The local QR generator did not load.");
-          var generatedCards = await Promise.all(propertyLocations.filter(function (location) { return location.active; }).map(async function (location) {
-            var url = guestPortalUrl(location, base);
-            var qr = await window.InnRelayQRCode.toSvgDataUrl(url, 360);
-            return '<article><h2>' + escapeHtml(staffMembership.property_name) + '</h2><h1>' + escapeHtml(location.name) + '</h1><p>Scan for hotel help or to report a problem. No app required.</p><img src="' + escapeHtml(qr) + '"><small>Powered by InnRelay · secure location code</small></article>';
-          }));
-          cards = generatedCards.join("");
+          var entries = await generateQrEntries(batch, base, 320, function (done, total) {
+            printWindow.document.body.textContent = "Preparing " + done + " of " + total + " secure QR cards…";
+            setQrBatchSummary("Preparing print sheet: " + done + " of " + total + "…");
+          });
+          var sheets = [];
+          for (var offset = 0; offset < entries.length; offset += 6) {
+            sheets.push('<section class="sheet">' + entries.slice(offset, offset + 6).map(function (entry) {
+              return '<article><h2>' + escapeHtml(staffMembership.property_name) + '</h2><h1>' + escapeHtml(entry.location.name) + '</h1><p>Scan for hotel help or to report a problem. No app required.</p><img src="' + escapeHtml(entry.qr) + '"><small>Powered by InnRelay · secure location code</small></article>';
+            }).join("") + '</section>');
+          }
+          cards = sheets.join("");
         } catch (error) {
           printWindow.close();
           showToast("QR cards could not be generated: " + error.message);
           return;
         }
         printWindow.document.open();
-        printWindow.document.write('<!doctype html><html><head><title>InnRelay QR cards</title><style>@page{size:A6 portrait;margin:10mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#0b1220}article{height:128mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;page-break-after:always;border:2px solid #0b1220;border-radius:14px;padding:12mm}article:last-child{page-break-after:auto}h2{margin:0 0 5px;font-size:18px}h1{margin:0 0 8px;font-size:27px}p{font-size:13px;max-width:90mm}img{width:66mm;height:66mm}small{margin-top:8px;font-size:9px}@media screen{body{padding:20px;background:#ddd}article{width:105mm;margin:0 auto 20px;background:white}}</style></head><body>' + cards + '</body></html>');
+        printWindow.document.write('<!doctype html><html><head><title>InnRelay QR cards</title><style>@page{size:A4 portrait;margin:8mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#0b1220}.sheet{width:194mm;height:281mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:5mm;page-break-after:always}.sheet:last-child{page-break-after:auto}article{display:flex;min-height:0;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1.5px dashed #526173;border-radius:10px;padding:5mm;overflow:hidden}h2{margin:0 0 2px;font-size:13px}h1{margin:0 0 3px;font-size:20px}p{margin:0 0 3px;font-size:9px;line-height:1.25}img{width:38mm;height:38mm}small{margin-top:3px;font-size:7px}@media screen{body{padding:18px;background:#ddd}.sheet{margin:0 auto 18px;background:white;box-shadow:0 5px 20px rgba(0,0,0,.18)}}</style></head><body>' + cards + '</body></html>');
         printWindow.document.close();
-        window.setTimeout(function () { printWindow.print(); }, 800);
+        setQrBatchSummary(batch.length + " cards arranged on " + Math.ceil(batch.length / 6) + " A4 sheet(s).");
+        window.setTimeout(function () { printWindow.print(); }, 1000);
+      }
+
+      async function createRoomRange(start, end, floor, departmentId) {
+        if (!staffClient || !staffMembership) throw new Error("Sign in before creating rooms.");
+        if (!Number.isInteger(start) || !Number.isInteger(end) || end < start || end - start + 1 > 500) {
+          throw new Error("Enter an ascending room range of no more than 500 rooms.");
+        }
+        var width = Math.max(3, String(end).length);
+        var existingCodes = {};
+        propertyLocations.forEach(function (location) { existingCodes[location.code.toLowerCase()] = true; });
+        var rows = [];
+        for (var roomNumber = start; roomNumber <= end; roomNumber += 1) {
+          var roomCode = String(roomNumber).padStart(width, "0");
+          if (existingCodes[roomCode.toLowerCase()]) continue;
+          rows.push({
+            property_id: staffMembership.property_id,
+            department_id: departmentId || null,
+            name: "Room " + roomCode,
+            code: roomCode,
+            location_type: "room",
+            floor: floor || null,
+            sort_order: roomNumber
+          });
+        }
+        for (var offset = 0; offset < rows.length; offset += 100) {
+          var result = await staffClient.from("property_locations").upsert(rows.slice(offset, offset + 100), { onConflict: "property_id,code", ignoreDuplicates: true });
+          if (result.error) throw new Error(result.error.message);
+          setQrBatchSummary("Creating rooms: " + Math.min(offset + 100, rows.length) + " of " + rows.length + "…");
+        }
+        await loadPropertyConfiguration();
+        return { created: rows.length, total: end - start + 1, firstCode: String(start).padStart(width, "0") };
+      }
+
+      async function submitRoomRange(startId, endId, floorId, departmentId, previewAfter) {
+        var start = Number(document.getElementById(startId).value);
+        var end = Number(document.getElementById(endId).value);
+        var floor = document.getElementById(floorId).value.trim();
+        var department = document.getElementById(departmentId).value || null;
+        try {
+          setQrBatchSummary("Creating the room list…");
+          var result = await createRoomRange(start, end, floor, department);
+          document.getElementById("qr-location").value = "Room " + result.firstCode;
+          await renderGuestQr();
+          setQrBatchSummary(result.created ? result.created + " room(s) created; " + result.total + " room QR cards are available." : "All " + result.total + " rooms already existed; their QR cards are ready.");
+          showToast(result.created ? result.created + " rooms created." : "All rooms already exist.");
+          if (previewAfter) await renderQrBatch();
+          return result;
+        } catch (error) {
+          setQrBatchSummary("Room creation stopped: " + error.message);
+          showToast("Room range could not be created: " + error.message);
+          return null;
+        }
       }
 
       function loadDemoGuestReports() {
@@ -1850,17 +2054,106 @@
       }
 
       function setDepartmentOptions() {
-        ["location-department", "room-department", "invite-department", "route-department"].forEach(function (id) {
+        ["location-department", "room-department", "qr-room-department", "invite-department"].forEach(function (id) {
           var select = document.getElementById(id);
-          var first = id === "invite-department" ? "All departments" : id === "route-department" ? "Choose department" : "No default";
+          var first = id === "invite-department" ? "All departments" : "No default";
           select.innerHTML = '<option value="">' + first + '</option>' + propertyDepartments.filter(function (department) { return department.active; }).map(function (department) {
             return '<option value="' + escapeHtml(department.id) + '">' + escapeHtml(department.name) + '</option>';
           }).join("");
         });
-        var categories = window.InnRelayCatalog ? window.InnRelayCatalog.categories : [];
-        document.getElementById("route-category").innerHTML = categories.map(function (category) {
-          return '<option value="' + escapeHtml(category.key) + '">' + escapeHtml(category.label) + '</option>';
+        document.getElementById("route-filter").innerHTML = '<option value="">All departments</option><option value="unassigned">Unassigned</option>' + propertyDepartments.filter(function (department) { return department.active; }).map(function (department) {
+          return '<option value="' + escapeHtml(department.id) + '">' + escapeHtml(department.name) + '</option>';
         }).join("");
+      }
+
+      function clearSelectedHotel(message) {
+        document.getElementById("onboard-property-provider").value = "";
+        document.getElementById("onboard-property-place-id").value = "";
+        document.getElementById("selected-hotel").hidden = true;
+        if (message) document.getElementById("hotel-lookup-status").textContent = message;
+      }
+
+      function useSelectedHotel(name, address, placeId) {
+        document.getElementById("onboard-property-provider").value = "google_places";
+        document.getElementById("onboard-property-place-id").value = placeId;
+        document.getElementById("onboard-property-name").value = name;
+        document.getElementById("onboard-property-address").value = address || "";
+        var slugInput = document.getElementById("onboard-property-slug");
+        if (!slugInput.dataset.edited) slugInput.value = slugify(name);
+        var selected = document.getElementById("selected-hotel");
+        selected.textContent = "Selected: " + name + (address ? " · " + address : "");
+        selected.hidden = false;
+        document.getElementById("hotel-lookup-status").textContent = "Verified directory selection ready.";
+      }
+
+      function loadGooglePlacesLibrary(apiKey) {
+        if (window.google && window.google.maps) return Promise.resolve(window.google.maps);
+        return new Promise(function (resolve, reject) {
+          var script = document.createElement("script");
+          script.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(apiKey) + "&loading=async&libraries=places&v=weekly";
+          script.async = true;
+          script.onerror = function () { reject(new Error("Google Places could not be loaded.")); };
+          script.onload = function () { resolve(window.google.maps); };
+          document.head.appendChild(script);
+        });
+      }
+
+      async function initialiseHotelPicker() {
+        var status = document.getElementById("hotel-lookup-status");
+        var apiKey = String(appConfig.googlePlacesApiKey || "").trim();
+        if (!apiKey) {
+          status.textContent = "Hotel menu is ready for a restricted Google Places browser key. Manual entry is available meanwhile.";
+          return;
+        }
+        try {
+          await loadGooglePlacesLibrary(apiKey);
+          var placesLibrary = await window.google.maps.importLibrary("places");
+          var picker = new placesLibrary.PlaceAutocompleteElement();
+          picker.placeholder = "Search hotel name or address";
+          try { picker.includedPrimaryTypes = ["lodging"]; } catch (error) {}
+          try { picker.componentRestrictions = { country: appConfig.hotelSearchCountry || "gb" }; } catch (error) {}
+          document.getElementById("hotel-place-picker").replaceChildren(picker);
+          var choosePlace = async function (event) {
+            var prediction = event.placePrediction || (event.detail && event.detail.placePrediction);
+            if (!prediction || !prediction.toPlace) return;
+            status.textContent = "Loading the selected hotel…";
+            var place = prediction.toPlace();
+            await place.fetchFields({ fields: ["id", "displayName", "formattedAddress"] });
+            if (!place.id || !place.displayName) throw new Error("Select a hotel from the results menu.");
+            useSelectedHotel(String(place.displayName), String(place.formattedAddress || ""), String(place.id));
+          };
+          picker.addEventListener("gmp-select", function (event) {
+            choosePlace(event).catch(function (error) { status.textContent = error.message; });
+          });
+          picker.addEventListener("gmp-placeselect", function (event) {
+            choosePlace(event).catch(function (error) { status.textContent = error.message; });
+          });
+          status.textContent = "Start typing, then choose the hotel from the menu.";
+        } catch (error) {
+          status.textContent = "Hotel search is unavailable: " + error.message + " Use manual entry below.";
+        }
+      }
+
+      function renderDepartmentRoutes() {
+        var categories = window.InnRelayCatalog ? window.InnRelayCatalog.categories : [];
+        var query = document.getElementById("route-search").value.trim().toLowerCase();
+        var filter = document.getElementById("route-filter").value;
+        var routeByCategory = {};
+        propertyDepartmentRoutes.forEach(function (route) { routeByCategory[route.category_key] = route; });
+        var visible = categories.filter(function (category) {
+          var route = routeByCategory[category.key];
+          var matchesQuery = !query || category.label.toLowerCase().indexOf(query) > -1;
+          var matchesFilter = !filter || (filter === "unassigned" ? !route : route && route.department_id === filter);
+          return matchesQuery && matchesFilter;
+        });
+        document.getElementById("department-route-list").innerHTML = visible.map(function (category) {
+          var route = routeByCategory[category.key];
+          var selectedDepartment = route ? route.department_id : "";
+          var options = '<option value="">Choose department</option>' + propertyDepartments.filter(function (department) { return department.active; }).map(function (department) {
+            return '<option value="' + escapeHtml(department.id) + '"' + (department.id === selectedDepartment ? " selected" : "") + '>' + escapeHtml(department.name) + '</option>';
+          }).join("");
+          return '<div class="route-row"><div><strong>' + escapeHtml(category.label) + '</strong><span>' + (route ? "Automatically routed on submission" : "Needs a department") + '</span></div><select data-route-category="' + escapeHtml(category.key) + '" aria-label="Department for ' + escapeHtml(category.label) + '">' + options + '</select></div>';
+        }).join("") || '<div class="demo-empty">No categories match this filter.</div>';
       }
 
       function invitationUrl(invitation) {
@@ -1891,11 +2184,7 @@
           return '<div class="management-row"><div><strong>' + escapeHtml(department.name) + '</strong><span>Acknowledge ' + department.response_target_minutes + ' min · escalate ' + department.escalation_minutes + ' min</span></div><span class="role-chip">' + (department.active ? "active" : "paused") + '</span></div>';
         }).join("") || '<div class="demo-empty">No departments yet.</div>';
 
-        document.getElementById("department-route-list").innerHTML = propertyDepartmentRoutes.map(function (route) {
-          var category = window.InnRelayCatalog && window.InnRelayCatalog.categories.filter(function (item) { return item.key === route.category_key; })[0];
-          var department = propertyDepartments.filter(function (item) { return item.id === route.department_id; })[0];
-          return '<div class="management-row"><div><strong>' + escapeHtml(category ? category.label : route.category_key) + '</strong><span>Automatically routed on submission</span></div><span class="role-chip">' + escapeHtml(department ? department.name : "Unavailable") + '</span></div>';
-        }).join("") || '<div class="demo-empty">Location defaults will be used until category routes are added.</div>';
+        renderDepartmentRoutes();
 
         document.getElementById("location-list").innerHTML = propertyLocations.map(function (location) {
           var department = propertyDepartments.filter(function (item) { return item.id === location.department_id; })[0];
@@ -1907,14 +2196,16 @@
           return '<div class="management-row"><div><strong>' + escapeHtml(invitation.email) + '</strong><span>' + escapeHtml(invitation.role) + ' · ' + status + '</span></div>' + (status === "pending" ? '<button class="button button-quiet button-small" type="button" data-copy-invite="' + escapeHtml(invitationUrl(invitation)) + '">Copy link</button>' : '<span class="role-chip">' + status + '</span>') + '</div>';
         }).join("") || '<div class="demo-empty">No staff invitations yet.</div>';
 
-        var qrSelect = document.getElementById("qr-location");
-        var previousQr = qrSelect.value;
-        qrSelect.innerHTML = propertyLocations.filter(function (location) { return location.active; }).map(function (location) {
-          return '<option value="' + escapeHtml(location.id) + '">' + escapeHtml(location.name) + '</option>';
+        var qrInput = document.getElementById("qr-location");
+        var previousQr = qrInput.value;
+        var activeLocations = propertyLocations.filter(function (location) { return location.active; });
+        document.getElementById("qr-location-options").innerHTML = activeLocations.map(function (location) {
+          return '<option value="' + escapeHtml(location.name) + '">' + escapeHtml(location.code + " · " + location.location_type.replace(/_/g, " ")) + '</option>';
         }).join("");
-        if (propertyLocations.some(function (location) { return location.id === previousQr; })) qrSelect.value = previousQr;
+        if (previousQr) qrInput.value = previousQr;
+        else if (activeLocations.length) qrInput.value = activeLocations[0].name;
 
-        locations = propertyLocations.filter(function (location) { return location.active; }).map(function (location) { return location.name; });
+        locations = activeLocations.map(function (location) { return location.name; });
         fillSelect("location", locations);
         renderGuestQr();
       }
@@ -2506,11 +2797,20 @@
       });
       if (!("Notification" in window)) document.getElementById("enable-notifications").hidden = true;
       else if (Notification.permission === "granted") document.getElementById("enable-notifications").textContent = "Browser alerts enabled";
-      document.getElementById("update-qr").addEventListener("click", renderGuestQr);
+      document.getElementById("update-qr").addEventListener("click", function () { renderGuestQr({ createMissing: true }); });
       document.getElementById("print-qr").addEventListener("click", printGuestQr);
       document.getElementById("qr-location").addEventListener("change", renderGuestQr);
+      document.getElementById("qr-location").addEventListener("keydown", function (event) {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        renderGuestQr({ createMissing: true });
+      });
       document.getElementById("build-qr-batch").addEventListener("click", renderQrBatch);
       document.getElementById("print-qr-batch").addEventListener("click", printQrBatch);
+      document.getElementById("qr-room-batch-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        await submitRoomRange("qr-room-start", "qr-room-end", "qr-room-floor", "qr-room-department", true);
+      });
       document.getElementById("property-switcher").addEventListener("change", async function () {
         var selected = staffMemberships.filter(function (membership) { return membership.property_id === this.value; }, this)[0];
         if (selected) await activateMembership(selected);
@@ -2524,9 +2824,17 @@
       document.getElementById("cancel-property-onboarding").addEventListener("click", function () {
         document.getElementById("property-onboarding").hidden = true;
       });
+      document.getElementById("manual-hotel-entry").addEventListener("click", function () {
+        clearSelectedHotel("Manual registration selected. Enter the legal trading name and address below.");
+        document.getElementById("onboard-property-name").focus();
+      });
       document.getElementById("onboard-property-name").addEventListener("input", function () {
+        if (document.getElementById("onboard-property-place-id").value) clearSelectedHotel("Hotel details were edited, so this will be registered as a manual entry.");
         var slugInput = document.getElementById("onboard-property-slug");
         if (!slugInput.dataset.edited) slugInput.value = slugify(this.value);
+      });
+      document.getElementById("onboard-property-address").addEventListener("input", function () {
+        if (document.getElementById("onboard-property-place-id").value) clearSelectedHotel("Hotel details were edited, so this will be registered as a manual entry.");
       });
       document.getElementById("onboard-property-slug").addEventListener("input", function () {
         this.dataset.edited = this.value ? "true" : "";
@@ -2545,6 +2853,8 @@
           name: document.getElementById("onboard-property-name").value.trim(),
           slug: slugify(document.getElementById("onboard-property-slug").value),
           address: document.getElementById("onboard-property-address").value.trim() || null,
+          external_place_provider: document.getElementById("onboard-property-provider").value || null,
+          external_place_id: document.getElementById("onboard-property-place-id").value || null,
           reception_phone: document.getElementById("onboard-property-phone").value.trim() || null,
           brand_colour: document.getElementById("onboard-property-colour").value,
           timezone: "Europe/London",
@@ -2556,7 +2866,8 @@
         // the following department/location writes are evaluated by RLS.
         var propertyResult = await staffClient.from("properties").insert(propertyPayload);
         if (propertyResult.error) {
-          setStaffSync("Hotel registration failed: " + (propertyResult.error.code === "23505" ? "That public URL name is already used. Choose another." : propertyResult.error.message), "error");
+          var duplicateMessage = document.getElementById("onboard-property-place-id").value ? "This hotel is already registered. Ask its InnRelay owner for a staff invitation." : "That public URL name is already used. Choose another.";
+          setStaffSync("Hotel registration failed: " + (propertyResult.error.code === "23505" ? duplicateMessage : propertyResult.error.message), "error");
           if (submit) submit.disabled = false;
           return;
         }
@@ -2597,6 +2908,7 @@
         }
         event.target.reset();
         document.getElementById("onboard-property-colour").value = "#ff8a68";
+        clearSelectedHotel("Start typing, then choose the hotel from the menu.");
         try { window.localStorage.setItem("innrelay-active-property", propertyId); } catch (error) {}
         if (submit) submit.disabled = false;
         showToast("Hotel workspace created.");
@@ -2630,13 +2942,18 @@
         await loadPropertyConfiguration();
         showToast("Department added.");
       });
-      document.getElementById("department-route-form").addEventListener("submit", async function (event) {
-        event.preventDefault();
+      document.getElementById("route-search").addEventListener("input", renderDepartmentRoutes);
+      document.getElementById("route-filter").addEventListener("change", renderDepartmentRoutes);
+      document.getElementById("department-route-list").addEventListener("change", async function (event) {
+        var select = event.target.closest("[data-route-category]");
+        if (!select || !select.value || !staffMembership) return;
+        select.disabled = true;
         var result = await staffClient.from("department_routes").upsert({
           property_id: staffMembership.property_id,
-          category_key: document.getElementById("route-category").value,
-          department_id: document.getElementById("route-department").value
+          category_key: select.getAttribute("data-route-category"),
+          department_id: select.value
         }, { onConflict: "property_id,category_key" });
+        select.disabled = false;
         if (result.error) { showToast("Route could not be saved: " + result.error.message); return; }
         await loadPropertyConfiguration();
         showToast("Department route saved.");
@@ -2664,22 +2981,8 @@
       });
       document.getElementById("room-batch-form").addEventListener("submit", async function (event) {
         event.preventDefault();
-        var start = Number(document.getElementById("room-start").value);
-        var end = Number(document.getElementById("room-end").value);
-        if (!Number.isInteger(start) || !Number.isInteger(end) || end < start || end - start + 1 > 500) {
-          showToast("Enter a valid ascending range of no more than 500 rooms.");
-          return;
-        }
-        var width = Math.max(3, String(end).length);
-        var rows = [];
-        for (var roomNumber = start; roomNumber <= end; roomNumber += 1) {
-          var roomCode = String(roomNumber).padStart(width, "0");
-          rows.push({ property_id: staffMembership.property_id, department_id: document.getElementById("room-department").value || null, name: "Room " + roomCode, code: roomCode, location_type: "room", floor: document.getElementById("room-floor").value.trim() || null, sort_order: roomNumber });
-        }
-        var result = await staffClient.from("property_locations").insert(rows);
-        if (result.error) { showToast("Room range could not be created: " + result.error.message); return; }
-        await loadPropertyConfiguration();
-        showToast(rows.length + " rooms created with secure QR identities.");
+        await submitRoomRange("room-start", "room-end", "room-floor", "room-department", true);
+        showView("guest");
       });
       document.getElementById("staff-invite-form").addEventListener("submit", async function (event) {
         event.preventDefault();
@@ -3036,6 +3339,7 @@
       renderBoard();
       renderHandover();
       renderShiftRun();
+      initialiseHotelPicker();
       initialiseStaffSync();
     }());
   </script>
