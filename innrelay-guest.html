@@ -162,7 +162,7 @@
             </div>
             <div id="custom-issue-field" class="field" hidden><label for="custom-issue">What is the issue or request?</label><input id="custom-issue" maxlength="140" placeholder="Describe the item we did not list"></div>
             <div class="field-grid">
-              <div class="field"><label for="guest-location">Your room number or location</label><input id="guest-location" required maxlength="80" autocomplete="off" placeholder="e.g. Room 208 or Lobby"><p class="form-note">You can change a room supplied by the QR code if it is not correct.</p></div>
+              <div class="field"><label for="guest-location">Your room number or location</label><select id="guest-location" required><option value="">Scan your hotel QR code first</option></select><p class="form-note">You may correct the location, but only to another active room or area inside this hotel.</p></div>
               <div class="field"><label for="guest-urgency">How soon?</label><select id="guest-urgency"><option value="normal">When possible</option><option value="soon">As soon as possible</option><option value="urgent">Urgent - guest affected now</option></select></div>
             </div>
             <div class="field"><label for="guest-description">Useful details</label><textarea id="guest-description" maxlength="1200" placeholder="Tell the team what happened, what is missing, or what you have already tried."></textarea><p class="form-note">Do not enter card numbers, passport details or other sensitive information.</p></div>
@@ -869,6 +869,10 @@
       supabasePublishableKey: "sb_publishable_hWv_41IDXZ4LsWaHLFHKXA_NkDI8QTf",
       propertySlug: "exhibition-court",
       propertyName: "Exhibition Court Hotel",
+      pilotPropertyId: "14ab50cd-8fde-4a2d-85d4-d6b2eb27a607",
+      pilotPropertyToken: "f3f4a03f-d49a-4477-a79a-a0d170de3eeb",
+      pilotLocationId: "02eb3ca7-56d7-4ffd-a51d-46b9d33451dd",
+      pilotLocationToken: "239f5485-7c81-4662-aa26-183b2f239032",
       receptionPhone: "Use the room phone and select Reception",
       emergencyNumber: "999",
       demoMode: false,
@@ -887,6 +891,9 @@
       var client = null;
       var sessionUser = null;
       var property = null;
+      var propertyToken = null;
+      var portalLocations = [];
+      var selectedLocation = null;
       var channel = null;
       var broadcast = "BroadcastChannel" in window ? new BroadcastChannel("innrelay-guest-reports") : null;
 
@@ -1016,6 +1023,51 @@
         renderRequests(demoReports());
       }
 
+      function portalCredentials() {
+        var credentials = {
+          propertyId: params.get("pid"),
+          locationId: params.get("lid"),
+          propertyToken: params.get("p"),
+          locationToken: params.get("l")
+        };
+        if ((!credentials.propertyId || !credentials.locationId || !credentials.propertyToken || !credentials.locationToken)
+            && params.get("property") === "exhibition-court") {
+          credentials.propertyId = config.pilotPropertyId;
+          credentials.locationId = config.pilotLocationId;
+          credentials.propertyToken = config.pilotPropertyToken;
+          credentials.locationToken = config.pilotLocationToken;
+        }
+        return credentials;
+      }
+
+      async function claimPortalLocation(location) {
+        if (!client || !sessionUser || !property || !propertyToken || !location) return;
+        var result = await client.from("guest_portal_sessions").upsert({
+          user_id: sessionUser.id,
+          property_id: property.id,
+          location_id: location.id,
+          property_token: propertyToken,
+          location_token: location.public_id,
+          expires_at: new Date(Date.now() + 8 * 86400000).toISOString(),
+          last_seen_at: new Date().toISOString()
+        }, { onConflict: "user_id,property_id,location_id" });
+        if (result.error) throw result.error;
+      }
+
+      function populatePortalLocations(preferredLocationId) {
+        var select = document.getElementById("guest-location");
+        select.innerHTML = portalLocations.filter(function (location) { return location.active; }).map(function (location) {
+          return '<option value="' + escapeHtml(location.id) + '">' + escapeHtml(location.name) + '</option>';
+        }).join("");
+        var savedLocation = "";
+        try { savedLocation = window.localStorage.getItem("innrelay-location-" + property.id) || ""; } catch (error) {}
+        var selectedId = preferredLocationId || savedLocation;
+        if (!portalLocations.some(function (location) { return location.id === selectedId; })) selectedId = portalLocations.length ? portalLocations[0].id : "";
+        select.value = selectedId;
+        selectedLocation = portalLocations.filter(function (location) { return location.id === selectedId; })[0] || null;
+        document.getElementById("room-display").textContent = selectedLocation ? selectedLocation.name : "Location unavailable";
+      }
+
       async function initialiseData() {
         var liveConfigured = Boolean(config.supabaseUrl && config.supabasePublishableKey && !config.demoMode && window.supabase);
         if (!liveConfigured) {
@@ -1036,22 +1088,44 @@
           } else {
             sessionUser = sessionResult.data.session.user;
           }
-          var slug = params.get("property") || config.propertySlug;
-          var propertyResult = await client.from("properties").select("id,name,slug,reception_phone,emergency_notice").eq("slug", slug).eq("active", true).single();
+          var credentials = portalCredentials();
+          if (!credentials.propertyId || !credentials.locationId || !credentials.propertyToken || !credentials.locationToken) {
+            throw new Error("This page needs a current InnRelay hotel QR code. Ask Reception for the room or area card.");
+          }
+          propertyToken = credentials.propertyToken;
+          var portalResult = await client.from("guest_portal_sessions").upsert({
+            user_id: sessionUser.id,
+            property_id: credentials.propertyId,
+            location_id: credentials.locationId,
+            property_token: credentials.propertyToken,
+            location_token: credentials.locationToken,
+            expires_at: new Date(Date.now() + 8 * 86400000).toISOString(),
+            last_seen_at: new Date().toISOString()
+          }, { onConflict: "user_id,property_id,location_id" });
+          if (portalResult.error) throw portalResult.error;
+          var propertyResult = await client.from("properties").select("id,public_id,name,slug,reception_phone,emergency_notice,brand_colour").eq("id", credentials.propertyId).eq("active", true).single();
           if (propertyResult.error) throw propertyResult.error;
           property = propertyResult.data;
+          var locationsResult = await client.from("property_locations").select("id,property_id,public_id,name,code,location_type,active,sort_order").eq("property_id", property.id).eq("active", true).order("sort_order").order("name");
+          if (locationsResult.error) throw locationsResult.error;
+          portalLocations = locationsResult.data || [];
+          populatePortalLocations(credentials.locationId);
           document.getElementById("property-name").textContent = property.name;
           if (property.reception_phone) document.getElementById("reception-copy").textContent = property.reception_phone;
+          if (property.brand_colour) document.documentElement.style.setProperty("--coral", property.brand_colour);
           setConnection("Secure live connection · hotel staff will receive reports in realtime", "live");
           await loadLiveRequests();
           channel = client.channel("guest-requests-" + sessionUser.id)
             .on("postgres_changes", { event: "*", schema: "public", table: "guest_reports", filter: "guest_user_id=eq." + sessionUser.id }, loadLiveRequests)
             .subscribe();
         } catch (error) {
-          client = null;
-          sessionUser = null;
-          setConnection("Live connection unavailable. Using this-device demo mode: " + error.message, "error");
-          loadDemoRequests();
+          property = null;
+          portalLocations = [];
+          selectedLocation = null;
+          document.getElementById("guest-location").innerHTML = '<option value="">Valid hotel QR required</option>';
+          document.getElementById("submit-report").disabled = true;
+          setConnection("Guest portal unavailable: " + error.message, "error");
+          renderRequests([]);
         }
       }
 
@@ -1064,9 +1138,10 @@
         if (!title) return;
         var payload = {
           property_id: property ? property.id : null,
+          location_id: selectedLocation ? selectedLocation.id : null,
           guest_user_id: sessionUser ? sessionUser.id : null,
           source: "guest",
-          location: document.getElementById("guest-location").value.trim(),
+          location: selectedLocation ? selectedLocation.name : "Unknown location",
           category_key: category.key,
           category_label: category.label,
           issue_code: category.key + ":" + catalog.slugify(title),
@@ -1082,13 +1157,15 @@
         submit.textContent = "Sending…";
         try {
           if (client && sessionUser && property) {
+            if (!selectedLocation) throw new Error("Choose your room or hotel area.");
+            await claimPortalLocation(selectedLocation);
             var result = await client.from("guest_reports").insert(payload).select("id,title,status,location,created_at").single();
             if (result.error) throw result.error;
             await loadLiveRequests();
           } else {
             var rows = demoReports();
             payload.id = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : String(Date.now());
-            payload.property_slug = params.get("property") || config.propertySlug;
+            payload.property_slug = property ? property.slug : params.get("property") || config.propertySlug;
             payload.created_at = new Date().toISOString();
             payload.updated_at = payload.created_at;
             rows.unshift(payload);
@@ -1136,27 +1213,29 @@
       document.getElementById("change-room").addEventListener("click", function () {
         var locationInput = document.getElementById("guest-location");
         locationInput.scrollIntoView({ behavior: "smooth", block: "center" });
-        window.setTimeout(function () { locationInput.focus(); locationInput.select(); }, 350);
+        window.setTimeout(function () { locationInput.focus(); }, 350);
       });
-      document.getElementById("guest-location").addEventListener("input", function (event) {
-        var value = event.target.value.trim();
-        document.getElementById("room-display").textContent = value || "Choose your room below";
-        try { window.localStorage.setItem("innrelay-guest-location", value); } catch (error) {}
+      document.getElementById("guest-location").addEventListener("change", async function (event) {
+        selectedLocation = portalLocations.filter(function (location) { return location.id === event.target.value; })[0] || null;
+        document.getElementById("room-display").textContent = selectedLocation ? selectedLocation.name : "Choose your room below";
+        if (property && selectedLocation) {
+          try {
+            await claimPortalLocation(selectedLocation);
+            window.localStorage.setItem("innrelay-location-" + property.id, selectedLocation.id);
+          } catch (error) {
+            setConnection("Location could not be changed: " + error.message, "error");
+          }
+        }
       });
       window.addEventListener("storage", function (event) { if (event.key === DEMO_KEY && !client) loadDemoRequests(); });
       if (broadcast) broadcast.addEventListener("message", function () { if (!client) loadDemoRequests(); });
 
       var propertyName = params.get("propertyName") || config.propertyName || "Your hotel";
-      var savedRoom = "";
-      try { savedRoom = window.localStorage.getItem("innrelay-guest-location") || ""; } catch (error) {}
-      var room = params.get("room") || savedRoom;
       document.getElementById("property-name").textContent = propertyName;
       document.getElementById("reception-copy").textContent = config.receptionPhone || "Use the room phone and select Reception.";
       document.getElementById("emergency-link").href = "tel:" + (config.emergencyNumber || "999");
       document.getElementById("emergency-link").textContent = "Emergency services: " + (config.emergencyNumber || "999");
-      var initialLocation = room ? (/^room\s/i.test(room) || /\D/.test(room) ? room : "Room " + room) : "";
-      document.getElementById("guest-location").value = initialLocation;
-      document.getElementById("room-display").textContent = initialLocation || "Choose your room below";
+      document.getElementById("room-display").textContent = "Confirming your hotel QR…";
       renderPopular();
       populateCategories();
       initialiseData();
