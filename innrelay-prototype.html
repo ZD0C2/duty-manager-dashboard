@@ -509,6 +509,9 @@
     .guest-report-head h3 { margin: 2px 0 0; color: var(--white); font-size: 15px; }
     .guest-report-meta { margin-top: 6px; color: rgba(255,255,255,.46); font-size: 11px; }
     .guest-report-description { margin: 10px 0 0; color: rgba(255,255,255,.68); font-size: 12px; }
+    .guest-report-attachments { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .attachment-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1px solid rgba(255,255,255,.14); }
+    .attachment-chip { display: inline-flex; align-items: center; height: 64px; padding: 0 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); color: var(--mint); font-size: 11px; font-weight: 800; }
     .guest-report-actions { display: grid; grid-template-columns: minmax(160px, 1fr) auto; gap: 9px; align-items: end; margin-top: 12px; }
     .guest-note { width: 100%; padding: 9px 10px; border: 1px solid rgba(255,255,255,.13); border-radius: 10px; color: var(--white); background: rgba(0,0,0,.12); outline: none; font-size: 11px; }
     .guest-note:focus { border-color: var(--mint); }
@@ -1438,6 +1441,7 @@
       var staffTurnstileWidgetId = null;
       var staffTurnstilePending = null;
       var guestReports = [];
+      var guestAttachmentsByReport = {};
       var guestBroadcast = "BroadcastChannel" in window ? new BroadcastChannel("innrelay-guest-reports") : null;
       var workflowData = {
         "Capture": { title: "Report a useful issue in under 30 seconds.", copy: "Choose a room or area, issue type, urgency, and guest impact. Add a sentence that gives the next person enough context to act.", label: "Room 208", status: "Guest waiting", className: "status status-coral", demoTitle: "Wi-Fi down", demoCopy: "First report, before the issue becomes a story nobody can reconstruct." },
@@ -2065,10 +2069,18 @@
           var assignmentOptions = propertyStaffMembers.length ? propertyStaffMembers.map(function (member) {
             return '<option value="' + escapeHtml(member.user_id) + '"' + (member.user_id === selectedOwner ? " selected" : "") + '>' + escapeHtml(member.display_name) + ' · ' + escapeHtml(member.role) + '</option>';
           }).join("") : '<option value="">Demo Duty Manager</option>';
+          var attachments = guestAttachmentsByReport[report.id] || [];
+          var attachmentsHtml = attachments.length ? '<div class="guest-report-attachments">' + attachments.map(function (attachment) {
+            if (!attachment.url) return '';
+            return attachment.mimeType === "application/pdf"
+              ? '<a class="attachment-chip" href="' + escapeHtml(attachment.url) + '" target="_blank" rel="noopener">PDF attachment</a>'
+              : '<a href="' + escapeHtml(attachment.url) + '" target="_blank" rel="noopener"><img class="attachment-thumb" src="' + escapeHtml(attachment.url) + '" alt="Guest-submitted photo" loading="lazy"></a>';
+          }).join("") + '</div>' : '';
           return '<article class="guest-report-card" data-guest-report="' + escapeHtml(report.id) + '">' +
             '<div class="guest-report-head"><div><span class="room-label">' + escapeHtml(report.location) + ' · ' + escapeHtml(report.category_label || "Guest portal") + '</span><h3>' + escapeHtml(report.title) + '</h3></div><span class="' + statusClass(issue) + '">' + escapeHtml(guestStatusLabel(report.status)) + '</span></div>' +
             '<div class="guest-report-meta">' + escapeHtml(report.guest_name || "Guest") + ' · ' + escapeHtml(report.contact_preference || "app update") + (department ? ' · ' + escapeHtml(department.name) : '') + (report.escalated_at ? ' · escalated' : '') + ' · ' + escapeHtml(report.created_at ? new Date(report.created_at).toLocaleString() : "Just now") + '</div>' +
             '<p class="guest-report-description">' + escapeHtml(report.description || "No additional detail supplied.") + (report.staff_note ? '<br><strong>Latest staff update:</strong> ' + escapeHtml(report.staff_note) : '') + '</p>' +
+            attachmentsHtml +
             (closed ? '' : '<div class="guest-report-actions"><input class="guest-note" data-guest-note placeholder="Update visible to the guest, or resolution note"><div class="guest-action-row">' +
               '<label class="assignment-control">Assign to<select data-guest-owner>' + assignmentOptions + '</select></label>' +
               '<button class="guest-action primary" data-guest-action="acknowledged" type="button">Acknowledge</button>' +
@@ -2147,6 +2159,24 @@
         window.setTimeout(function () { URL.revokeObjectURL(link.href); }, 500);
       }
 
+      async function fetchGuestAttachments(reportIds) {
+        guestAttachmentsByReport = {};
+        if (!reportIds.length) return;
+        var result = await staffClient.from("guest_report_attachments")
+          .select("id,report_id,storage_path,mime_type,created_at")
+          .in("report_id", reportIds)
+          .order("created_at", { ascending: true });
+        if (result.error || !result.data || !result.data.length) return;
+        var paths = result.data.map(function (row) { return row.storage_path; });
+        var signResult = await staffClient.storage.from("guest-report-attachments").createSignedUrls(paths, 3600);
+        var signedByPath = {};
+        (signResult.data || []).forEach(function (item) { if (item.path) signedByPath[item.path] = item.signedUrl; });
+        result.data.forEach(function (row) {
+          if (!guestAttachmentsByReport[row.report_id]) guestAttachmentsByReport[row.report_id] = [];
+          guestAttachmentsByReport[row.report_id].push({ id: row.id, mimeType: row.mime_type, url: signedByPath[row.storage_path] || null });
+        });
+      }
+
       async function fetchLiveGuestReports() {
         if (!staffClient || !staffSession || !staffMembership) return;
         var result = await staffClient.from("guest_reports")
@@ -2157,6 +2187,12 @@
         if (result.error) {
           setStaffSync("Guest reports could not be loaded: " + friendlyErrorMessage(result.error), "error");
           return;
+        }
+        try {
+          await fetchGuestAttachments((result.data || []).map(function (report) { return report.id; }));
+        } catch (attachmentsError) {
+          console.error("InnRelay attachments could not be loaded", attachmentsError);
+          guestAttachmentsByReport = {};
         }
         mergeGuestReportsIntoBoard(result.data || []);
       }

@@ -187,6 +187,7 @@
               <div class="field"><label for="guest-urgency">How soon?</label><select id="guest-urgency"><option value="normal">When possible</option><option value="soon">As soon as possible</option><option value="urgent">Urgent - guest affected now</option></select></div>
             </div>
             <div class="field"><label for="guest-description">Useful details</label><textarea id="guest-description" maxlength="1200" placeholder="Tell the team what happened, what is missing, or what you have already tried."></textarea><p class="form-note">Do not enter card numbers, passport details or other sensitive information.</p></div>
+            <div class="field"><label for="guest-attachment">Photo (optional)</label><input id="guest-attachment" type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"><p class="form-note">A photo can help staff act faster. JPEG, PNG, WEBP, HEIC or PDF, up to 8MB. Never photograph a payment card or ID document.</p></div>
             <div class="field-grid">
               <div class="field"><label for="guest-name">Name (optional)</label><input id="guest-name" maxlength="80" autocomplete="name" placeholder="How should staff address you?"></div>
               <div class="field"><label for="contact-preference">Preferred update</label><select id="contact-preference"><option value="app">Update me on this page</option><option value="room-phone">Call my room</option><option value="reception">I will speak to reception</option></select></div>
@@ -1238,11 +1239,45 @@
         }
       }
 
+      var ALLOWED_ATTACHMENT_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "application/pdf"];
+      var MAX_ATTACHMENT_BYTES = 8 * 1024 * 1024;
+
+      function validateAttachment(file) {
+        if (!file) return null;
+        if (ALLOWED_ATTACHMENT_TYPES.indexOf(file.type) === -1) return "That file type isn't supported. Attach a JPEG, PNG, WEBP, HEIC photo or a PDF.";
+        if (file.size > MAX_ATTACHMENT_BYTES) return "That file is too large. Attachments must be 8MB or smaller.";
+        return null;
+      }
+
+      async function uploadGuestAttachment(reportId, file) {
+        var safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_").slice(-80) || "attachment";
+        var path = reportId + "/" + Date.now() + "-" + safeName;
+        var uploadResult = await client.storage.from("guest-report-attachments").upload(path, file, { contentType: file.type, upsert: false });
+        if (uploadResult.error) throw uploadResult.error;
+        var insertResult = await client.from("guest_report_attachments").insert({
+          report_id: reportId,
+          property_id: property.id,
+          storage_path: path,
+          mime_type: file.type,
+          size_bytes: file.size,
+          uploaded_by_kind: "guest",
+          uploaded_by_user_id: sessionUser.id
+        });
+        if (insertResult.error) throw insertResult.error;
+      }
+
       async function submitReport(event) {
         event.preventDefault();
         var category = currentCategory();
         if (category && category.emergency && acknowledgedEmergencyCategory !== category.key) {
           showEmergencyModal();
+          return;
+        }
+        var attachmentInput = document.getElementById("guest-attachment");
+        var attachmentFile = attachmentInput && attachmentInput.files && attachmentInput.files[0];
+        var attachmentError = validateAttachment(attachmentFile);
+        if (attachmentError) {
+          setConnection(attachmentError, "error");
           return;
         }
         var submit = document.getElementById("submit-report");
@@ -1268,12 +1303,21 @@
         };
         submit.disabled = true;
         submit.textContent = "Sending…";
+        var attachmentWarning = "";
         try {
           if (client && sessionUser && property) {
             if (!selectedLocation) throw new Error("Choose your room or hotel area.");
             await claimPortalLocation(selectedLocation);
             var result = await client.from("guest_reports").insert(payload).select("id,title,status,location,created_at").single();
             if (result.error) throw result.error;
+            if (attachmentFile) {
+              try {
+                await uploadGuestAttachment(result.data.id, attachmentFile);
+              } catch (attachError) {
+                console.error("InnRelay attachment upload failed", attachError);
+                attachmentWarning = " Your photo could not be attached: " + friendlyErrorMessage(attachError);
+              }
+            }
             await loadLiveRequests();
           } else {
             var rows = demoReports();
@@ -1287,7 +1331,7 @@
           }
           document.getElementById("report-panel").hidden = true;
           document.getElementById("success-panel").hidden = false;
-          document.getElementById("success-copy").textContent = category.emergency ? "Your report is recorded. Continue following the emergency guidance given by reception or emergency services." : "The hotel team can now acknowledge, assign and update it.";
+          document.getElementById("success-copy").textContent = (category.emergency ? "Your report is recorded. Continue following the emergency guidance given by reception or emergency services." : "The hotel team can now acknowledge, assign and update it.") + attachmentWarning;
         } catch (error) {
           setConnection("Report could not be sent: " + friendlyErrorMessage(error), "error");
         } finally {
