@@ -1,0 +1,48 @@
+name: Uptime check
+
+# Pings both live portals and the Supabase database every 15 minutes.
+# A failed step fails the whole run, and GitHub notifies the repo owner
+# (email / web, per their notification settings) whenever a scheduled
+# workflow run fails -- no separate monitoring account needed.
+#
+# Note: GitHub disables scheduled workflows automatically after 60 days
+# of repository inactivity. This repo is under active development, but
+# if commits ever stop for a couple of months, re-enable this workflow
+# from the Actions tab (or push any commit) to resume checks.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Staff portal reachable
+        run: |
+          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html")"
+          status="$(echo "$body" | tail -n1)"
+          echo "Staff portal responded with $status"
+          if [ "$status" != "200" ]; then echo "::error::Staff portal returned HTTP $status"; exit 1; fi
+          if ! echo "$body" | grep -q "InnRelay"; then echo "::error::Staff portal responded 200 but the page content looks wrong"; exit 1; fi
+
+      - name: Guest portal reachable
+        run: |
+          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html")"
+          status="$(echo "$body" | tail -n1)"
+          echo "Guest portal responded with $status"
+          if [ "$status" != "200" ]; then echo "::error::Guest portal returned HTTP $status"; exit 1; fi
+          if ! echo "$body" | grep -q "InnRelay"; then echo "::error::Guest portal responded 200 but the page content looks wrong"; exit 1; fi
+
+      - name: Supabase database reachable
+        run: |
+          # Public, RLS-protected publishable key -- same one already committed
+          # in innrelay-supabase-config.js. Safe to use here; security is RLS,
+          # not key secrecy. A paused free-tier project or a real outage will
+          # make this request fail or return a non-200 status.
+          status="$(curl -s -o /dev/null --max-time 15 -w '%{http_code}' \
+            -H "apikey: sb_publishable_hWv_41IDXZ4LsWaHLFHKXA_NkDI8QTf" \
+            "https://bkwzfoleuwhnuhqzxyqo.supabase.co/rest/v1/properties?select=id&limit=1")"
+          echo "Supabase REST responded with $status"
+          if [ "$status" != "200" ]; then echo "::error::Supabase REST returned HTTP $status -- the project may be paused or down"; exit 1; fi
