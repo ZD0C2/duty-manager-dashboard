@@ -35,14 +35,19 @@ jobs:
           if [ "$status" != "200" ]; then echo "::error::Guest portal returned HTTP $status"; exit 1; fi
           if ! echo "$body" | grep -q "InnRelay"; then echo "::error::Guest portal responded 200 but the page content looks wrong"; exit 1; fi
 
-      - name: Supabase database reachable
+      - name: Supabase project reachable
         run: |
-          # Public, RLS-protected publishable key -- same one already committed
-          # in innrelay-supabase-config.js. Safe to use here; security is RLS,
-          # not key secrecy. A paused free-tier project or a real outage will
-          # make this request fail or return a non-200 status.
+          # Uses the Auth service's health endpoint rather than a data table --
+          # every table here requires an authenticated staff or guest-portal
+          # session by design (no anonymous table grants at all, which is
+          # correct RLS practice), so a plain publishable-key table query
+          # always 401s regardless of whether the project is actually up.
+          # GoTrue health doesn't need a session and pauses/fails together
+          # with the rest of the project, making it a clean up/down signal.
+          # Public, RLS-protected publishable key -- same one already
+          # committed in innrelay-supabase-config.js.
           status="$(curl -s -o /dev/null --max-time 15 -w '%{http_code}' \
             -H "apikey: sb_publishable_hWv_41IDXZ4LsWaHLFHKXA_NkDI8QTf" \
-            "https://bkwzfoleuwhnuhqzxyqo.supabase.co/rest/v1/properties?select=id&limit=1")"
-          echo "Supabase REST responded with $status"
-          if [ "$status" != "200" ]; then echo "::error::Supabase REST returned HTTP $status -- the project may be paused or down"; exit 1; fi
+            "https://bkwzfoleuwhnuhqzxyqo.supabase.co/auth/v1/health")"
+          echo "Supabase Auth health responded with $status"
+          if [ "$status" != "200" ]; then echo "::error::Supabase Auth health returned HTTP $status -- the project may be paused or down"; exit 1; fi
