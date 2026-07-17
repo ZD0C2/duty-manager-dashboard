@@ -14,6 +14,8 @@
     propertyName: "Exhibition Court Hotel",
     publicStaffUrl: "https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html",
     publicGuestUrl: "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html",
+    // Public Cloudflare Turnstile site key. The private secret stays in Supabase Auth settings.
+    turnstileSiteKey: "0x4AAAAAAD3vbYOgg4XyOhrS",
     // Optional browser-restricted Google Maps key for the hotel directory menu.
     // Keep the manual registration fallback enabled even after this is set.
     googlePlacesApiKey: "AIzaSyBa6touizsMGMibua0DObLvxTVQbB9cwyI",
