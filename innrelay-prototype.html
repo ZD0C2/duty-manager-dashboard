@@ -493,6 +493,12 @@
     .form-divider { margin: 20px 0 4px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.09); color: var(--white); font-size: 14px; font-weight: 850; letter-spacing: -.03em; }
     .compliance-note { margin-top: 12px; padding: 11px 12px; border-radius: 11px; color: #f2d99b; background: rgba(247,201,110,.09); font-size: 11px; line-height: 1.5; }
     .sync-strip { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; padding: 13px 15px; border: 1px solid rgba(255,255,255,.1); border-radius: 14px; color: rgba(255,255,255,.65); background: rgba(255,255,255,.04); font-size: 12px; }
+    .verify-strip { margin: 14px 0 4px; padding: 14px 15px; border: 1px solid rgba(182,239,217,.35); border-radius: 14px; background: rgba(182,239,217,.06); }
+    .verify-strip strong { display: block; margin-bottom: 4px; color: var(--white); font-size: 13px; }
+    .verify-strip p { margin: 0 0 10px; color: rgba(255,255,255,.6); font-size: 12px; }
+    .verify-widget { min-height: 65px; }
+    .verify-status { margin: 9px 0 0; color: rgba(255,255,255,.6); font-size: 12px; }
+    .verify-retry { margin-top: 10px; padding: 7px 11px; border: 1px solid rgba(182,239,217,.5); border-radius: 999px; color: var(--mint); background: transparent; font-size: 11px; font-weight: 800; }
     .sync-strip.live { color: #c8f7e8; border-color: rgba(184,239,217,.38); background: rgba(184,239,217,.08); }
     .sync-strip.error { color: #ffd4ca; border-color: rgba(255,138,104,.38); background: rgba(255,138,104,.08); }
     .guest-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
@@ -1077,6 +1083,13 @@
                 <span>Recommended</span>
               </div>
               <div class="auth-divider">Fallback: work email and password</div>
+              <section id="staff-verification" class="verify-strip" hidden>
+                <strong id="staff-verification-title">Quick security check</strong>
+                <p>Required once per sign-in to protect staff accounts from automated attempts.</p>
+                <div id="staff-turnstile-widget" class="verify-widget"></div>
+                <p id="staff-turnstile-status" class="verify-status" role="status" aria-live="polite">Preparing verification…</p>
+                <button id="staff-turnstile-retry" class="verify-retry" type="button" hidden>Try verification again</button>
+              </section>
               <form id="staff-login-form" class="auth-grid">
                 <div class="field"><label for="staff-email">Work email</label><input id="staff-email" type="email" autocomplete="username" required placeholder="manager@hotel.com"></div>
                 <div class="field"><label for="staff-password">Password</label><input id="staff-password" type="password" autocomplete="current-password" required></div>
@@ -1353,6 +1366,7 @@
   <script src="./innrelay-qr.js?v=10"></script>
   <script src="./innrelay-jspdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <script>
     (function () {
       var STORAGE_KEY = "innrelay_prototype_v2";
@@ -1421,6 +1435,8 @@
       var propertyInvitations = [];
       var propertyStaffMembers = [];
       var staffChannel = null;
+      var staffTurnstileWidgetId = null;
+      var staffTurnstilePending = null;
       var guestReports = [];
       var guestBroadcast = "BroadcastChannel" in window ? new BroadcastChannel("innrelay-guest-reports") : null;
       var workflowData = {
@@ -1548,6 +1564,63 @@
         if (!target) return;
         target.textContent = message;
         target.className = "sync-strip" + (state ? " " + state : "");
+      }
+
+      function waitForTurnstileApi() {
+        return new Promise(function (resolve, reject) {
+          var startedAt = Date.now();
+          function check() {
+            if (window.turnstile && typeof window.turnstile.render === "function") { resolve(window.turnstile); return; }
+            if (Date.now() - startedAt > 15000) { reject(new Error("The security check could not load.")); return; }
+            window.setTimeout(check, 100);
+          }
+          check();
+        });
+      }
+
+      async function requestStaffTurnstileToken() {
+        var siteKey = String(appConfig.turnstileSiteKey || "").trim();
+        if (!siteKey) throw new Error("The staff security check is not configured.");
+        var panel = document.getElementById("staff-verification");
+        var status = document.getElementById("staff-turnstile-status");
+        var retry = document.getElementById("staff-turnstile-retry");
+        panel.hidden = false;
+        retry.hidden = true;
+        status.textContent = "Complete the quick verification to continue.";
+        var api = await waitForTurnstileApi();
+        return new Promise(function (resolve, reject) {
+          staffTurnstilePending = { resolve: resolve, reject: reject };
+          if (staffTurnstileWidgetId !== null) {
+            api.reset(staffTurnstileWidgetId);
+            return;
+          }
+          try {
+            staffTurnstileWidgetId = api.render("#staff-turnstile-widget", {
+              sitekey: siteKey,
+              theme: "dark",
+              size: "flexible",
+              action: "staff_password_signin",
+              callback: function (token) {
+                status.textContent = "Verified. Signing in…";
+                if (staffTurnstilePending) { var pending = staffTurnstilePending; staffTurnstilePending = null; pending.resolve(token); }
+              },
+              "expired-callback": function () {
+                status.textContent = "Verification expired. Please complete it again.";
+                if (staffTurnstileWidgetId != null) api.reset(staffTurnstileWidgetId);
+              },
+              "error-callback": function () {
+                status.textContent = "Verification could not be completed. Check your connection and try again.";
+                retry.hidden = false;
+                if (staffTurnstilePending) { var pending = staffTurnstilePending; staffTurnstilePending = null; pending.reject(new Error("The security check failed.")); }
+              }
+            });
+          } catch (error) {
+            status.textContent = "Verification could not be started. Please try again.";
+            retry.hidden = false;
+            staffTurnstilePending = null;
+            reject(error);
+          }
+        });
       }
 
       function normaliseQrLocationValue(value) {
@@ -3051,10 +3124,20 @@
       document.getElementById("staff-login-form").addEventListener("submit", async function (event) {
         event.preventDefault();
         if (!staffClient) return;
+        setStaffSync("Verifying…", "");
+        var captchaToken;
+        try {
+          captchaToken = await requestStaffTurnstileToken();
+        } catch (captchaError) {
+          setStaffSync("Sign-in failed: " + captchaError.message, "error");
+          return;
+        }
+        document.getElementById("staff-verification").hidden = true;
         setStaffSync("Signing in…", "");
         var result = await staffClient.auth.signInWithPassword({
           email: document.getElementById("staff-email").value.trim(),
-          password: document.getElementById("staff-password").value
+          password: document.getElementById("staff-password").value,
+          options: { captchaToken: captchaToken }
         });
         if (result.error) {
           setStaffSync("Sign-in failed: " + result.error.message, "error");
@@ -3063,6 +3146,7 @@
         document.getElementById("staff-password").value = "";
         await handleStaffSession(result.data.session);
       });
+      document.getElementById("staff-turnstile-retry").addEventListener("click", function () { window.location.reload(); });
       document.getElementById("staff-google-sign-in").addEventListener("click", async function () {
         if (!staffClient) { setStaffSync("Live staff authentication is not configured.", "error"); return; }
         if (window.location.protocol === "file:") {
