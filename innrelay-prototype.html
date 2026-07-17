@@ -2392,6 +2392,12 @@
           async function fetchGooglePlacesFallback(query) {
             var response = await fetch("https://places.googleapis.com/v1/places:autocomplete", {
               method: "POST",
+              // Explicit, rather than relying on the browser's default cross-origin
+              // policy: only the bare origin is ever sent to a different site like
+              // this one, never the page path. The Google Cloud referrer restriction
+              // for this key must be an origin-level pattern (e.g. "https://your-site/*"),
+              // not a deeper path -- a path-restricted entry can never match here.
+              referrerPolicy: "strict-origin",
               headers: {
                 "Content-Type": "application/json",
                 "X-Goog-Api-Key": String(appConfig.googlePlacesApiKey || "")
