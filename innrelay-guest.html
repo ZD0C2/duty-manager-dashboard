@@ -72,6 +72,12 @@
     .popular button { min-height: 78px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: #fbfaf6; color: var(--ink); text-align: left; font-weight: 750; }
     .popular button:hover { border-color: #8acdb9; background: #effcf7; }
     .form-note { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
+    .verification-card { margin-bottom: 22px; padding: 16px; border: 1px solid #9edbc7; border-radius: 14px; background: #effcf7; }
+    .verification-card strong { display: block; margin-bottom: 4px; }
+    .verification-card p { margin: 0 0 12px; color: #355d55; font-size: 13px; }
+    .verification-widget { min-height: 65px; }
+    .verification-status { margin: 9px 0 0 !important; color: #355d55 !important; font-size: 12px !important; }
+    .verification-retry { margin-top: 10px; padding: 8px 12px; border: 1px solid #08745f; border-radius: 999px; color: #075c4d; background: white; font-size: 12px; font-weight: 800; }
     .emergency-note { margin-top: 15px; padding: 13px; border-radius: 12px; background: #fff0ed; border: 1px solid #f3b8ae; color: #743529; }
     .actions { display: flex; align-items: center; gap: 12px; margin-top: 22px; }
     .primary { min-height: 48px; padding: 12px 18px; border: 0; border-radius: 999px; background: var(--ink); color: white; font-weight: 850; }
@@ -144,6 +150,13 @@
     <div class="layout">
       <main id="report" class="card report-card">
         <div id="report-panel">
+          <section id="guest-verification" class="verification-card" aria-labelledby="verification-title" hidden>
+            <strong id="verification-title">Quick security check</strong>
+            <p>This protects the hotel from automated or repeated fake reports. No account or app installation is required.</p>
+            <div id="turnstile-widget" class="verification-widget"></div>
+            <p id="turnstile-status" class="verification-status" role="status" aria-live="polite">Preparing verification…</p>
+            <button id="turnstile-retry" class="verification-retry" type="button" hidden>Try verification again</button>
+          </section>
           <h2>What can we help with?</h2>
           <p class="intro">Choose a common item, search the full catalogue, or describe something completely different.</p>
 
@@ -876,6 +889,7 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <script>
     (function () {
       "use strict";
@@ -891,6 +905,7 @@
       var portalLocations = [];
       var selectedLocation = null;
       var channel = null;
+      var turnstileWidgetId = null;
       var broadcast = "BroadcastChannel" in window ? new BroadcastChannel("innrelay-guest-reports") : null;
 
       function escapeHtml(value) {
@@ -903,6 +918,57 @@
         var target = document.getElementById("connection");
         target.textContent = message;
         target.className = "connection" + (state ? " " + state : "");
+      }
+
+      function waitForTurnstileApi() {
+        return new Promise(function (resolve, reject) {
+          var startedAt = Date.now();
+          function check() {
+            if (window.turnstile && typeof window.turnstile.render === "function") { resolve(window.turnstile); return; }
+            if (Date.now() - startedAt > 15000) { reject(new Error("The security check could not load.")); return; }
+            window.setTimeout(check, 100);
+          }
+          check();
+        });
+      }
+
+      async function requestTurnstileToken() {
+        var siteKey = String(config.turnstileSiteKey || "").trim();
+        if (!siteKey) throw new Error("The guest security check is not configured.");
+        var panel = document.getElementById("guest-verification");
+        var status = document.getElementById("turnstile-status");
+        var retry = document.getElementById("turnstile-retry");
+        panel.hidden = false;
+        retry.hidden = true;
+        status.textContent = "Complete the quick verification to continue.";
+        var api = await waitForTurnstileApi();
+        return new Promise(function (resolve, reject) {
+          try {
+            turnstileWidgetId = api.render("#turnstile-widget", {
+              sitekey: siteKey,
+              theme: "light",
+              size: "flexible",
+              action: "anonymous_signin",
+              callback: function (token) {
+                status.textContent = "Verified. Opening the secure guest portal…";
+                resolve(token);
+              },
+              "expired-callback": function () {
+                status.textContent = "Verification expired. Please complete it again.";
+                if (turnstileWidgetId != null) api.reset(turnstileWidgetId);
+              },
+              "error-callback": function () {
+                status.textContent = "Verification could not be completed. Check your connection and try again.";
+                retry.hidden = false;
+                reject(new Error("The security check failed."));
+              }
+            });
+          } catch (error) {
+            status.textContent = "Verification could not be started. Please try again.";
+            retry.hidden = false;
+            reject(error);
+          }
+        });
       }
 
       function statusLabel(value) {
@@ -1071,11 +1137,14 @@
           var sessionResult = await client.auth.getSession();
           if (sessionResult.error) throw sessionResult.error;
           if (!sessionResult.data.session) {
-            var signInResult = await client.auth.signInAnonymously();
+            var captchaToken = await requestTurnstileToken();
+            var signInResult = await client.auth.signInAnonymously({ options: { captchaToken: captchaToken } });
             if (signInResult.error) throw signInResult.error;
             sessionUser = signInResult.data.user;
+            document.getElementById("guest-verification").hidden = true;
           } else {
             sessionUser = sessionResult.data.session.user;
+            document.getElementById("guest-verification").hidden = true;
           }
           var credentials = portalCredentials();
           if (!credentials.propertyId || !credentials.locationId || !credentials.propertyToken || !credentials.locationToken) {
@@ -1198,6 +1267,7 @@
         if (!event.target.closest(".search-wrap")) document.getElementById("search-results").hidden = true;
       });
       document.getElementById("guest-report-form").addEventListener("submit", submitReport);
+      document.getElementById("turnstile-retry").addEventListener("click", function () { window.location.reload(); });
       document.getElementById("report-another").addEventListener("click", resetForm);
       document.getElementById("change-room").addEventListener("click", function () {
         var locationInput = document.getElementById("guest-location");
