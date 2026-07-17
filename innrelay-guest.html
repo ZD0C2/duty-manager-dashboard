@@ -914,6 +914,23 @@
         });
       }
 
+      // Translates raw Supabase/Postgres errors into guest-facing language.
+      // Recognised Auth messages are already written for end users and pass
+      // through unchanged; everything else is logged for debugging and
+      // replaced with a plain-language equivalent.
+      function friendlyErrorMessage(error) {
+        if (!error) return "Something went wrong. Please try again.";
+        console.error("InnRelay guest error:", error);
+        var raw = String(error.message || "");
+        var safeAuthMessages = ["Invalid login credentials", "Email not confirmed", "Email rate limit exceeded", "Anonymous sign-ins are disabled"];
+        if (safeAuthMessages.indexOf(raw) > -1) return raw;
+        if (error.code === "42501" || /row-level security/i.test(raw)) return "That request isn't allowed. Please rescan the room QR code and try again.";
+        if (error.code === "23505" || /duplicate key/i.test(raw)) return "That has already been sent.";
+        if (/captcha/i.test(raw)) return "Verification failed. Please refresh the page and try again.";
+        if (error instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw)) return "Could not reach the hotel service. Check your connection and try again.";
+        return "Something went wrong. Please try again, or contact reception directly if this continues.";
+      }
+
       function setConnection(message, state) {
         var target = document.getElementById("connection");
         target.textContent = message;
@@ -1077,7 +1094,7 @@
       async function loadLiveRequests() {
         if (!client || !sessionUser) return;
         var result = await client.from("guest_reports").select("id,title,location,status,staff_note,resolution_note,created_at,updated_at").eq("guest_user_id", sessionUser.id).order("created_at", { ascending: false });
-        if (result.error) { setConnection("Connected, but requests could not be refreshed: " + result.error.message, "error"); return; }
+        if (result.error) { setConnection("Connected, but requests could not be refreshed: " + friendlyErrorMessage(result.error), "error"); return; }
         renderRequests(result.data || []);
       }
 
@@ -1182,7 +1199,7 @@
           selectedLocation = null;
           document.getElementById("guest-location").innerHTML = '<option value="">Valid hotel QR required</option>';
           document.getElementById("submit-report").disabled = true;
-          setConnection("Guest portal unavailable: " + error.message, "error");
+          setConnection("Guest portal unavailable: " + friendlyErrorMessage(error), "error");
           renderRequests([]);
         }
       }
@@ -1234,7 +1251,7 @@
           document.getElementById("success-panel").hidden = false;
           document.getElementById("success-copy").textContent = category.emergency ? "Your report is recorded. Continue following the emergency guidance given by reception or emergency services." : "The hotel team can now acknowledge, assign and update it.";
         } catch (error) {
-          setConnection("Report could not be sent: " + error.message, "error");
+          setConnection("Report could not be sent: " + friendlyErrorMessage(error), "error");
         } finally {
           submit.disabled = false;
           submit.textContent = "Send to hotel team";
@@ -1282,7 +1299,7 @@
             await claimPortalLocation(selectedLocation);
             window.localStorage.setItem("innrelay-location-" + property.id, selectedLocation.id);
           } catch (error) {
-            setConnection("Location could not be changed: " + error.message, "error");
+            setConnection("Location could not be changed: " + friendlyErrorMessage(error), "error");
           }
         }
       });

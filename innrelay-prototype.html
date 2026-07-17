@@ -1452,6 +1452,24 @@
         });
       }
 
+      // Translates raw Supabase/Postgres errors into staff-facing language.
+      // Recognised Auth messages are already written for end users and pass
+      // through unchanged; everything else is logged for debugging and
+      // replaced with a plain-language equivalent.
+      function friendlyErrorMessage(error) {
+        if (!error) return "Something went wrong. Please try again.";
+        console.error("InnRelay staff error:", error);
+        var raw = String(error.message || "");
+        var safeAuthMessages = ["Invalid login credentials", "Email not confirmed", "User already registered", "Email rate limit exceeded"];
+        if (safeAuthMessages.indexOf(raw) > -1) return raw;
+        if (error.code === "42501" || /row-level security/i.test(raw)) return "You don't have permission to do that. Check you're signed in with the right account.";
+        if (error.code === "23505" || /duplicate key/i.test(raw)) return "That already exists. Please use a different value.";
+        if (error.code === "23503" || /foreign key/i.test(raw)) return "That couldn't be saved because something it depends on is missing or was removed.";
+        if (/captcha/i.test(raw)) return "Verification failed. Please refresh the page and try again.";
+        if (error instanceof TypeError || /failed to fetch|networkerror|load failed/i.test(raw)) return "Could not reach the hotel service. Check your connection and try again.";
+        return "Something went wrong. Please try again, or contact support if this continues.";
+      }
+
       function clone(value) {
         return JSON.parse(JSON.stringify(value));
       }
@@ -1665,7 +1683,7 @@
         };
         var result = await staffClient.from("property_locations").insert(payload).select("id,property_id,department_id,public_id,name,code,location_type,floor,allows_guest_correction,active,sort_order").single();
         if (result.error && result.error.code !== "23505") {
-          showToast("Room could not be created: " + result.error.message);
+          showToast("Room could not be created: " + friendlyErrorMessage(result.error));
           return null;
         }
         await loadPropertyConfiguration();
@@ -1715,7 +1733,7 @@
           document.getElementById("guest-qr-image").alt = "QR code for " + location.name;
         } catch (error) {
           document.getElementById("guest-qr-image").removeAttribute("src");
-          setStaffSync("QR image could not be generated: " + error.message, "error");
+          setStaffSync("QR image could not be generated: " + friendlyErrorMessage(error), "error");
           return;
         }
         document.getElementById("top-guest-portal").href = url;
@@ -1777,7 +1795,7 @@
           openPdfInViewer(pdf, viewerWindow, "InnRelay-" + room.replace(/[^a-z0-9]+/gi, "-") + ".pdf");
         } catch (error) {
           viewerWindow.close();
-          showToast("QR PDF could not be generated: " + error.message);
+          showToast("QR PDF could not be generated: " + friendlyErrorMessage(error));
         }
       }
 
@@ -1833,7 +1851,7 @@
           }).join("");
           setQrBatchSummary(entries.length + " QR cards ready. Printing uses " + Math.ceil(entries.length / 6) + " A4 sheet(s).");
         } catch (error) {
-          target.innerHTML = '<div class="demo-empty">QR cards could not be generated: ' + escapeHtml(error.message) + '</div>';
+          target.innerHTML = '<div class="demo-empty">QR cards could not be generated: ' + escapeHtml(friendlyErrorMessage(error)) + '</div>';
           setQrBatchSummary("QR generation stopped.");
           return;
         }
@@ -1886,7 +1904,7 @@
           openPdfInViewer(pdf, viewerWindow, "InnRelay-QR-cards.pdf");
         } catch (error) {
           viewerWindow.close();
-          showToast("QR PDF could not be generated: " + error.message);
+          showToast("QR PDF could not be generated: " + friendlyErrorMessage(error));
           return;
         }
         setQrBatchSummary(batch.length + " cards opened as a " + Math.ceil(batch.length / 6) + "-page A4 PDF. Use the viewer's print or download icons.");
@@ -1938,8 +1956,8 @@
           if (previewAfter) await renderQrBatch();
           return result;
         } catch (error) {
-          setQrBatchSummary("Room creation stopped: " + error.message);
-          showToast("Room range could not be created: " + error.message);
+          setQrBatchSummary("Room creation stopped: " + friendlyErrorMessage(error));
+          showToast("Room range could not be created: " + friendlyErrorMessage(error));
           return null;
         }
       }
@@ -2137,7 +2155,7 @@
           .order("created_at", { ascending: false })
           .limit(200);
         if (result.error) {
-          setStaffSync("Guest reports could not be loaded: " + result.error.message, "error");
+          setStaffSync("Guest reports could not be loaded: " + friendlyErrorMessage(result.error), "error");
           return;
         }
         mergeGuestReportsIntoBoard(result.data || []);
@@ -2169,7 +2187,7 @@
           if (nextStatus === "resolved") updatePayload.resolution_note = note;
           var updateResult = await staffClient.from("guest_reports").update(updatePayload).eq("id", reportId).select("id").single();
           if (updateResult.error) {
-            setStaffSync("Guest update failed: " + updateResult.error.message, "error");
+            setStaffSync("Guest update failed: " + friendlyErrorMessage(updateResult.error), "error");
             return false;
           }
           var historyResult = await staffClient.from("guest_report_updates").insert({
@@ -2179,7 +2197,7 @@
             message: message,
             status: nextStatus
           });
-          if (historyResult.error) setStaffSync("Status saved, but timeline note failed: " + historyResult.error.message, "error");
+          if (historyResult.error) setStaffSync("Status saved, but timeline note failed: " + friendlyErrorMessage(historyResult.error), "error");
           await fetchLiveGuestReports();
           return true;
         }
@@ -2477,8 +2495,8 @@
           addHotelPlacePicker(placesLibrary, "hotel-place-picker", "hotel-lookup-status", useSelectedHotel);
           addHotelPlacePicker(placesLibrary, "property-place-picker", "property-lookup-status", useSelectedPropertyHotel);
         } catch (error) {
-          onboardingStatus.textContent = "Hotel search is unavailable: " + error.message + " Use manual entry below.";
-          profileStatus.textContent = "Hotel search is unavailable: " + error.message + " The saved details can still be edited below.";
+          onboardingStatus.textContent = "Hotel search is unavailable: " + friendlyErrorMessage(error) + " Use manual entry below.";
+          profileStatus.textContent = "Hotel search is unavailable: " + friendlyErrorMessage(error) + " The saved details can still be edited below.";
         }
       }
 
@@ -2584,7 +2602,7 @@
         var results = await Promise.all(queries);
         var configurationError = results.map(function (result) { return result.error; }).filter(Boolean)[0];
         if (configurationError) {
-          setStaffSync("Property configuration could not be loaded: " + configurationError.message, "error");
+          setStaffSync("Property configuration could not be loaded: " + friendlyErrorMessage(configurationError), "error");
           return;
         }
         propertyDepartments = results[0].data || [];
@@ -2632,7 +2650,7 @@
           active: true
         });
         if (membershipResult.error && membershipResult.error.code !== "23505") {
-          setStaffSync("The staff invitation could not be accepted: " + membershipResult.error.message, "error");
+          setStaffSync("The staff invitation could not be accepted: " + friendlyErrorMessage(membershipResult.error), "error");
           return;
         }
         var cleanUrl = new URL(window.location.href);
@@ -2676,7 +2694,7 @@
           .eq("user_id", staffSession.user.id)
           .eq("active", true);
         if (membershipResult.error) {
-          setStaffSync("Hotel memberships could not be loaded: " + membershipResult.error.message, "error");
+          setStaffSync("Hotel memberships could not be loaded: " + friendlyErrorMessage(membershipResult.error), "error");
           return;
         }
         if (!membershipResult.data || !membershipResult.data.length) {
@@ -2748,7 +2766,7 @@
         }
         var result = await staffClient.auth.getSession();
         if (result.error) {
-          setStaffSync("Staff session could not be opened: " + result.error.message, "error");
+          setStaffSync("Staff session could not be opened: " + friendlyErrorMessage(result.error), "error");
           return;
         }
         await handleStaffSession(result.data.session);
@@ -3140,7 +3158,7 @@
           options: { captchaToken: captchaToken }
         });
         if (result.error) {
-          setStaffSync("Sign-in failed: " + result.error.message, "error");
+          setStaffSync("Sign-in failed: " + friendlyErrorMessage(result.error), "error");
           return;
         }
         document.getElementById("staff-password").value = "";
@@ -3159,7 +3177,7 @@
           provider: "google",
           options: { redirectTo: redirectUrl, queryParams: { access_type: "offline", prompt: "consent" } }
         });
-        if (result.error) setStaffSync("Google sign-in failed: " + result.error.message, "error");
+        if (result.error) setStaffSync("Google sign-in failed: " + friendlyErrorMessage(result.error), "error");
       });
       document.getElementById("enable-notifications").addEventListener("click", async function () {
         if (!("Notification" in window)) { showToast("This browser does not support notifications."); return; }
@@ -3239,7 +3257,7 @@
         var propertyResult = await staffClient.from("properties").insert(propertyPayload);
         if (propertyResult.error) {
           var duplicateMessage = document.getElementById("onboard-property-place-id").value ? "This hotel is already registered. Ask its InnRelay owner for a staff invitation." : "That public URL name is already used. Choose another.";
-          setStaffSync("Hotel registration failed: " + (propertyResult.error.code === "23505" ? duplicateMessage : propertyResult.error.message), "error");
+          setStaffSync("Hotel registration failed: " + (propertyResult.error.code === "23505" ? duplicateMessage : friendlyErrorMessage(propertyResult.error)), "error");
           if (submit) submit.disabled = false;
           return;
         }
@@ -3252,7 +3270,7 @@
         ].map(function (department) { department.property_id = propertyId; return department; });
         var departmentsResult = await staffClient.from("property_departments").insert(departmentSeeds).select("id,code");
         if (departmentsResult.error) {
-          setStaffSync("Hotel created, but default departments need attention: " + departmentsResult.error.message, "error");
+          setStaffSync("Hotel created, but default departments need attention: " + friendlyErrorMessage(departmentsResult.error), "error");
         } else {
           function departmentId(code) { var match = departmentsResult.data.filter(function (item) { return item.code === code; })[0]; return match ? match.id : null; }
           var routeDepartmentByCategory = {};
@@ -3266,7 +3284,7 @@
           });
           if (routeRows.length) {
             var routesResult = await staffClient.from("department_routes").insert(routeRows);
-            if (routesResult.error) setStaffSync("Hotel created, but category routing needs attention: " + routesResult.error.message, "error");
+            if (routesResult.error) setStaffSync("Hotel created, but category routing needs attention: " + friendlyErrorMessage(routesResult.error), "error");
           }
           var commonLocations = [
             { name: "Reception", code: "reception", location_type: "reception", department_id: departmentId("reception"), sort_order: 10 },
@@ -3276,7 +3294,7 @@
             { name: "Lobby & public areas", code: "public-areas", location_type: "public_area", department_id: departmentId("reception"), sort_order: 50 }
           ].map(function (location) { location.property_id = propertyId; return location; });
           var locationsResult = await staffClient.from("property_locations").insert(commonLocations);
-          if (locationsResult.error) setStaffSync("Hotel created, but common areas need attention: " + locationsResult.error.message, "error");
+          if (locationsResult.error) setStaffSync("Hotel created, but common areas need attention: " + friendlyErrorMessage(locationsResult.error), "error");
         }
         event.target.reset();
         document.getElementById("onboard-property-colour").value = "#ff8a68";
@@ -3300,7 +3318,7 @@
           data_retention_days: Number(document.getElementById("property-retention").value)
         };
         var result = await staffClient.from("properties").update(payload).eq("id", staffMembership.property_id).select("id").single();
-        if (result.error) { showToast("Property update failed: " + result.error.message); return; }
+        if (result.error) { showToast("Property update failed: " + friendlyErrorMessage(result.error)); return; }
         showToast("Property profile saved.");
         await handleStaffSession(staffSession);
         showView("settings");
@@ -3317,7 +3335,7 @@
         var name = document.getElementById("department-name").value.trim();
         var target = Number(document.getElementById("department-target").value || 10);
         var result = await staffClient.from("property_departments").insert({ property_id: staffMembership.property_id, name: name, code: slugify(name), response_target_minutes: target, escalation_minutes: Math.min(1440, Math.max(target + 1, target * 2)) });
-        if (result.error) { showToast("Department could not be added: " + result.error.message); return; }
+        if (result.error) { showToast("Department could not be added: " + friendlyErrorMessage(result.error)); return; }
         event.target.reset();
         document.getElementById("department-target").value = "10";
         await loadPropertyConfiguration();
@@ -3331,7 +3349,7 @@
         var result = await staffClient.from("property_departments").update({ active: nextActive }).eq("id", button.getAttribute("data-toggle-department")).eq("property_id", staffMembership.property_id).select("id").single();
         if (result.error) {
           button.disabled = false;
-          showToast("Department status could not be changed: " + result.error.message);
+          showToast("Department status could not be changed: " + friendlyErrorMessage(result.error));
           return;
         }
         await loadPropertyConfiguration();
@@ -3349,7 +3367,7 @@
           department_id: select.value
         }, { onConflict: "property_id,category_key" });
         select.disabled = false;
-        if (result.error) { showToast("Route could not be saved: " + result.error.message); return; }
+        if (result.error) { showToast("Route could not be saved: " + friendlyErrorMessage(result.error)); return; }
         await loadPropertyConfiguration();
         showToast("Department route saved.");
       });
@@ -3368,7 +3386,7 @@
           location_type: document.getElementById("location-type").value,
           sort_order: propertyLocations.length * 10 + 10
         });
-        if (result.error) { showToast("Area could not be added: " + result.error.message); return; }
+        if (result.error) { showToast("Area could not be added: " + friendlyErrorMessage(result.error)); return; }
         event.target.reset();
         document.getElementById("location-code").dataset.edited = "";
         await loadPropertyConfiguration();
@@ -3389,7 +3407,7 @@
           invited_by: staffSession.user.id,
           expires_at: new Date(Date.now() + 7 * 86400000).toISOString()
         });
-        if (result.error) { showToast("Invitation could not be created: " + result.error.message); return; }
+        if (result.error) { showToast("Invitation could not be created: " + friendlyErrorMessage(result.error)); return; }
         event.target.reset();
         await loadPropertyConfiguration();
         showToast("Invitation link created. Use Copy link to send it securely.");
