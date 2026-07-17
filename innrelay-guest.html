@@ -1310,6 +1310,9 @@
             await claimPortalLocation(selectedLocation);
             var result = await client.from("guest_reports").insert(payload).select("id,title,status,location,created_at").single();
             if (result.error) throw result.error;
+            client.functions.invoke("notify-guest-report", { body: { report_id: result.data.id } }).catch(function (notifyError) {
+              console.error("InnRelay department notification could not be sent", notifyError);
+            });
             if (attachmentFile) {
               try {
                 await uploadGuestAttachment(result.data.id, attachmentFile);
