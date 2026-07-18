@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0d2d26">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>InnRelay Stays — Private beta</title>
+  <link rel="icon" href="./innrelay-icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./innrelay-stays.webmanifest">
+  <link rel="stylesheet" href="./innrelay-stays.css">
+</head>
+<body>
+  <div class="stays-shell">
+    <header class="stays-topbar">
+      <a class="brand-lockup" href="./innrelay-stays.html" aria-label="InnRelay Stays home">
+        <span class="brand-mark">⌂</span>
+        <span class="brand-copy"><strong>InnRelay Stays</strong><span>Short-term rental operations</span></span>
+      </a>
+      <div class="top-actions">
+        <span class="private-badge">Private beta</span>
+        <label id="property-switcher-wrap" class="field" hidden>
+          <span class="sr-only" hidden>Active Stay</span>
+          <select id="property-switcher" aria-label="Active Stay"></select>
+        </label>
+        <a id="open-guest-portal-top" class="button button-small" href="./innrelay-stays-guest.html" target="_blank" rel="noopener" hidden>Guest portal</a>
+        <button id="sign-out-top" class="button button-quiet button-small" type="button" hidden>Sign out</button>
+      </div>
+    </header>
+
+    <main id="landing" class="hero-page">
+      <div class="hero-wrap">
+        <section class="hero-copy">
+          <p class="eyebrow">InnRelay Stays · private beta</p>
+          <h1>One scan. The right help for this stay.</h1>
+          <p class="lede">A private operations workspace for short-term rentals. Guests report access, heating, Wi-Fi, cleaning and maintenance problems without an app or account. Your host team sees the exact property and area.</p>
+          <div class="hero-actions">
+            <button id="start-stays" class="button button-primary" type="button">Open the private beta</button>
+            <a class="button button-quiet" href="./innrelay-prototype.html">Go to InnRelay Hotels</a>
+          </div>
+          <div class="trust-row">
+            <span>No guest download</span><span>Area-specific QR cards</span><span>Host-team routing</span><span>Spam controls</span>
+          </div>
+        </section>
+        <aside class="hero-panel" aria-label="InnRelay Stays preview">
+          <h2>Built around the way a guest experiences a stay.</h2>
+          <p>Separate language, areas, categories and workflows for apartments, holiday lets and serviced homes.</p>
+          <article class="preview-card">
+            <div class="preview-top"><span class="private-badge">Kitchen</span><span>2 min ago</span></div>
+            <strong>Fridge is not cooling</strong>
+            <p>Automatically routed to Maintenance with the scanned property locked.</p>
+          </article>
+          <article class="preview-card">
+            <div class="preview-top"><span class="private-badge">Entrance</span><span>New</span></div>
+            <strong>Lockbox code is not working</strong>
+            <p>Guest Support can acknowledge, own and resolve the access problem.</p>
+          </article>
+        </aside>
+      </div>
+    </main>
+
+    <section id="auth-screen" class="auth-card" hidden>
+      <p class="eyebrow">Approved operators only</p>
+      <h1>Sign in to InnRelay Stays</h1>
+      <p>Use the Google account connected to your owner or host-team membership. Guests never sign in here.</p>
+      <button id="google-sign-in" class="button button-primary" type="button">Continue with Google</button>
+      <button id="back-to-landing" class="button button-quiet" type="button" style="margin-top:10px">Back</button>
+      <p id="auth-status" class="field-note" role="status"></p>
+    </section>
+
+    <section id="app" hidden>
+      <div class="app-layout">
+        <aside class="sidebar" aria-label="Stays navigation">
+          <p class="side-label">Operations</p>
+          <button class="side-link active" data-view="dashboard" type="button"><span class="side-icon">◉</span>Overview</button>
+          <button class="side-link" data-view="inbox" type="button"><span class="side-icon">↯</span>Guest requests</button>
+          <button class="side-link" data-view="areas" type="button"><span class="side-icon">⌂</span>Areas</button>
+          <button class="side-link" data-view="qr" type="button"><span class="side-icon">▦</span>QR cards</button>
+          <p class="side-label" style="margin-top:22px">Set-up</p>
+          <button class="side-link" data-view="routing" type="button"><span class="side-icon">→</span>Routing</button>
+          <button class="side-link" data-view="team" type="button"><span class="side-icon">＋</span>Host team</button>
+          <button class="side-link" data-view="settings" type="button"><span class="side-icon">◌</span>Stay settings</button>
+          <div class="sidebar-footer"><strong id="sidebar-name">Signed out</strong><span id="sidebar-email"></span></div>
+        </aside>
+
+        <main class="app-main">
+          <div id="connection" class="connection" role="status">Connecting to the Stays workspace…</div>
+
+          <section id="onboarding" hidden>
+            <div class="page-heading">
+              <div><p class="eyebrow">Create a Stays workspace</p><h1>Set up one short-term rental.</h1><p>This flow creates a dedicated property, named areas, host teams and guest-help routes.</p></div>
+            </div>
+            <form id="onboarding-form" class="card">
+              <div class="card-head"><div><h2>Property identity</h2><p>Use the guest-facing listing name. The property stays private until you print and place QR cards.</p></div></div>
+              <div class="form-grid">
+                <div class="field"><label for="onboard-name">Property or listing name</label><input id="onboard-name" required minlength="2" maxlength="120" placeholder="e.g. Riverside Loft"></div>
+                <div class="field"><label for="onboard-slug">Private workspace URL name</label><input id="onboard-slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" maxlength="100" placeholder="riverside-loft"><p class="field-note">Readable for staff; non-guessable IDs remain the security boundary.</p></div>
+                <div class="field wide"><label for="onboard-address">Address (private staff record)</label><input id="onboard-address" maxlength="300" autocomplete="street-address" placeholder="Full property address"></div>
+                <div class="field"><label for="onboard-contact">Guest contact instruction</label><input id="onboard-contact" maxlength="120" placeholder="Message the host team in your booking app"></div>
+                <div class="field"><label for="onboard-colour">Brand colour</label><input id="onboard-colour" type="color" value="#2f8068"></div>
+              </div>
+              <div class="form-actions"><button class="button button-primary" type="submit">Create Stays workspace</button><a class="button button-quiet" href="./innrelay-prototype.html">Need the Hotel version?</a></div>
+            </form>
+          </section>
+
+          <section id="dashboard-view" data-view-panel>
+            <div class="page-heading">
+              <div><p class="eyebrow">Stay operations</p><h1>Keep every guest request owned.</h1><p>Access, comfort and property-care requests for this short-term rental, routed to the right host team.</p></div>
+              <button class="button button-sun" data-view="inbox" type="button">Open guest requests</button>
+            </div>
+            <div id="dashboard-metrics" class="metrics"></div>
+            <section class="card">
+              <div class="card-head"><div><h2>Needs attention</h2><p>Open and overdue requests across the selected Stay.</p></div><button id="refresh-dashboard" class="button button-quiet button-small" type="button">Refresh</button></div>
+              <div id="dashboard-reports" class="report-list"></div>
+            </section>
+          </section>
+
+          <section id="inbox-view" data-view-panel hidden>
+            <div class="page-heading"><div><p class="eyebrow">Guest-to-host requests</p><h1>See the area. Own the next action.</h1><p>Requests from InnRelay Stays QR cards arrive here and remain scoped to this property.</p></div></div>
+            <section class="card">
+              <div class="card-head"><div><h2>Guest requests</h2><p id="inbox-count">Loading…</p></div><button id="refresh-inbox" class="button button-quiet button-small" type="button">Refresh</button></div>
+              <div id="inbox-list" class="report-list"></div>
+            </section>
+          </section>
+
+          <section id="areas-view" data-view-panel hidden>
+            <div class="page-heading"><div><p class="eyebrow">Property map</p><h1>Organise guest help by area.</h1><p>Guests choose where help is needed: entrance, living area, kitchen, bathroom, bedroom, outdoor area or the whole property.</p></div></div>
+            <div class="split-grid">
+              <form id="area-form" class="card">
+                <div class="card-head"><div><h2>Add an area</h2><p>Create a QR location that belongs only to this Stay.</p></div></div>
+                <div class="field"><label for="area-name">Area name</label><input id="area-name" required maxlength="100" placeholder="e.g. Second bedroom"></div>
+                <div class="field" style="margin-top:12px"><label for="area-type">Area type</label><select id="area-type"><option value="entrance">Entrance / check-in</option><option value="living">Living area</option><option value="kitchen">Kitchen</option><option value="bathroom">Bathroom</option><option value="bedroom">Bedroom</option><option value="dining">Dining area</option><option value="laundry">Laundry</option><option value="workspace">Workspace</option><option value="outdoor">Outdoor / balcony / garden</option><option value="parking">Parking</option><option value="pool_hot_tub">Pool / hot tub</option><option value="shared_area">Shared area</option><option value="whole_property">Whole property</option><option value="other">Other area</option></select></div>
+                <div class="field" style="margin-top:12px"><label for="area-department">Default host team</label><select id="area-department"></select></div>
+                <div class="form-actions"><button class="button button-primary" type="submit">Add area</button><button id="seed-standard-areas" class="button button-quiet" type="button">Add missing standard areas</button></div>
+              </form>
+              <section class="card">
+                <div class="card-head"><div><h2>Active Stay areas</h2><p>Disable an area without deleting its historical reports.</p></div></div>
+                <div id="area-list" class="area-grid"></div>
+              </section>
+            </div>
+          </section>
+
+          <section id="qr-view" data-view-panel hidden>
+            <div class="page-heading"><div><p class="eyebrow">Safe guest access</p><h1>Print trusted QR cards in one batch.</h1><p>Each code identifies this Stay and an area. The readable URL and anti-scam message are printed with every card.</p></div></div>
+            <section class="card qr-workspace">
+              <div class="qr-preview">
+                <img id="qr-image" alt="InnRelay Stays QR code preview">
+                <h3 id="qr-area-name">Choose an area</h3>
+                <p id="qr-visible-url">Trusted URL appears here</p>
+                <p class="safe-copy">No payments · no passwords · no app download</p>
+              </div>
+              <div>
+                <div class="field"><label for="qr-area">Area</label><select id="qr-area"></select></div>
+                <div class="field" style="margin-top:14px"><label for="qr-public-url">Public Stays guest-page URL</label><input id="qr-public-url" type="url" required><p class="field-note">This exact page must open publicly before QR cards are printed.</p></div>
+                <div class="form-actions"><button id="update-qr" class="button button-primary" type="button">Update preview</button><button id="open-selected-qr" class="button button-quiet" type="button">Test selected QR</button></div>
+                <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+                <h2 style="margin:0">Batch cards</h2>
+                <p style="color:var(--ink-soft)">Generate an A4 PDF for every active area. The browser opens a real PDF preview with download and print controls.</p>
+                <div class="form-actions"><button id="download-all-qr" class="button button-sun" type="button">Open A4 QR PDF</button></div>
+              </div>
+            </section>
+          </section>
+
+          <section id="routing-view" data-view-panel hidden>
+            <div class="page-heading"><div><p class="eyebrow">Host-team routing</p><h1>Send each Stay problem to the right people.</h1><p>Every guest-help category has a clear destination and acknowledgement target.</p></div></div>
+            <div class="split-grid">
+              <section class="card">
+                <div class="card-head"><div><h2>Host teams</h2><p>Active teams can receive new guest requests.</p></div></div>
+                <form id="department-form" class="form-grid" style="margin-bottom:18px">
+                  <div class="field"><label for="department-name">Team name</label><input id="department-name" required maxlength="80" placeholder="e.g. Local on-call team"></div>
+                  <div class="field"><label for="department-target">Acknowledge within (minutes)</label><input id="department-target" type="number" min="1" max="240" value="10" required></div>
+                  <div class="wide"><button class="button button-primary" type="submit">Add host team</button></div>
+                </form>
+                <div id="department-list" class="list"></div>
+              </section>
+              <section class="card">
+                <div class="card-head"><div><h2>Category routes</h2><p id="catalogue-stat"></p></div></div>
+                <div id="route-list" class="route-grid"></div>
+              </section>
+            </div>
+          </section>
+
+          <section id="team-view" data-view-panel hidden>
+            <div class="page-heading"><div><p class="eyebrow">Access control</p><h1>Invite only the host team for this Stay.</h1><p>Every membership remains property-scoped by Supabase RLS.</p></div></div>
+            <div class="split-grid">
+              <form id="invite-form" class="card">
+                <div class="card-head"><div><h2>Create an invitation</h2><p>The invitation must be accepted by the same email address.</p></div></div>
+                <div class="field"><label for="invite-email">Work email</label><input id="invite-email" type="email" required maxlength="320" placeholder="host@example.com"></div>
+                <div class="field" style="margin-top:12px"><label for="invite-role">Role</label><select id="invite-role"><option value="staff">Host team</option><option value="supervisor">Supervisor</option><option value="manager">Manager</option></select></div>
+                <div class="field" style="margin-top:12px"><label for="invite-department">Primary team</label><select id="invite-department"></select></div>
+                <div class="form-actions"><button class="button button-primary" type="submit">Create invitation</button></div>
+              </form>
+              <section class="card">
+                <div class="card-head"><div><h2>People with access</h2><p>Only active memberships for the selected Stay are listed.</p></div></div>
+                <div id="team-list" class="list"></div>
+                <h3 style="margin-top:24px">Pending invitations</h3>
+                <div id="invitation-list" class="list"></div>
+              </section>
+            </div>
+          </section>
+
+          <section id="settings-view" data-view-panel hidden>
+            <div class="page-heading"><div><p class="eyebrow">Stay identity</p><h1>Configure this property.</h1><p>The workspace is permanently scoped to InnRelay Stays and its short-term-rental workflows.</p></div><button id="create-another-stay" class="button button-quiet" type="button">Register another Stay</button></div>
+            <form id="settings-form" class="card">
+              <div class="form-grid">
+                <div class="field"><label for="settings-name">Property or listing name</label><input id="settings-name" required minlength="2" maxlength="120"></div>
+                <div class="field"><label>Vertical</label><input value="InnRelay Stays · Short-term rental" readonly></div>
+                <div class="field wide"><label for="settings-address">Address</label><input id="settings-address" maxlength="300"></div>
+                <div class="field"><label for="settings-contact">Guest contact instruction</label><input id="settings-contact" maxlength="120"></div>
+                <div class="field"><label for="settings-colour">Brand colour</label><input id="settings-colour" type="color"></div>
+                <div class="field"><label for="settings-retention">Guest-request retention</label><select id="settings-retention"><option value="30">30 days</option><option value="60">60 days</option><option value="90">90 days</option><option value="180">180 days</option><option value="365">365 days</option></select></div>
+              </div>
+              <div class="form-actions"><button class="button button-primary" type="submit">Save Stay settings</button></div>
+            </form>
+          </section>
+        </main>
+      </div>
+    </section>
+  </div>
+
+  <div id="emergency-modal" class="modal-backdrop" hidden>
+    <section class="modal"><p class="eyebrow">Immediate danger</p><h2>Call emergency services first.</h2><p>InnRelay is not an emergency service. For fire, smoke, a carbon-monoxide alarm, serious illness, violence or immediate danger, leave the property if safe and call the local emergency number.</p><div class="form-actions"><a class="button button-danger" href="tel:999">Call 999</a><button class="button button-quiet" data-close-modal type="button">Close</button></div></section>
+  </div>
+  <div id="toast" class="toast" hidden role="status"></div>
+
+  <script src="./innrelay-supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
+  <script src="./innrelay-qr.js"></script>
+  <script src="./innrelay-jspdf.min.js"></script>
+  <script src="./innrelay-stays-catalog.js"></script>
+  <script src="./innrelay-stays.js"></script>
+</body>
+</html>

@@ -595,11 +595,18 @@
       .slice(0, 80);
   }
 
+  function categoryMatchesVertical(category) {
+    var allowed = category.verticals || ["hotel"];
+    return allowed.indexOf("hotel") > -1 || allowed.indexOf("all") > -1;
+  }
+
   function flatten(options) {
     var audience = options && options.audience;
+    var vertical = options && options.vertical;
     var rows = [];
     categories.forEach(function (category) {
       if (audience === "guest" && category.audience === "staff") return;
+      if (vertical && !categoryMatchesVertical(category, vertical)) return;
       category.issues.forEach(function (issue) {
         rows.push({
           code: category.key + ":" + slugify(issue),
@@ -617,9 +624,11 @@
 
   function toIssueLibrary(options) {
     var guestOnly = options && options.guestOnly;
+    var vertical = options && options.vertical;
     var result = {};
     categories.forEach(function (category) {
       if (guestOnly && category.audience === "staff") return;
+      if (vertical && !categoryMatchesVertical(category, vertical)) return;
       result[category.label] = category.issues.slice().concat(["Other / something else"]);
     });
     return result;
@@ -641,6 +650,11 @@
     version: "2026.07.13",
     categories: categories,
     guestCategories: categories.filter(function (category) { return category.audience !== "staff"; }),
+    guestCategoriesForVertical: function () {
+      return categories.filter(function (category) {
+        return category.audience !== "staff" && categoryMatchesVertical(category);
+      });
+    },
     slugify: slugify,
     flatten: flatten,
     search: search,

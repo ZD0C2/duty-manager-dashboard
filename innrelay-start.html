@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0d2d26">
+  <title>Choose your InnRelay product</title>
+  <link rel="icon" href="./innrelay-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./innrelay-stays.css">
+  <style>
+    .vertical-grid{width:min(1050px,100%);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+    .vertical-card{padding:30px;border:1px solid var(--line);border-radius:28px;background:var(--paper);box-shadow:var(--shadow)}
+    .vertical-card.stays{color:#fff;background:linear-gradient(145deg,var(--forest-deep),var(--forest))}
+    .vertical-card h2{margin:12px 0 8px;font-size:35px;letter-spacing:-.05em}
+    .vertical-card p{min-height:78px;color:var(--ink-soft);line-height:1.55}.vertical-card.stays p{color:#c9ded5}
+    .vertical-list{min-height:155px;margin:20px 0;padding:0;list-style:none}.vertical-list li{margin:9px 0}.vertical-list li::before{content:"✓";margin-right:9px;color:var(--brand);font-weight:900}.stays .vertical-list li::before{color:var(--sage-strong)}
+    @media(max-width:760px){.vertical-grid{grid-template-columns:1fr}.vertical-card p,.vertical-list{min-height:0}}
+  </style>
+</head>
+<body>
+  <header class="stays-topbar"><a class="brand-lockup" href="./innrelay-start.html"><span class="brand-mark">◇</span><span class="brand-copy"><strong>InnRelay</strong><span>Choose a property product</span></span></a></header>
+  <main class="hero-page">
+    <div style="width:min(1050px,100%)">
+      <div class="page-heading"><div><p class="eyebrow">One platform · two separated verticals</p><h1>What kind of property do you operate?</h1><p>Your choice opens a dedicated product. Hotel and short-term-rental language, locations, catalogues and workflows are never blended.</p></div></div>
+      <div class="vertical-grid">
+        <article class="vertical-card">
+          <span class="role-pill">InnRelay Hotels</span><h2>Hotel or serviced hotel</h2><p>For room-led operations with Reception, Housekeeping, Maintenance, Food & Beverage, Duty Management and shift workflows.</p>
+          <ul class="vertical-list"><li>Rooms and public areas</li><li>Guest inbox and Live Board</li><li>Shift run, handover and hotel tasks</li><li>Batch room QR cards</li></ul>
+          <a class="button button-sun" href="./innrelay-prototype.html">Open InnRelay Hotels</a>
+        </article>
+        <article class="vertical-card stays">
+          <span class="private-badge">Private beta</span><h2>Short-term rental</h2><p>For apartments, holiday lets and Airbnb-style stays with areas, host-team routing, access help and property-care workflows.</p>
+          <ul class="vertical-list"><li>No room-number flow</li><li>Entrance, kitchen, bathroom and bedroom</li><li>Lockbox, house rules and checkout catalogue</li><li>Stay-specific QR cards</li></ul>
+          <a class="button button-sun" href="./innrelay-stays.html">Open InnRelay Stays</a>
+        </article>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

@@ -548,6 +548,7 @@
     .qr-batch-card img { width: 132px; height: 132px; padding: 7px; border-radius: 9px; background: white; }
     .qr-batch-card strong { display: block; margin-top: 8px; color: var(--white); font-size: 13px; }
     .qr-batch-card span { display: block; color: rgba(255,255,255,.48); font-size: 10px; }
+    .qr-safe-url { display: inline-block; max-width: 100%; margin-top: 6px; padding: 4px 7px; border-radius: 7px; color: #071427; background: var(--mint); font-size: 10px; font-weight: 900; overflow-wrap: anywhere; }
     .role-chip {
       display: inline-flex;
       padding: 5px 8px;
@@ -636,6 +637,7 @@
     .hotel-lookup-status { margin-top: 10px !important; color: var(--mint) !important; }
     .selected-hotel { margin-top: 10px; padding: 10px 12px; border: 1px solid #5dc6a5; border-radius: 11px; color: #071427; background: #d8f7ea; font-size: 12px; font-weight: 800; }
     .field-help { margin: 0; color: rgba(255,255,255,.52); font-size: 11px; }
+    .property-type-note { margin-top: 8px; color: rgba(255,255,255,.58); font-size: 11px; }
 
     .overlay { position: fixed; z-index: 30; inset: 0; display: grid; justify-items: end; background: rgba(3, 8, 16, .58); }
     .drawer { width: min(480px, 100%); min-height: 100%; padding: 24px; color: var(--ink); background: var(--paper); box-shadow: -22px 0 60px rgba(0,0,0,.25); overflow-y: auto; }
@@ -746,7 +748,7 @@
             <div class="hero-actions">
               <a class="button button-primary" href="#pilot">Request a founding pilot</a>
               <button class="button button-light" data-open-app>Explore the live demo</button>
-              <a class="button button-light" href="./innrelay-guest.html?pid=14ab50cd-8fde-4a2d-85d4-d6b2eb27a607&lid=02eb3ca7-56d7-4ffd-a51d-46b9d33451dd&p=f3f4a03f-d49a-4477-a79a-a0d170de3eeb&l=239f5485-7c81-4662-aa26-183b2f239032#/g/exhibition-court/r/208">Try the guest portal</a>
+              <a class="button button-light" href="./innrelay-guest.html?property=exhibition-court&room=208">Try the guest portal</a>
             </div>
             <p class="hero-note">Built for busy shifts. Works beautifully on an iPad. No PMS integration required for the pilot.</p>
           </div>
@@ -1194,6 +1196,7 @@
                 <div class="field"><label for="onboard-property-name">Selected hotel name</label><input id="onboard-property-name" required maxlength="120" placeholder="Choose above or enter manually"><p class="field-help">Selecting a directory result fills this automatically.</p></div>
                 <div class="field"><label for="onboard-property-slug">Public URL name</label><input id="onboard-property-slug" required maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="riverside-court"></div>
               </div>
+              <div class="field"><label>InnRelay vertical</label><input id="onboard-property-type" type="hidden" value="hotel"><p class="property-type-note"><strong>InnRelay Hotels</strong> · rooms, reception, departments and hotel operations. Short-term rentals are registered through the separate InnRelay Stays portal.</p></div>
               <div class="field"><label for="onboard-property-address">Property address</label><input id="onboard-property-address" maxlength="240" placeholder="Town or full business address"></div>
               <div class="field-grid">
                 <div class="field"><label for="onboard-property-phone">Reception contact</label><input id="onboard-property-phone" maxlength="80" placeholder="Use the room phone or +44..."></div>
@@ -1221,6 +1224,7 @@
                     <input id="property-external-provider" type="hidden">
                     <input id="property-external-place-id" type="hidden">
                   </div>
+                  <div class="field"><label>InnRelay vertical</label><input id="property-type" type="hidden" value="hotel"><p class="property-type-note"><strong>InnRelay Hotels</strong> · the vertical is locked after registration so rooms, routing and QR codes cannot be mixed with InnRelay Stays.</p></div>
                   <div class="field"><label for="property-name">Property name</label><input id="property-name" required maxlength="120"></div>
                   <div class="field"><label for="property-address">Address</label><input id="property-address" maxlength="240"></div>
                   <div class="field-grid">
@@ -1261,7 +1265,7 @@
                 <form id="location-form">
                   <div class="field-grid">
                     <div class="field"><label for="location-name">Area name</label><input id="location-name" required maxlength="100" placeholder="Reception"></div>
-                    <div class="field"><label for="location-type">Type</label><select id="location-type"><option value="room">Room</option><option value="reception">Reception</option><option value="bar">Bar</option><option value="restaurant">Restaurant</option><option value="gym">Gym</option><option value="public_area">Public area</option><option value="other">Other</option></select></div>
+                    <div class="field"><label for="location-type">Type</label><select id="location-type"><option value="room">Room</option><option value="reception">Reception</option><option value="bar">Bar</option><option value="restaurant">Restaurant</option><option value="gym">Gym</option><option value="public_area">Public area</option><option value="entrance">Entrance / check-in</option><option value="living">Living area</option><option value="kitchen">Kitchen</option><option value="bathroom">Bathroom</option><option value="bedroom">Bedroom</option><option value="outdoor">Outdoor / balcony</option><option value="parking">Parking</option><option value="whole_property">Whole property</option><option value="other">Other</option></select></div>
                   </div>
                   <div class="field-grid">
                     <div class="field"><label for="location-code">Short code</label><input id="location-code" required maxlength="80" placeholder="reception"></div>
@@ -1410,6 +1414,7 @@
       // breaking OAuth returns or generating an empty QR code.
       if (!appConfig.publicStaffUrl) appConfig.publicStaffUrl = "https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html";
       if (!appConfig.publicGuestUrl) appConfig.publicGuestUrl = "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html";
+      if (!appConfig.publicStaysUrl) appConfig.publicStaysUrl = "https://zd0c2.github.io/duty-manager-dashboard/innrelay-stays.html";
       var GUEST_DEMO_KEY = "innrelay_guest_reports_v1";
       var staffClient = null;
       var staffSession = null;
@@ -1616,6 +1621,15 @@
         return url.href;
       }
 
+      function visibleGuestUrl(url) {
+        try {
+          var parsed = new URL(url);
+          return parsed.host + parsed.pathname.replace(/\/innrelay-guest\.html$/i, "/guest");
+        } catch (error) {
+          return "innrelay.com";
+        }
+      }
+
       async function renderGuestQr(options) {
         var location = selectedQrLocation();
         var baseInput = document.getElementById("qr-base-url");
@@ -1698,12 +1712,18 @@
           pdf.setFont("helvetica", "normal");
           pdf.setFontSize(13);
           pdf.text("Scan for hotel help or to report a problem. No app required.", 105, 73, { align: "center", maxWidth: 170 });
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(11);
+          pdf.text("Check the link starts with: " + visibleGuestUrl(portalUrl), 105, 83, { align: "center", maxWidth: 175 });
           pdf.addImage(png, "PNG", 55, 88, 100, 100);
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(9);
+          pdf.text("InnRelay never asks for card payments, passwords, passport photos, bank transfers or app downloads.", 105, 195, { align: "center", maxWidth: 170 });
           pdf.setFontSize(10);
-          pdf.text("Powered by InnRelay - secure location code", 105, 203, { align: "center" });
+          pdf.text("Powered by InnRelay - secure location code", 105, 207, { align: "center" });
           openPdfInViewer(pdf, viewerWindow, "InnRelay-" + room.replace(/[^a-z0-9]+/gi, "-") + ".pdf");
         } catch (error) {
-          viewerWindow.close();
+          viewerWindow.document.body.innerHTML = '<p style="font:16px sans-serif;color:#8a2618;padding:24px">QR PDF could not be generated: ' + escapeHtml(error.message) + '</p>';
           showToast("QR PDF could not be generated: " + error.message);
         }
       }
@@ -1756,7 +1776,7 @@
             setQrBatchSummary("Generating " + done + " of " + total + " QR cards…");
           });
           target.innerHTML = entries.map(function (entry) {
-            return '<article class="qr-batch-card"><img src="' + escapeHtml(entry.qr) + '" alt="QR for ' + escapeHtml(entry.location.name) + '"><strong>' + escapeHtml(entry.location.name) + '</strong><span>' + escapeHtml(entry.location.location_type.replace(/_/g, " ")) + ' · secure InnRelay code</span></article>';
+            return '<article class="qr-batch-card"><img src="' + escapeHtml(entry.qr) + '" alt="QR for ' + escapeHtml(entry.location.name) + '"><strong>' + escapeHtml(entry.location.name) + '</strong><span>' + escapeHtml(entry.location.location_type.replace(/_/g, " ")) + ' · secure InnRelay code</span><em class="qr-safe-url">' + escapeHtml(visibleGuestUrl(entry.url)) + '</em></article>';
           }).join("");
           setQrBatchSummary(entries.length + " QR cards ready. Printing uses " + Math.ceil(entries.length / 6) + " A4 sheet(s).");
         } catch (error) {
@@ -1804,15 +1824,20 @@
             pdf.setFont("helvetica", "normal");
             pdf.setFontSize(7.5);
             pdf.text("Scan for hotel help or to report a problem. No app required.", x + cardWidth / 2, y + 22, { align: "center", maxWidth: cardWidth - 12 });
-            var png = await svgDataUrlToPng(entries[index].qr, 500);
-            pdf.addImage(png, "PNG", x + 27.25, y + 28, 40, 40);
+            pdf.setFont("helvetica", "bold");
             pdf.setFontSize(6.5);
-            pdf.text("Powered by InnRelay - secure location code", x + cardWidth / 2, y + 76, { align: "center" });
+            pdf.text("Check: " + visibleGuestUrl(entries[index].url), x + cardWidth / 2, y + 27, { align: "center", maxWidth: cardWidth - 12 });
+            var png = await svgDataUrlToPng(entries[index].qr, 500);
+            pdf.addImage(png, "PNG", x + 27.25, y + 31, 40, 40);
+            pdf.setFont("helvetica", "normal");
+            pdf.setFontSize(6.5);
+            pdf.text("No card payments, passwords, ID documents or app downloads.", x + cardWidth / 2, y + 76, { align: "center", maxWidth: cardWidth - 10 });
+            pdf.text("Powered by InnRelay - secure location code", x + cardWidth / 2, y + 82, { align: "center" });
             setQrBatchSummary("Building PDF: " + (index + 1) + " of " + entries.length + " cards…");
           }
           openPdfInViewer(pdf, viewerWindow, "InnRelay-QR-cards.pdf");
         } catch (error) {
-          viewerWindow.close();
+          viewerWindow.document.body.innerHTML = '<p style="font:16px sans-serif;color:#8a2618;padding:24px">QR PDF could not be generated: ' + escapeHtml(error.message) + '</p>';
           showToast("QR PDF could not be generated: " + error.message);
           return;
         }
@@ -2172,6 +2197,13 @@
         };
       }
 
+      function openStaysPortal() {
+        var target = new URL(appConfig.publicStaysUrl || "./innrelay-stays.html", window.location.href);
+        target.search = window.location.search;
+        target.hash = window.location.hash;
+        window.location.replace(target.href);
+      }
+
       function renderPropertySwitcher() {
         var switcher = document.getElementById("property-switcher");
         if (!staffMemberships.length) {
@@ -2207,16 +2239,16 @@
       }
 
       function useSelectedHotel(name, address, placeId) {
-        document.getElementById("onboard-property-provider").value = "google_places";
-        document.getElementById("onboard-property-place-id").value = placeId;
+        document.getElementById("onboard-property-provider").value = placeId ? "google_places" : "";
+        document.getElementById("onboard-property-place-id").value = placeId || "";
         document.getElementById("onboard-property-name").value = name;
         document.getElementById("onboard-property-address").value = address || "";
         var slugInput = document.getElementById("onboard-property-slug");
         if (!slugInput.dataset.edited) slugInput.value = slugify(name);
         var selected = document.getElementById("selected-hotel");
-        selected.textContent = "Selected: " + name + (address ? " · " + address : "");
+        selected.textContent = (placeId ? "Verified: " : "Manual: ") + name + (address ? " · " + address : "");
         selected.hidden = false;
-        document.getElementById("hotel-lookup-status").textContent = "Verified directory selection ready.";
+        document.getElementById("hotel-lookup-status").textContent = placeId ? "Verified directory selection ready." : "Manual property selected. Add or check the address below.";
       }
 
       function clearPropertyHotelSelection(message) {
@@ -2227,14 +2259,14 @@
       }
 
       function useSelectedPropertyHotel(name, address, placeId) {
-        document.getElementById("property-external-provider").value = "google_places";
-        document.getElementById("property-external-place-id").value = placeId;
+        document.getElementById("property-external-provider").value = placeId ? "google_places" : "";
+        document.getElementById("property-external-place-id").value = placeId || "";
         document.getElementById("property-name").value = name;
         document.getElementById("property-address").value = address || "";
         var selected = document.getElementById("property-selected-hotel");
-        selected.textContent = "Verified: " + name + (address ? " · " + address : "");
+        selected.textContent = (placeId ? "Verified: " : "Manual: ") + name + (address ? " · " + address : "");
         selected.hidden = false;
-        document.getElementById("property-lookup-status").textContent = "Verified directory selection ready. Save the property to apply it.";
+        document.getElementById("property-lookup-status").textContent = placeId ? "Verified directory selection ready. Save the property to apply it." : "Manual property selected. Save the property to apply it.";
       }
 
       function loadGooglePlacesLibrary(apiKey) {
@@ -2257,9 +2289,9 @@
         var input = document.createElement("input");
         input.type = "search";
         input.className = "input";
-        input.placeholder = "Search hotel name or address";
+        input.placeholder = "Search property name or address";
         input.autocomplete = "off";
-        input.setAttribute("aria-label", "Search hotel name or address");
+        input.setAttribute("aria-label", "Search property name or address");
         var control = document.createElement("div");
         control.className = "hotel-search-control";
         var menu = document.createElement("div");
@@ -2272,6 +2304,7 @@
 
         if (placesLibrary.AutocompleteSuggestion) {
           var predictions = [];
+          var manualPredictions = [];
           var requestNumber = 0;
           var searchTimer = null;
           var sessionToken = placesLibrary.AutocompleteSessionToken ? new placesLibrary.AutocompleteSessionToken() : null;
@@ -2291,11 +2324,18 @@
 
           function showPredictions(items) {
             predictions = items.filter(Boolean).slice(0, 8);
-            menu.innerHTML = predictions.map(function (prediction, index) {
+            manualPredictions = [];
+            var rows = predictions.map(function (prediction, index) {
               return '<button class="hotel-search-option" type="button" role="option" data-hotel-result="' + index + '"><strong>' + escapeHtml(predictionName(prediction)) + '</strong><span>' + escapeHtml(predictionAddress(prediction) || "Select this property") + '</span></button>';
-            }).join("");
-            menu.hidden = predictions.length === 0;
-            status.textContent = predictions.length ? "Choose the correct hotel from the menu below." : "No matching places found. Try the full hotel name or town.";
+            });
+            var typed = input.value.trim();
+            if (typed.length >= 2) {
+              manualPredictions.push({ name: typed, address: "", placeId: "" });
+              rows.push('<button class="hotel-search-option" type="button" role="option" data-manual-hotel="0"><strong>Use “' + escapeHtml(typed) + '”</strong><span>Manual property entry — works if Google has no exact listing</span></button>');
+            }
+            menu.innerHTML = rows.join("");
+            menu.hidden = rows.length === 0;
+            status.textContent = predictions.length ? "Choose the correct property from the menu below." : "No Google match yet. You can still choose the manual option below.";
           }
 
           async function fetchGooglePlacesFallback(query) {
@@ -2303,9 +2343,14 @@
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "X-Goog-Api-Key": String(appConfig.googlePlacesApiKey || "")
+                "X-Goog-Api-Key": String(appConfig.googlePlacesApiKey || ""),
+                "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat"
               },
-              body: JSON.stringify({ input: query })
+              body: JSON.stringify({
+                input: query,
+                languageCode: "en",
+                includedPrimaryTypes: ["hotel", "lodging", "motel", "inn", "guest_house"]
+              })
             });
             var payload = await response.json();
             if (!response.ok) throw new Error(payload.error && payload.error.status ? payload.error.status : "Google Places request failed");
@@ -2333,7 +2378,7 @@
               var thisRequest = ++requestNumber;
               status.textContent = "Searching hotels…";
               try {
-                var request = { input: query };
+                var request = { input: query, includedPrimaryTypes: ["hotel", "lodging", "motel", "inn", "guest_house"] };
                 if (sessionToken) request.sessionToken = sessionToken;
                 var response;
                 try {
@@ -2345,14 +2390,22 @@
                 if (thisRequest !== requestNumber) return;
                 showPredictions((response.suggestions || []).map(function (suggestion) { return suggestion.placePrediction; }));
               } catch (error) {
-                hideMenu();
-                status.textContent = "Hotel search could not connect to Google. Please try again in a minute.";
+                showPredictions([]);
+                status.textContent = "Google search did not return results. Use the manual option below or check billing/API restrictions.";
                 console.error("InnRelay hotel directory search failed", error);
               }
             }, 280);
           });
 
           menu.addEventListener("click", function (event) {
+            var manual = event.target.closest("[data-manual-hotel]");
+            if (manual) {
+              var typed = input.value.trim();
+              if (!typed) return;
+              hideMenu();
+              onSelect(typed, "", "");
+              return;
+            }
             var option = event.target.closest("[data-hotel-result]");
             if (!option) return;
             var prediction = predictions[Number(option.getAttribute("data-hotel-result"))];
@@ -2368,15 +2421,16 @@
           document.addEventListener("click", function (event) {
             if (!control.contains(event.target)) hideMenu();
           });
-          status.textContent = "Start typing; matching hotels and addresses will appear below.";
+          status.textContent = "Start typing; matching properties will appear below. Manual choice is always available.";
           return;
         }
 
-        var picker = new placesLibrary.Autocomplete(input, {
-          types: ["lodging"],
+        var pickerOptions = {
           componentRestrictions: { country: appConfig.hotelSearchCountry || "gb" },
-          fields: ["place_id", "name", "formatted_address"]
-        });
+          fields: ["place_id", "name", "formatted_address"],
+          types: ["lodging"]
+        };
+        var picker = new placesLibrary.Autocomplete(input, pickerOptions);
         picker.addListener("place_changed", function () {
           var place = picker.getPlace();
           if (!place || !place.place_id || !place.name) {
@@ -2410,7 +2464,9 @@
       }
 
       function renderDepartmentRoutes() {
-        var categories = window.InnRelayCatalog ? window.InnRelayCatalog.categories : [];
+        var categories = window.InnRelayCatalog
+          ? (window.InnRelayCatalog.guestCategoriesForVertical ? window.InnRelayCatalog.guestCategoriesForVertical("hotel") : window.InnRelayCatalog.categories)
+          : [];
         var query = document.getElementById("route-search").value.trim().toLowerCase();
         var filter = document.getElementById("route-filter").value;
         var routeByCategory = {};
@@ -2448,6 +2504,7 @@
         if (!staffMembership) return;
 
         document.documentElement.style.setProperty("--coral", staffMembership.property.brand_colour || "#ff8a68");
+        document.getElementById("property-type").value = "hotel";
         document.getElementById("property-name").value = staffMembership.property.name || "";
         document.getElementById("property-address").value = staffMembership.property.address || "";
         document.getElementById("property-phone").value = staffMembership.property.reception_phone || "";
@@ -2524,6 +2581,10 @@
 
       async function activateMembership(membership) {
         if (!membership) return;
+        if (membership.property && membership.property.property_type === "short_term_rental") {
+          openStaysPortal();
+          return;
+        }
         if (staffChannel) await staffClient.removeChannel(staffChannel);
         staffChannel = null;
         staffMembership = membership;
@@ -2539,6 +2600,11 @@
       async function acceptPendingInvite() {
         var inviteToken = new URLSearchParams(window.location.search).get("invite");
         if (!inviteToken || !staffClient || !staffSession) return;
+        var invitationVerticalResult = await staffClient.rpc("invitation_vertical", { p_token: inviteToken });
+        if (!invitationVerticalResult.error && invitationVerticalResult.data === "short_term_rental") {
+          openStaysPortal();
+          return;
+        }
         var invitationResult = await staffClient.from("property_invitations")
           .select("id,property_id,department_id,email,role,active,expires_at,accepted_at")
           .eq("token", inviteToken)
@@ -2599,14 +2665,21 @@
         }
         await acceptPendingInvite();
         var membershipResult = await staffClient.from("property_staff")
-          .select("property_id,department_id,display_name,role,active,properties!inner(id,name,slug,public_id,reception_phone,emergency_notice,brand_colour,timezone,address,guest_welcome,data_retention_days,external_place_provider,external_place_id,active)")
+          .select("property_id,department_id,display_name,role,active,properties!inner(id,name,slug,public_id,reception_phone,emergency_notice,brand_colour,timezone,address,guest_welcome,data_retention_days,external_place_provider,external_place_id,property_type,active)")
           .eq("user_id", staffSession.user.id)
           .eq("active", true);
         if (membershipResult.error) {
           setStaffSync("Hotel memberships could not be loaded: " + membershipResult.error.message, "error");
           return;
         }
-        if (!membershipResult.data || !membershipResult.data.length) {
+        var allMembershipRows = membershipResult.data || [];
+        var hotelMembershipRows = allMembershipRows.filter(function (row) { return !row.properties.property_type || row.properties.property_type === "hotel"; });
+        var staysMembershipRows = allMembershipRows.filter(function (row) { return row.properties.property_type === "short_term_rental"; });
+        if (!hotelMembershipRows.length && staysMembershipRows.length) {
+          openStaysPortal();
+          return;
+        }
+        if (!hotelMembershipRows.length) {
           staffMemberships = [];
           propertyDepartments = [];
           propertyDepartmentRoutes = [];
@@ -2631,7 +2704,7 @@
           mergeGuestReportsIntoBoard([]);
           return;
         }
-        staffMemberships = membershipResult.data.map(membershipFromRow);
+        staffMemberships = hotelMembershipRows.map(membershipFromRow);
         var savedProperty = "";
         try { savedProperty = window.localStorage.getItem("innrelay-active-property") || ""; } catch (error) {}
         var preferred = staffMemberships.filter(function (membership) { return membership.property_id === savedProperty; })[0]
@@ -3140,6 +3213,7 @@
           created_by: staffSession.user.id,
           name: document.getElementById("onboard-property-name").value.trim(),
           slug: slugify(document.getElementById("onboard-property-slug").value),
+          property_type: "hotel",
           address: document.getElementById("onboard-property-address").value.trim() || null,
           external_place_provider: document.getElementById("onboard-property-provider").value || null,
           external_place_id: document.getElementById("onboard-property-place-id").value || null,
@@ -3196,6 +3270,7 @@
         }
         event.target.reset();
         document.getElementById("onboard-property-colour").value = "#ff8a68";
+        document.getElementById("onboard-property-type").value = "hotel";
         clearSelectedHotel("Start typing, then choose the hotel from the menu.");
         try { window.localStorage.setItem("innrelay-active-property", propertyId); } catch (error) {}
         if (submit) submit.disabled = false;

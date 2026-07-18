@@ -1,0 +1,13 @@
+{
+  "name": "InnRelay Stays — Guest Help",
+  "short_name": "Stay Help",
+  "description": "No-install guest help for an InnRelay Stays property.",
+  "start_url": "./innrelay-stays-guest.html",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#f6f0e5",
+  "theme_color": "#0d2d26",
+  "icons": [
+    { "src": "./innrelay-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "InnRelay Stays — Host Operations",
+  "short_name": "InnRelay Stays",
+  "description": "Private short-term-rental guest request and host-team operations workspace.",
+  "start_url": "./innrelay-stays.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f0e5",
+  "theme_color": "#0d2d26",
+  "icons": [
+    { "src": "./innrelay-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
