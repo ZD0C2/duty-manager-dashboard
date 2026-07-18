@@ -1510,6 +1510,10 @@
         var currentLocation = document.getElementById("guest-location").value.trim();
         document.getElementById("guest-report-form").reset();
         document.getElementById("guest-location").value = currentLocation;
+        // form.reset() blanks the visible correction input; restore it from
+        // the still-selected location or the next submit fails with
+        // "Confirm the room or area printed on the InnRelay card."
+        if (selectedLocation) selectLocation(selectedLocation, { persist: false });
         populateIssues();
         document.getElementById("success-panel").hidden = true;
         document.getElementById("report-panel").hidden = false;
