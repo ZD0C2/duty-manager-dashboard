@@ -595,11 +595,117 @@
       .slice(0, 80);
   }
 
+  var shortTermRentalCategories = [
+    {
+      key: "str-checkin-access",
+      label: "Check-in, keys & access",
+      group: "Short-term rental",
+      audience: "both",
+      verticals: ["short_term_rental"],
+      issues: [
+        "Cannot find the property", "Check-in instructions unclear", "Lockbox code not working", "Smart lock not working",
+        "Key missing", "Key broken", "Door will not open", "Door will not lock", "Gate or building entry problem",
+        "Parking access problem", "Intercom not working", "Lift access problem", "Wrong access code supplied",
+        "Guest locked out", "Late check-in help requested", "Checkout instructions unclear", "Luggage drop-off question"
+      ]
+    },
+    {
+      key: "str-kitchen-appliances",
+      label: "Kitchen, appliances & supplies",
+      group: "Short-term rental",
+      audience: "both",
+      verticals: ["short_term_rental"],
+      issues: [
+        "Oven not working", "Hob not working", "Microwave not working", "Fridge not cooling", "Freezer not freezing",
+        "Dishwasher not working", "Washing machine not working", "Dryer not working", "Kettle not working",
+        "Coffee machine not working", "Cookware missing", "Cutlery missing", "Plates or glasses missing",
+        "Chipped crockery", "Bin bags missing", "Washing-up liquid missing", "Kitchen not clean",
+        "Bad smell from fridge", "Kitchen sink blocked", "Extractor fan not working"
+      ]
+    },
+    {
+      key: "str-bathroom-water",
+      label: "Bathroom, water & toiletries",
+      group: "Short-term rental",
+      audience: "both",
+      verticals: ["short_term_rental"],
+      issues: [
+        "No hot water", "Low water pressure", "Shower not working", "Shower leaking", "Bath blocked",
+        "Toilet blocked", "Toilet not flushing", "Sink blocked", "Water leak", "Bathroom flooding",
+        "Towels missing", "Toilet roll missing", "Soap or shampoo missing", "Bathroom not clean",
+        "Mould visible", "Extractor fan not working", "Bathroom door lock problem", "Slippery bathroom floor"
+      ]
+    },
+    {
+      key: "str-bedroom-linen-comfort",
+      label: "Bedroom, linen & comfort",
+      group: "Short-term rental",
+      audience: "both",
+      verticals: ["short_term_rental"],
+      issues: [
+        "Bed linen missing", "Bed linen stained", "Extra bedding requested", "Pillow missing",
+        "Extra pillow requested", "Blanket requested", "Mattress uncomfortable", "Sofa bed problem",
+        "Cot or travel cot issue", "Bedroom not clean", "Wardrobe or hanger problem", "Curtains or blinds problem",
+        "Noise disturbing sleep", "Heating too low", "Room too hot", "Fan requested"
+      ]
+    },
+    {
+      key: "str-wifi-tv-technology",
+      label: "Wi-Fi, TV & smart-home",
+      group: "Short-term rental",
+      audience: "both",
+      verticals: ["short_term_rental"],
+      issues: [
+        "Wi-Fi will not connect", "Wi-Fi password not working", "Wi-Fi slow", "Router offline",
+        "TV not working", "Remote missing", "Streaming app problem", "Speaker or sound problem",
+        "Thermostat not working", "Smart lighting not working", "Security alarm issue", "Doorbell camera question",
+        "Appliance instructions needed", "Power socket not working", "Power outage"
+      ]
+    },
+    {
+      key: "str-cleaning-maintenance",
+      label: "Cleaning, damage & maintenance",
+      group: "Short-term rental",
+      audience: "both",
+      verticals: ["short_term_rental"],
+      issues: [
+        "Property not cleaned", "Rubbish left behind", "Bad smell", "Pest or insect sighting",
+        "Broken furniture", "Damaged wall or floor", "Broken window", "Heating not working",
+        "Air conditioning not working", "Smoke alarm beeping", "Carbon monoxide alarm concern",
+        "Light not working", "Leak or damp patch", "Outdoor area dirty", "Pool or hot tub problem",
+        "Garden or balcony issue"
+      ]
+    },
+    {
+      key: "str-house-rules-neighbours",
+      label: "House rules, neighbours & safety",
+      group: "Short-term rental",
+      audience: "both",
+      verticals: ["short_term_rental"],
+      issues: [
+        "Noise complaint", "Neighbour concern", "Parking dispute", "Bins or recycling question",
+        "Smoking smell", "Party or disturbance nearby", "Lost item", "Suspicious person",
+        "Safety concern", "Fire or smoke concern", "Medical emergency", "Guest wants host to call",
+        "House rule clarification", "Pet policy question", "Extra guest question"
+      ]
+    }
+  ];
+
+  shortTermRentalCategories.forEach(function (category) { categories.push(category); });
+
+  function categoryMatchesVertical(category, vertical) {
+    var chosen = vertical || "hotel";
+    var allowed = category.verticals || ["hotel"];
+    return allowed.indexOf(chosen) > -1 || allowed.indexOf("all") > -1;
+  }
+
   function flatten(options) {
     var audience = options && options.audience;
+    var vertical = options && options.vertical;
     var rows = [];
     categories.forEach(function (category) {
       if (audience === "guest" && category.audience === "staff") return;
+      if (vertical && !categoryMatchesVertical(category, vertical)) return;
       category.issues.forEach(function (issue) {
         rows.push({
           code: category.key + ":" + slugify(issue),
@@ -617,9 +723,11 @@
 
   function toIssueLibrary(options) {
     var guestOnly = options && options.guestOnly;
+    var vertical = options && options.vertical;
     var result = {};
     categories.forEach(function (category) {
       if (guestOnly && category.audience === "staff") return;
+      if (vertical && !categoryMatchesVertical(category, vertical)) return;
       result[category.label] = category.issues.slice().concat(["Other / something else"]);
     });
     return result;
@@ -641,6 +749,11 @@
     version: "2026.07.13",
     categories: categories,
     guestCategories: categories.filter(function (category) { return category.audience !== "staff"; }),
+    guestCategoriesForVertical: function (vertical) {
+      return categories.filter(function (category) {
+        return category.audience !== "staff" && categoryMatchesVertical(category, vertical || "hotel");
+      });
+    },
     slugify: slugify,
     flatten: flatten,
     search: search,
