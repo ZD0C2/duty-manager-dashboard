@@ -1498,6 +1498,9 @@
           document.getElementById("report-panel").hidden = true;
           document.getElementById("success-panel").hidden = false;
           document.getElementById("success-copy").textContent = (category.emergency ? "Your report is recorded. Continue following the emergency guidance given by reception or emergency services." : "The hotel team can now acknowledge, assign and update it.") + attachmentWarning;
+          if (client && sessionUser && property) {
+            setConnection("Secure live connection · " + (propertyVertical === "short_term_rental" ? "the host team" : "hotel staff") + " will receive reports in realtime", "live");
+          }
         } catch (error) {
           setConnection("Report could not be sent: " + friendlyErrorMessage(error), "error");
         } finally {
