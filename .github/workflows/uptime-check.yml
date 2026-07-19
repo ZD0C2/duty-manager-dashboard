@@ -35,6 +35,30 @@ jobs:
           if [ "$status" != "200" ]; then echo "::error::Guest portal returned HTTP $status"; exit 1; fi
           if ! echo "$body" | grep -q "InnRelay"; then echo "::error::Guest portal responded 200 but the page content looks wrong"; exit 1; fi
 
+      - name: Product chooser reachable
+        run: |
+          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-start.html")"
+          status="$(echo "$body" | tail -n1)"
+          echo "Product chooser responded with $status"
+          if [ "$status" != "200" ]; then echo "::error::Product chooser returned HTTP $status"; exit 1; fi
+          if ! echo "$body" | grep -q "InnRelay"; then echo "::error::Product chooser responded 200 but the page content looks wrong"; exit 1; fi
+
+      - name: Stays staff dashboard reachable
+        run: |
+          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-stays.html")"
+          status="$(echo "$body" | tail -n1)"
+          echo "Stays staff dashboard responded with $status"
+          if [ "$status" != "200" ]; then echo "::error::Stays staff dashboard returned HTTP $status"; exit 1; fi
+          if ! echo "$body" | grep -q "InnRelay"; then echo "::error::Stays staff dashboard responded 200 but the page content looks wrong"; exit 1; fi
+
+      - name: Stays guest portal reachable
+        run: |
+          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-stays-guest.html")"
+          status="$(echo "$body" | tail -n1)"
+          echo "Stays guest portal responded with $status"
+          if [ "$status" != "200" ]; then echo "::error::Stays guest portal returned HTTP $status"; exit 1; fi
+          if ! echo "$body" | grep -q "InnRelay"; then echo "::error::Stays guest portal responded 200 but the page content looks wrong"; exit 1; fi
+
       - name: Supabase project reachable
         run: |
           # Uses the Auth service's health endpoint rather than a data table --

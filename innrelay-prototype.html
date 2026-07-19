@@ -406,6 +406,7 @@
     }
     .risk-card strong { display: block; color: var(--white); font-size: 27px; line-height: 1; letter-spacing: -.06em; }
     .risk-card span { color: rgba(255,255,255,.52); font-size: 12px; font-weight: 700; }
+    .escalation-banner { padding: 10px 24px; background: var(--coral); color: var(--ink); font-size: 13px; font-weight: 800; text-align: center; }
     .risk-card.coral strong { color: var(--coral); }
     .risk-card.amber strong { color: var(--amber); }
     .risk-card.mint strong { color: var(--mint); }
@@ -891,6 +892,7 @@
         <button class="button button-light button-small" data-close-app>Exit demo</button>
       </div>
     </header>
+    <div id="escalation-banner" class="escalation-banner" role="status" hidden></div>
     <div class="demo-layout">
       <aside class="sidebar" aria-label="Demo navigation">
         <p class="sidebar-label">Operations</p>
@@ -2080,8 +2082,24 @@
         });
         renderGuestInbox();
         renderAnalytics();
+        renderEscalationBanner();
         renderBoard();
         renderHandover();
+      }
+
+      function renderEscalationBanner() {
+        var banner = document.getElementById("escalation-banner");
+        if (!banner) return;
+        var closedStatuses = ["resolved", "closed", "cancelled", "duplicate"];
+        var unresolved = guestReports.filter(function (report) { return closedStatuses.indexOf(report.status) === -1; });
+        var overdue = unresolved.filter(function (report) { return report.status === "reported" && !report.acknowledged_at && report.escalation_due_at && new Date(report.escalation_due_at) < new Date(); });
+        var quarantined = unresolved.filter(function (report) { return report.moderation_status === "quarantined"; });
+        if (!overdue.length && !quarantined.length) { banner.hidden = true; banner.textContent = ""; return; }
+        var parts = [];
+        if (overdue.length) parts.push(overdue.length + " request" + (overdue.length === 1 ? "" : "s") + " past escalation target");
+        if (quarantined.length) parts.push(quarantined.length + " flagged for review");
+        banner.textContent = "⚠ " + parts.join(" · ") + " — this banner shows even if email notifications aren't set up yet.";
+        banner.hidden = false;
       }
 
       function renderGuestInbox() {

@@ -146,6 +146,18 @@
     var suspected = reports.filter(function (report) { return ["suspected", "quarantined"].indexOf(report.moderation_status) >= 0; });
     var items = [["Open requests", open.length], ["Awaiting acknowledgement", overdue.length], ["Resolved", resolved.length], ["Abuse review", suspected.length]];
     byId("dashboard-metrics").innerHTML = items.map(function (item) { return '<article class="metric"><span>' + item[0] + '</span><strong>' + item[1] + '</strong></article>'; }).join("");
+    renderEscalationBanner(overdue, suspected);
+  }
+  function renderEscalationBanner(overdue, quarantined) {
+    var banner = byId("escalation-banner");
+    if (!banner) return;
+    var flagged = quarantined.filter(function (report) { return report.moderation_status === "quarantined"; });
+    if (!overdue.length && !flagged.length) { banner.hidden = true; banner.textContent = ""; return; }
+    var parts = [];
+    if (overdue.length) parts.push(overdue.length + " request" + (overdue.length === 1 ? "" : "s") + " awaiting acknowledgement past target");
+    if (flagged.length) parts.push(flagged.length + " flagged for review");
+    banner.textContent = "⚠ " + parts.join(" · ") + " — this banner shows even if email notifications aren't set up yet.";
+    banner.hidden = false;
   }
   function reportCard(report) {
     var suspected = ["suspected", "quarantined"].indexOf(report.moderation_status) >= 0;
