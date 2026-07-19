@@ -1,0 +1,34 @@
+name: RLS policy tests
+
+# Runs the pgTAP suite in supabase/tests/database/ against a fresh local
+# Supabase stack built from supabase/migrations/ -- never touches the live
+# project. See supabase/tests/database/rls_policies.test.sql.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase (applies supabase/migrations/)
+        run: supabase start
+
+      - name: Run pgTAP tests
+        run: supabase test db
