@@ -18,15 +18,15 @@ values
   ('22222222-2222-2222-2222-222222222222', 'stays-owner@example.test', '{"full_name":"Stays Owner"}', false, 'authenticated', 'authenticated'),
   ('33333333-3333-3333-3333-333333333333', 'bystander@example.test', '{"full_name":"Bystander"}', false, 'authenticated', 'authenticated');
 
+-- The create_property_owner_membership trigger (AFTER INSERT ON properties)
+-- already creates each owner's property_staff row automatically -- do not
+-- also insert it explicitly here, or it collides with the trigger's row on
+-- the (property_id, user_id) primary key, exactly like the bug fixed in
+-- create_stays_workspace on 2026-07-19.
 insert into public.properties (id, name, slug, created_by, property_type, active)
 values
   ('a1111111-1111-1111-1111-111111111111', 'Test Hotel', 'pgtap-test-hotel', '11111111-1111-1111-1111-111111111111', 'hotel', true),
   ('a2222222-2222-2222-2222-222222222222', 'Test Stay', 'pgtap-test-stay', '22222222-2222-2222-2222-222222222222', 'short_term_rental', true);
-
-insert into public.property_staff (property_id, user_id, display_name, role, active)
-values
-  ('a1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Hotel Owner', 'owner', true),
-  ('a2222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'Stays Owner', 'owner', true);
 
 insert into public.property_departments (id, property_id, name, code, response_target_minutes, escalation_minutes)
 values ('d1111111-1111-1111-1111-111111111111', 'a1111111-1111-1111-1111-111111111111', 'Reception', 'reception', 5, 15);
