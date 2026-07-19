@@ -73,9 +73,6 @@
     .popular { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 20px; }
     .popular button { min-height: 78px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: #fbfaf6; color: var(--ink); text-align: left; font-weight: 750; }
     .popular button:hover { border-color: #8acdb9; background: #effcf7; }
-    .area-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .area-chip { padding: 9px 12px; border: 1px solid #cfc9bd; border-radius: 999px; background: #fbfaf6; color: var(--ink); font-size: 13px; font-weight: 800; }
-    .area-chip.active { border-color: #08745f; background: #dff7ed; color: #064a3d; }
     .form-note { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
     .verification-card { margin-bottom: 22px; padding: 16px; border: 1px solid #9edbc7; border-radius: 14px; background: #effcf7; }
     .verification-card strong { display: block; margin-bottom: 4px; }
@@ -193,7 +190,7 @@
             </div>
             <div id="custom-issue-field" class="field" hidden><label for="custom-issue">What is the issue or request?</label><input id="custom-issue" maxlength="140" placeholder="Describe the item we did not list"></div>
             <div class="field-grid">
-              <div class="field"><label id="guest-location-label" for="guest-location-correction">Your room or area</label><select id="guest-location" required hidden><option value="">Scan your InnRelay QR code first</option></select><input id="guest-location-correction" maxlength="80" autocomplete="off" placeholder="Confirming scanned location…"><div id="guest-area-chips" class="area-chips" hidden></div><p id="guest-location-note" class="form-note">You can correct the room only by typing the room/area printed on this property’s InnRelay card. You cannot switch to another hotel.</p></div>
+              <div class="field"><label id="guest-location-label" for="guest-location-correction">Your room or area</label><select id="guest-location" required hidden><option value="">Scan your InnRelay QR code first</option></select><input id="guest-location-correction" maxlength="80" autocomplete="off" placeholder="Confirming scanned location…"><p id="guest-location-note" class="form-note">You can correct the room only by typing the room/area printed on this property’s InnRelay card. You cannot switch to another hotel.</p></div>
               <div class="field"><label for="guest-urgency">How soon?</label><select id="guest-urgency"><option value="normal">When possible</option><option value="soon">As soon as possible</option><option value="urgent">Urgent - guest affected now</option></select></div>
             </div>
             <div class="field"><label for="guest-description">Useful details</label><textarea id="guest-description" maxlength="1200" placeholder="Tell the team what happened, what is missing, or what you have already tried."></textarea><p class="form-note">Do not enter card numbers, passport details or other sensitive information.</p></div>
@@ -845,36 +842,11 @@
       .slice(0, 80);
   }
 
-  var shortTermRentalCategories = [
-    { key: "str-checkin-access", label: "Check-in, keys & access", group: "Short-term rental", audience: "both", verticals: ["short_term_rental"], issues: [
-      "Cannot find the property", "Check-in instructions unclear", "Lockbox code not working", "Smart lock not working", "Key missing", "Key broken", "Door will not open", "Door will not lock", "Gate or building entry problem", "Parking access problem", "Intercom not working", "Lift access problem", "Wrong access code supplied", "Guest locked out", "Late check-in help requested", "Checkout instructions unclear", "Luggage drop-off question"
-    ] },
-    { key: "str-kitchen-appliances", label: "Kitchen, appliances & supplies", group: "Short-term rental", audience: "both", verticals: ["short_term_rental"], issues: [
-      "Oven not working", "Hob not working", "Microwave not working", "Fridge not cooling", "Freezer not freezing", "Dishwasher not working", "Washing machine not working", "Dryer not working", "Kettle not working", "Coffee machine not working", "Cookware missing", "Cutlery missing", "Plates or glasses missing", "Chipped crockery", "Bin bags missing", "Washing-up liquid missing", "Kitchen not clean", "Bad smell from fridge", "Kitchen sink blocked", "Extractor fan not working"
-    ] },
-    { key: "str-bathroom-water", label: "Bathroom, water & toiletries", group: "Short-term rental", audience: "both", verticals: ["short_term_rental"], issues: [
-      "No hot water", "Low water pressure", "Shower not working", "Shower leaking", "Bath blocked", "Toilet blocked", "Toilet not flushing", "Sink blocked", "Water leak", "Bathroom flooding", "Towels missing", "Toilet roll missing", "Soap or shampoo missing", "Bathroom not clean", "Mould visible", "Extractor fan not working", "Bathroom door lock problem", "Slippery bathroom floor"
-    ] },
-    { key: "str-bedroom-linen-comfort", label: "Bedroom, linen & comfort", group: "Short-term rental", audience: "both", verticals: ["short_term_rental"], issues: [
-      "Bed linen missing", "Bed linen stained", "Extra bedding requested", "Pillow missing", "Extra pillow requested", "Blanket requested", "Mattress uncomfortable", "Sofa bed problem", "Cot or travel cot issue", "Bedroom not clean", "Wardrobe or hanger problem", "Curtains or blinds problem", "Noise disturbing sleep", "Heating too low", "Room too hot", "Fan requested"
-    ] },
-    { key: "str-wifi-tv-technology", label: "Wi-Fi, TV & smart-home", group: "Short-term rental", audience: "both", verticals: ["short_term_rental"], issues: [
-      "Wi-Fi will not connect", "Wi-Fi password not working", "Wi-Fi slow", "Router offline", "TV not working", "Remote missing", "Streaming app problem", "Speaker or sound problem", "Thermostat not working", "Smart lighting not working", "Security alarm issue", "Doorbell camera question", "Appliance instructions needed", "Power socket not working", "Power outage"
-    ] },
-    { key: "str-cleaning-maintenance", label: "Cleaning, damage & maintenance", group: "Short-term rental", audience: "both", verticals: ["short_term_rental"], issues: [
-      "Property not cleaned", "Rubbish left behind", "Bad smell", "Pest or insect sighting", "Broken furniture", "Damaged wall or floor", "Broken window", "Heating not working", "Air conditioning not working", "Smoke alarm beeping", "Carbon monoxide alarm concern", "Light not working", "Leak or damp patch", "Outdoor area dirty", "Pool or hot tub problem", "Garden or balcony issue"
-    ] },
-    { key: "str-house-rules-neighbours", label: "House rules, neighbours & safety", group: "Short-term rental", audience: "both", verticals: ["short_term_rental"], issues: [
-      "Noise complaint", "Neighbour concern", "Parking dispute", "Bins or recycling question", "Smoking smell", "Party or disturbance nearby", "Lost item", "Suspicious person", "Safety concern", "Fire or smoke concern", "Medical emergency", "Guest wants host to call", "House rule clarification", "Pet policy question", "Extra guest question"
-    ] }
-  ];
-
-  shortTermRentalCategories.forEach(function (category) { categories.push(category); });
-
-  function categoryMatchesVertical(category, vertical) {
-    var chosen = vertical || "hotel";
+  // Short-term-rental categories moved to the dedicated InnRelay Stays guest
+  // portal as part of the vertical split -- this embedded copy is hotel-only.
+  function categoryMatchesVertical(category) {
     var allowed = category.verticals || ["hotel"];
-    return allowed.indexOf(chosen) > -1 || allowed.indexOf("all") > -1;
+    return allowed.indexOf("hotel") > -1 || allowed.indexOf("all") > -1;
   }
 
   function flatten(options) {
@@ -927,9 +899,9 @@
     version: "2026.07.13",
     categories: categories,
     guestCategories: categories.filter(function (category) { return category.audience !== "staff"; }),
-    guestCategoriesForVertical: function (vertical) {
+    guestCategoriesForVertical: function () {
       return categories.filter(function (category) {
-        return category.audience !== "staff" && categoryMatchesVertical(category, vertical || "hotel");
+        return category.audience !== "staff" && categoryMatchesVertical(category);
       });
     },
     slugify: slugify,
@@ -974,13 +946,19 @@
       var sessionUser = null;
       var property = null;
       var propertyToken = null;
-      var propertyVertical = "hotel";
       var portalLocations = [];
       var selectedLocation = null;
       var channel = null;
       var turnstileWidgetId = null;
       var acknowledgedEmergencyCategory = null;
       var broadcast = "BroadcastChannel" in window ? new BroadcastChannel("innrelay-guest-reports") : null;
+
+      function staysGuestUrl() {
+        var target = new URL(config.publicStaysGuestUrl || "./innrelay-stays-guest.html", window.location.href);
+        target.search = window.location.search;
+        target.hash = window.location.hash;
+        return target.href;
+      }
 
       function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"']/g, function (character) {
@@ -1094,12 +1072,8 @@
       }
 
       function guestCategories() {
-        if (catalog.guestCategoriesForVertical) return catalog.guestCategoriesForVertical(propertyVertical);
+        if (catalog.guestCategoriesForVertical) return catalog.guestCategoriesForVertical("hotel");
         return catalog.guestCategories || [];
-      }
-
-      function verticalLabel() {
-        return propertyVertical === "short_term_rental" ? "stay" : "hotel";
       }
 
       function populateIssues(selectedLabel) {
@@ -1150,7 +1124,7 @@
         var query = document.getElementById("catalog-search").value.trim();
         var target = document.getElementById("search-results");
         if (query.length < 2) { target.hidden = true; target.innerHTML = ""; return; }
-        var rows = catalog.search(query, { audience: "guest", vertical: propertyVertical }).slice(0, 14);
+        var rows = catalog.search(query, { audience: "guest", vertical: "hotel" }).slice(0, 14);
         target.innerHTML = rows.length ? rows.map(function (row) {
           return '<button class="search-result" type="button" data-category="' + escapeHtml(row.categoryKey) + '" data-label="' + escapeHtml(row.label) + '"><strong>' + escapeHtml(row.label) + '</strong><span>' + escapeHtml(row.categoryLabel) + '</span></button>';
         }).join("") : '<div class="empty" style="padding:12px">No exact match. Choose “Other / something else” and describe it.</div>';
@@ -1158,9 +1132,7 @@
       }
 
       function renderPopular() {
-        var popularKeys = propertyVertical === "short_term_rental"
-          ? ["str-checkin-access", "str-kitchen-appliances", "str-bathroom-water", "str-bedroom-linen-comfort", "str-wifi-tv-technology", "str-cleaning-maintenance"]
-          : ["linen-towels-toiletries", "bathroom-plumbing", "heating-cooling-air", "wifi-tv-phone-technology", "noise-disturbance", "breakfast"];
+        var popularKeys = ["linen-towels-toiletries", "bathroom-plumbing", "heating-cooling-air", "wifi-tv-phone-technology", "noise-disturbance", "breakfast"];
         document.getElementById("popular").innerHTML = popularKeys.map(function (key) {
           var category = guestCategories().filter(function (item) { return item.key === key; })[0];
           if (!category) return "";
@@ -1245,14 +1217,12 @@
         document.getElementById("guest-location").value = location.id;
         document.getElementById("room-display").textContent = location.name;
         document.getElementById("guest-location-correction").value = location.name;
-        renderAreaChips();
         if (property && options && options.persist !== false) {
           try { window.localStorage.setItem("innrelay-location-" + property.id, location.id); } catch (error) {}
         }
       }
 
       async function resolveTypedLocation(options) {
-        if (propertyVertical === "short_term_rental") return selectedLocation;
         var input = document.getElementById("guest-location-correction");
         var value = input.value.trim();
         if (!value) throw new Error("Confirm the room or area printed on the InnRelay card.");
@@ -1275,27 +1245,11 @@
         return match;
       }
 
-      function renderAreaChips() {
-        var target = document.getElementById("guest-area-chips");
-        if (propertyVertical !== "short_term_rental") {
-          target.hidden = true;
-          target.innerHTML = "";
-          return;
-        }
-        var rows = portalLocations.filter(function (location) { return location.active; });
-        target.hidden = false;
-        target.innerHTML = rows.map(function (location) {
-          return '<button class="area-chip' + (selectedLocation && selectedLocation.id === location.id ? " active" : "") + '" type="button" data-location-id="' + escapeHtml(location.id) + '">' + escapeHtml(location.name) + '</button>';
-        }).join("");
-      }
-
-      function applyVerticalUi() {
-        document.getElementById("property-location").textContent = propertyVertical === "short_term_rental" ? "Guest stay portal" : "Guest service portal";
-        document.getElementById("guest-location-label").textContent = propertyVertical === "short_term_rental" ? "Where is the problem?" : "Your room or area";
-        document.getElementById("guest-location-note").textContent = propertyVertical === "short_term_rental"
-          ? "Choose the area inside this stay. The QR keeps you locked to this property."
-          : "You can correct the room only by typing the room/area printed on this property’s InnRelay card. You cannot switch to another hotel.";
-        document.getElementById("guest-location-correction").readOnly = propertyVertical === "short_term_rental";
+      function applyHotelUi() {
+        document.getElementById("property-location").textContent = "Guest service portal";
+        document.getElementById("guest-location-label").textContent = "Your room or area";
+        document.getElementById("guest-location-note").textContent = "You can correct the room only by typing the room/area printed on this property’s InnRelay card. You cannot switch to another hotel.";
+        document.getElementById("guest-location-correction").readOnly = false;
         renderPopular();
         populateCategories();
       }
@@ -1356,16 +1310,19 @@
           }
           if (propertyResult.error) throw propertyResult.error;
           property = propertyResult.data;
-          propertyVertical = property.property_type === "short_term_rental" ? "short_term_rental" : "hotel";
+          if (property.property_type === "short_term_rental") {
+            window.location.replace(staysGuestUrl());
+            return;
+          }
           var locationsResult = await client.from("property_locations").select("id,property_id,public_id,name,code,location_type,active,sort_order").eq("property_id", property.id).eq("active", true).order("sort_order").order("name");
           if (locationsResult.error) throw locationsResult.error;
           portalLocations = locationsResult.data || [];
-          applyVerticalUi();
+          applyHotelUi();
           populatePortalLocations(credentials.locationId);
           document.getElementById("property-name").textContent = property.name;
           if (property.reception_phone) document.getElementById("reception-copy").textContent = property.reception_phone;
           if (property.brand_colour) document.documentElement.style.setProperty("--coral", property.brand_colour);
-          setConnection("Secure live connection · " + (propertyVertical === "short_term_rental" ? "the host team" : "hotel staff") + " will receive reports in realtime", "live");
+          setConnection("Secure live connection · hotel staff will receive reports in realtime", "live");
           await loadLiveRequests();
           channel = client.channel("guest-requests-" + sessionUser.id)
             .on("postgres_changes", { event: "*", schema: "public", table: "guest_reports", filter: "guest_user_id=eq." + sessionUser.id }, loadLiveRequests)
@@ -1499,7 +1456,7 @@
           document.getElementById("success-panel").hidden = false;
           document.getElementById("success-copy").textContent = (category.emergency ? "Your report is recorded. Continue following the emergency guidance given by reception or emergency services." : "The hotel team can now acknowledge, assign and update it.") + attachmentWarning;
           if (client && sessionUser && property) {
-            setConnection("Secure live connection · " + (propertyVertical === "short_term_rental" ? "the host team" : "hotel staff") + " will receive reports in realtime", "live");
+            setConnection("Secure live connection · hotel staff will receive reports in realtime", "live");
           }
         } catch (error) {
           setConnection("Report could not be sent: " + friendlyErrorMessage(error), "error");
@@ -1568,22 +1525,9 @@
         }
       });
       document.getElementById("guest-location-correction").addEventListener("blur", async function () {
-        if (!property || propertyVertical === "short_term_rental") return;
+        if (!property) return;
         try { await resolveTypedLocation({ claim: true }); }
         catch (error) { setConnection(error.message, "error"); }
-      });
-      document.getElementById("guest-area-chips").addEventListener("click", async function (event) {
-        var button = event.target.closest("[data-location-id]");
-        if (!button) return;
-        var next = portalLocations.filter(function (location) { return location.id === button.getAttribute("data-location-id"); })[0] || null;
-        if (!next) return;
-        try {
-          selectLocation(next);
-          await claimPortalLocation(next);
-          setConnection("Location changed to " + next.name + " inside this stay.", "live");
-        } catch (error) {
-          setConnection("Location could not be changed: " + error.message, "error");
-        }
       });
       window.addEventListener("storage", function (event) { if (event.key === DEMO_KEY && !client) loadDemoRequests(); });
       if (broadcast) broadcast.addEventListener("message", function () { if (!client) loadDemoRequests(); });
@@ -1596,7 +1540,7 @@
       document.getElementById("emergency-call-now").href = "tel:" + (config.emergencyNumber || "999");
       document.getElementById("emergency-call-now").textContent = "Call emergency services: " + (config.emergencyNumber || "999");
       document.getElementById("room-display").textContent = "Confirming your hotel QR…";
-      applyVerticalUi();
+      applyHotelUi();
       initialiseData();
 
       if ("serviceWorker" in navigator && window.location.protocol !== "file:") {

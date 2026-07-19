@@ -1212,7 +1212,7 @@
                 <div class="field"><label for="onboard-property-name">Selected hotel name</label><input id="onboard-property-name" required maxlength="120" placeholder="Choose above or enter manually"><p class="field-help">Selecting a directory result fills this automatically.</p></div>
                 <div class="field"><label for="onboard-property-slug">Public URL name</label><input id="onboard-property-slug" required maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="riverside-court"></div>
               </div>
-              <div class="field"><label for="onboard-property-type">Property type</label><select id="onboard-property-type"><option value="hotel">Hotel / serviced apartment</option><option value="short_term_rental">Short-term rental / Airbnb-style stay</option></select><p class="property-type-note">Short-term rentals use areas like kitchen, bathroom and living room instead of room numbers.</p></div>
+              <div class="field"><label>InnRelay vertical</label><input id="onboard-property-type" type="hidden" value="hotel"><p class="property-type-note"><strong>InnRelay Hotels</strong> · rooms, reception, departments and hotel operations. Short-term rentals are registered through the separate InnRelay Stays portal.</p></div>
               <div class="field"><label for="onboard-property-address">Property address</label><input id="onboard-property-address" maxlength="240" placeholder="Town or full business address"></div>
               <div class="field-grid">
                 <div class="field"><label for="onboard-property-phone">Reception contact</label><input id="onboard-property-phone" maxlength="80" placeholder="Use the room phone or +44..."></div>
@@ -1240,7 +1240,7 @@
                     <input id="property-external-provider" type="hidden">
                     <input id="property-external-place-id" type="hidden">
                   </div>
-                  <div class="field"><label for="property-type">Property type</label><select id="property-type"><option value="hotel">Hotel / serviced apartment</option><option value="short_term_rental">Short-term rental / Airbnb-style stay</option></select><p class="property-type-note">Changing this updates the guest categories and QR-card wording for this property.</p></div>
+                  <div class="field"><label>InnRelay vertical</label><input id="property-type" type="hidden" value="hotel"><p class="property-type-note"><strong>InnRelay Hotels</strong> · the vertical is locked after registration so rooms, routing and QR codes cannot be mixed with InnRelay Stays.</p></div>
                   <div class="field"><label for="property-name">Property name</label><input id="property-name" required maxlength="120"></div>
                   <div class="field"><label for="property-address">Address</label><input id="property-address" maxlength="240"></div>
                   <div class="field-grid">
@@ -1431,6 +1431,7 @@
       // breaking OAuth returns or generating an empty QR code.
       if (!appConfig.publicStaffUrl) appConfig.publicStaffUrl = "https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html";
       if (!appConfig.publicGuestUrl) appConfig.publicGuestUrl = "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html";
+      if (!appConfig.publicStaysUrl) appConfig.publicStaysUrl = "https://zd0c2.github.io/duty-manager-dashboard/innrelay-stays.html";
       var GUEST_DEMO_KEY = "innrelay_guest_reports_v1";
       var staffClient = null;
       var staffSession = null;
@@ -2328,6 +2329,13 @@
         };
       }
 
+      function openStaysPortal() {
+        var target = new URL(appConfig.publicStaysUrl || "./innrelay-stays.html", window.location.href);
+        target.search = window.location.search;
+        target.hash = window.location.hash;
+        window.location.replace(target.href);
+      }
+
       function renderPropertySwitcher() {
         var switcher = document.getElementById("property-switcher");
         if (!staffMemberships.length) {
@@ -2410,12 +2418,6 @@
 
       function addHotelPlacePicker(placesLibrary, containerId, statusId, onSelect) {
         var status = document.getElementById(statusId);
-        var isOnboarding = containerId === "hotel-place-picker";
-        function selectedPropertyType() {
-          var id = isOnboarding ? "onboard-property-type" : "property-type";
-          var input = document.getElementById(id);
-          return input && input.value === "short_term_rental" ? "short_term_rental" : "hotel";
-        }
         var input = document.createElement("input");
         input.type = "search";
         input.className = "input";
@@ -2482,10 +2484,11 @@
                 "X-Goog-Api-Key": String(appConfig.googlePlacesApiKey || ""),
                 "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat"
               },
-              body: JSON.stringify(Object.assign(
-                { input: query, languageCode: "en" },
-                selectedPropertyType() === "hotel" ? { includedPrimaryTypes: ["hotel", "lodging", "motel", "inn", "guest_house"] } : {}
-              ))
+              body: JSON.stringify({
+                input: query,
+                languageCode: "en",
+                includedPrimaryTypes: ["hotel", "lodging", "motel", "inn", "guest_house"]
+              })
             });
             var payload = await response.json();
             if (!response.ok) throw new Error(payload.error && payload.error.status ? payload.error.status : "Google Places request failed");
@@ -2513,8 +2516,7 @@
               var thisRequest = ++requestNumber;
               status.textContent = "Searching hotels…";
               try {
-                var request = { input: query };
-                if (selectedPropertyType() === "hotel") request.includedPrimaryTypes = ["hotel", "lodging", "motel", "inn", "guest_house"];
+                var request = { input: query, includedPrimaryTypes: ["hotel", "lodging", "motel", "inn", "guest_house"] };
                 if (sessionToken) request.sessionToken = sessionToken;
                 var response;
                 try {
@@ -2563,9 +2565,9 @@
 
         var pickerOptions = {
           componentRestrictions: { country: appConfig.hotelSearchCountry || "gb" },
-          fields: ["place_id", "name", "formatted_address"]
+          fields: ["place_id", "name", "formatted_address"],
+          types: ["lodging"]
         };
-        if (selectedPropertyType() === "hotel") pickerOptions.types = ["lodging"];
         var picker = new placesLibrary.Autocomplete(input, pickerOptions);
         picker.addListener("place_changed", function () {
           var place = picker.getPlace();
@@ -2600,9 +2602,8 @@
       }
 
       function renderDepartmentRoutes() {
-        var propertyType = staffMembership && staffMembership.property && staffMembership.property.property_type === "short_term_rental" ? "short_term_rental" : "hotel";
         var categories = window.InnRelayCatalog
-          ? (window.InnRelayCatalog.guestCategoriesForVertical ? window.InnRelayCatalog.guestCategoriesForVertical(propertyType) : window.InnRelayCatalog.categories)
+          ? (window.InnRelayCatalog.guestCategoriesForVertical ? window.InnRelayCatalog.guestCategoriesForVertical("hotel") : window.InnRelayCatalog.categories)
           : [];
         var query = document.getElementById("route-search").value.trim().toLowerCase();
         var filter = document.getElementById("route-filter").value;
@@ -2641,7 +2642,7 @@
         if (!staffMembership) return;
 
         document.documentElement.style.setProperty("--coral", staffMembership.property.brand_colour || "#ff8a68");
-        document.getElementById("property-type").value = staffMembership.property.property_type === "short_term_rental" ? "short_term_rental" : "hotel";
+        document.getElementById("property-type").value = "hotel";
         document.getElementById("property-name").value = staffMembership.property.name || "";
         document.getElementById("property-address").value = staffMembership.property.address || "";
         document.getElementById("property-phone").value = staffMembership.property.reception_phone || "";
@@ -2718,6 +2719,10 @@
 
       async function activateMembership(membership) {
         if (!membership) return;
+        if (membership.property && membership.property.property_type === "short_term_rental") {
+          openStaysPortal();
+          return;
+        }
         if (staffChannel) await staffClient.removeChannel(staffChannel);
         staffChannel = null;
         staffMembership = membership;
@@ -2733,6 +2738,11 @@
       async function acceptPendingInvite() {
         var inviteToken = new URLSearchParams(window.location.search).get("invite");
         if (!inviteToken || !staffClient || !staffSession) return;
+        var invitationVerticalResult = await staffClient.rpc("invitation_vertical", { p_token: inviteToken });
+        if (!invitationVerticalResult.error && invitationVerticalResult.data === "short_term_rental") {
+          openStaysPortal();
+          return;
+        }
         var invitationResult = await staffClient.from("property_invitations")
           .select("id,property_id,department_id,email,role,active,expires_at,accepted_at")
           .eq("token", inviteToken)
@@ -2800,7 +2810,14 @@
           setStaffSync("Hotel memberships could not be loaded: " + friendlyErrorMessage(membershipResult.error), "error");
           return;
         }
-        if (!membershipResult.data || !membershipResult.data.length) {
+        var allMembershipRows = membershipResult.data || [];
+        var hotelMembershipRows = allMembershipRows.filter(function (row) { return !row.properties.property_type || row.properties.property_type === "hotel"; });
+        var staysMembershipRows = allMembershipRows.filter(function (row) { return row.properties.property_type === "short_term_rental"; });
+        if (!hotelMembershipRows.length && staysMembershipRows.length) {
+          openStaysPortal();
+          return;
+        }
+        if (!hotelMembershipRows.length) {
           staffMemberships = [];
           propertyDepartments = [];
           propertyDepartmentRoutes = [];
@@ -2825,7 +2842,7 @@
           mergeGuestReportsIntoBoard([]);
           return;
         }
-        staffMemberships = membershipResult.data.map(membershipFromRow);
+        staffMemberships = hotelMembershipRows.map(membershipFromRow);
         var savedProperty = "";
         try { savedProperty = window.localStorage.getItem("innrelay-active-property") || ""; } catch (error) {}
         var preferred = staffMemberships.filter(function (membership) { return membership.property_id === savedProperty; })[0]
@@ -3345,7 +3362,7 @@
           created_by: staffSession.user.id,
           name: document.getElementById("onboard-property-name").value.trim(),
           slug: slugify(document.getElementById("onboard-property-slug").value),
-          property_type: document.getElementById("onboard-property-type").value,
+          property_type: "hotel",
           address: document.getElementById("onboard-property-address").value.trim() || null,
           external_place_provider: document.getElementById("onboard-property-provider").value || null,
           external_place_id: document.getElementById("onboard-property-place-id").value || null,
@@ -3382,9 +3399,6 @@
           ["bathroom-plumbing", "heating-cooling-air", "electrical-lighting", "room-furniture-fixtures", "wifi-tv-phone-technology", "public-areas-lifts", "accessibility-mobility", "spa-gym-pool-leisure", "outdoor-grounds-smoking", "sustainability-waste", "building-maintenance", "hotel-systems-it"].forEach(function (key) { routeDepartmentByCategory[key] = "maintenance"; });
           ["breakfast", "restaurant-room-service", "bar-beverages", "food-allergy-dietary-safety", "minibar-vending-retail", "kitchen-food-operations", "stock-supplies"].forEach(function (key) { routeDepartmentByCategory[key] = "food-beverage"; });
           ["medical-safety-emergency", "fire-life-safety-compliance", "security-incident", "staffing-operations", "cash-pos-financial"].forEach(function (key) { routeDepartmentByCategory[key] = "duty-management"; });
-          ["str-bedroom-linen-comfort", "str-cleaning-maintenance"].forEach(function (key) { routeDepartmentByCategory[key] = "housekeeping"; });
-          ["str-kitchen-appliances", "str-bathroom-water", "str-wifi-tv-technology"].forEach(function (key) { routeDepartmentByCategory[key] = "maintenance"; });
-          ["str-checkin-access", "str-house-rules-neighbours"].forEach(function (key) { routeDepartmentByCategory[key] = "reception"; });
           var routeRows = (window.InnRelayCatalog ? window.InnRelayCatalog.categories : []).map(function (category) {
             var departmentCode = routeDepartmentByCategory[category.key] || "reception";
             return { property_id: propertyId, category_key: category.key, department_id: departmentId(departmentCode) };
@@ -3393,20 +3407,13 @@
             var routesResult = await staffClient.from("department_routes").insert(routeRows);
             if (routesResult.error) setStaffSync("Hotel created, but category routing needs attention: " + friendlyErrorMessage(routesResult.error), "error");
           }
-          var commonLocations = (propertyPayload.property_type === "short_term_rental" ? [
-            { name: "Entrance / check-in", code: "entrance", location_type: "entrance", department_id: departmentId("reception"), sort_order: 10 },
-            { name: "Living area", code: "living", location_type: "living", department_id: departmentId("reception"), sort_order: 20 },
-            { name: "Kitchen", code: "kitchen", location_type: "kitchen", department_id: departmentId("food-beverage"), sort_order: 30 },
-            { name: "Bathroom", code: "bathroom", location_type: "bathroom", department_id: departmentId("maintenance"), sort_order: 40 },
-            { name: "Bedroom", code: "bedroom", location_type: "bedroom", department_id: departmentId("housekeeping"), sort_order: 50 },
-            { name: "Whole property", code: "whole-property", location_type: "whole_property", department_id: departmentId("duty-management"), sort_order: 60 }
-          ] : [
+          var commonLocations = [
             { name: "Reception", code: "reception", location_type: "reception", department_id: departmentId("reception"), sort_order: 10 },
             { name: "Bar", code: "bar", location_type: "bar", department_id: departmentId("food-beverage"), sort_order: 20 },
             { name: "Restaurant", code: "restaurant", location_type: "restaurant", department_id: departmentId("food-beverage"), sort_order: 30 },
             { name: "Gym", code: "gym", location_type: "gym", department_id: departmentId("maintenance"), sort_order: 40 },
             { name: "Lobby & public areas", code: "public-areas", location_type: "public_area", department_id: departmentId("reception"), sort_order: 50 }
-          ]).map(function (location) { location.property_id = propertyId; return location; });
+          ].map(function (location) { location.property_id = propertyId; return location; });
           var locationsResult = await staffClient.from("property_locations").insert(commonLocations);
           if (locationsResult.error) setStaffSync("Hotel created, but common areas need attention: " + friendlyErrorMessage(locationsResult.error), "error");
         }

@@ -1,12 +1,22 @@
-const CACHE_NAME = "innrelay-prototype-v11";
+const CACHE_NAME = "innrelay-platform-v12";
 const APP_SHELL = [
+  "./innrelay-start.html",
   "./innrelay-prototype.html",
   "./innrelay-guest.html",
+  "./innrelay-stays.html",
+  "./innrelay-stays-guest.html",
   "./innrelay.webmanifest",
   "./innrelay-guest.webmanifest",
+  "./innrelay-stays.webmanifest",
+  "./innrelay-stays-guest.webmanifest",
   "./innrelay-issue-catalog.js",
+  "./innrelay-stays-catalog.js",
+  "./innrelay-stays.css",
+  "./innrelay-stays.js",
+  "./innrelay-stays-guest.js",
   "./innrelay-supabase-config.js",
   "./innrelay-qr.js?v=10",
+  "./innrelay-jspdf.min.js",
   "./innrelay-icon.svg"
 ];
 

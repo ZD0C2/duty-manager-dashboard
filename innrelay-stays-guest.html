@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0d2d26">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>InnRelay Stays — Guest help</title>
+  <link rel="icon" href="./innrelay-icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./innrelay-stays-guest.webmanifest">
+  <link rel="stylesheet" href="./innrelay-stays.css">
+</head>
+<body class="guest-body">
+  <header class="stays-topbar">
+    <a class="brand-lockup" href="#top" aria-label="InnRelay Stays guest help">
+      <span class="brand-mark">⌂</span>
+      <span class="brand-copy"><strong>InnRelay Stays</strong><span>Guest help · no app required</span></span>
+    </a>
+    <div class="top-actions"><span class="private-badge">Secure Stay portal</span></div>
+  </header>
+
+  <main id="top" class="guest-wrap">
+    <div id="connection" class="connection" role="status">Starting a secure guest session…</div>
+    <section class="guest-hero">
+      <div>
+        <p class="eyebrow">Help with your stay</p>
+        <h1>Tell the host team what needs attention.</h1>
+        <p>Choose the area and issue. You do not need an account, email, phone number or app.</p>
+      </div>
+      <aside class="stay-location"><span>Scanned Stay location</span><strong id="area-display">Checking QR code…</strong><small id="property-name" style="display:block;margin-top:7px;color:#c9ded5">InnRelay Stays</small></aside>
+    </section>
+
+    <div class="safety-banner"><strong>Do not wait for InnRelay in an emergency.</strong> For fire, smoke, a carbon-monoxide alarm, serious illness, violence or immediate danger, leave if safe and call emergency services first.</div>
+    <div class="trust-banner" style="margin-top:10px"><strong>Stay safe:</strong> this portal never asks for card details, bank transfers, passport photos, passwords or an app download. Check that the web address is the trusted InnRelay address printed beside the QR code.</div>
+
+    <div class="guest-grid" style="margin-top:22px">
+      <section class="card">
+        <div id="report-panel">
+          <div class="card-head"><div><h2>What can we help with?</h2><p>Choose a common request, search the full Stay catalogue or describe something else.</p></div></div>
+
+          <section id="verification" class="verification-card" hidden>
+            <strong>Quick security check</strong>
+            <p class="field-note">This protects the host team from automated spam.</p>
+            <div id="turnstile-widget" style="margin-top:12px"></div>
+            <p id="turnstile-status" class="field-note" role="status">Preparing verification…</p>
+            <button id="turnstile-retry" class="button button-quiet button-small" type="button" hidden>Try again</button>
+          </section>
+
+          <div class="field" style="margin-top:18px">
+            <label>Which area needs help?</label>
+            <div id="area-chips" class="area-chips"><span class="field-note">Loading Stay areas…</span></div>
+            <p class="field-note">You can choose another area inside this same Stay. You cannot switch to another property.</p>
+          </div>
+
+          <div id="popular-categories" class="category-tiles" style="margin-top:18px" aria-label="Popular Stay categories"></div>
+
+          <div class="field" style="margin-top:18px">
+            <label for="catalog-search">Search all Stay requests</label>
+            <input id="catalog-search" type="search" autocomplete="off" placeholder="Try lockbox, Wi-Fi, hot water, towels…">
+            <div id="search-results" class="search-results" hidden></div>
+          </div>
+
+          <form id="report-form" style="margin-top:18px">
+            <div class="form-grid">
+              <div class="field"><label for="category">Category</label><select id="category" required></select></div>
+              <div class="field"><label for="issue">Request or problem</label><select id="issue" required></select></div>
+              <div id="custom-field" class="field wide" hidden><label for="custom-issue">Describe the request</label><input id="custom-issue" maxlength="140" placeholder="Tell the host team what is missing or not working"></div>
+              <div class="field"><label for="urgency">How soon?</label><select id="urgency"><option value="normal">When possible</option><option value="soon">As soon as possible</option><option value="urgent">Urgent — affecting the stay now</option></select></div>
+              <div class="field"><label for="guest-name">Name (optional)</label><input id="guest-name" maxlength="80" autocomplete="name" placeholder="How should the host team address you?"></div>
+              <div class="field wide"><label for="description">Useful details</label><textarea id="description" maxlength="1200" placeholder="What happened, what is missing, and what have you already tried?"></textarea><p class="field-note">Do not enter booking payment details, passwords, access codes or identity-document information.</p></div>
+              <div class="field wide"><label for="attachment">Photo (optional)</label><input id="attachment" type="file" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"><p class="field-note">A photo of a lockbox, appliance or damage can help the host team act faster. JPEG, PNG, WEBP, HEIC or PDF, up to 8MB. Never photograph a payment card or ID document.</p></div>
+            </div>
+            <div id="emergency-note" class="safety-banner" style="margin-top:14px" hidden><strong>Call first.</strong> This category may involve immediate danger. Use emergency services and the booking platform’s urgent contact route before submitting a non-emergency record.</div>
+            <div class="form-actions"><button id="submit-report" class="button button-primary" type="submit">Send to host team</button></div>
+          </form>
+        </div>
+
+        <section id="success-panel" hidden>
+          <p class="eyebrow">Request sent</p><h2 style="font-size:32px;margin:0">The host team has the property and area.</h2>
+          <p id="success-copy" style="color:var(--ink-soft);line-height:1.55">You can follow the status on this page.</p>
+          <button id="report-another" class="button button-primary" type="button">Send another request</button>
+        </section>
+      </section>
+
+      <aside class="guest-side">
+        <section class="card">
+          <div class="card-head"><div><h2>My requests</h2><p>Status updates from this browser appear here.</p></div></div>
+          <div id="request-history" class="request-history"><div class="empty">No requests sent from this browser yet.</div></div>
+        </section>
+        <section class="card" style="color:#fff;background:var(--forest-deep)">
+          <h2 style="margin-top:0">Prefer to contact someone?</h2>
+          <p id="host-contact" style="color:#c9ded5;line-height:1.55">Use the contact method in your booking confirmation.</p>
+          <a id="emergency-link" href="tel:999" style="color:#b8efd4;font-weight:850">Emergency services: 999</a>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <div id="emergency-modal" class="modal-backdrop" hidden>
+    <section class="modal">
+      <p class="eyebrow">Call-first safety check</p><h2>Is anyone in immediate danger?</h2>
+      <p>Leave the property if safe and call emergency services for fire, smoke, a carbon-monoxide alarm, serious illness, violence or immediate danger. InnRelay messages are not monitored as an emergency service.</p>
+      <div class="form-actions"><a id="modal-emergency-link" class="button button-danger" href="tel:999">Call 999</a><button id="emergency-confirm" class="button button-quiet" type="button">I have called / no immediate danger</button></div>
+    </section>
+  </div>
+
+  <script src="./innrelay-supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.3/dist/umd/supabase.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+  <script src="./innrelay-stays-catalog.js"></script>
+  <script src="./innrelay-stays-guest.js"></script>
+</body>
+</html>
