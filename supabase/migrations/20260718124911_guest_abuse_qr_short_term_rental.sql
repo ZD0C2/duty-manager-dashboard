@@ -3,12 +3,7 @@
 
 begin;
 
-create extension if not exists pgcrypto with schema extensions;
--- Note: on the live project pgcrypto already lives in the extensions schema,
--- so digest() must be schema-qualified as extensions.digest -- the original
--- version of this file used public.digest, which does not exist there and
--- broke every submission until the fix_submit_guest_report_digest_schema
--- migration recreated the function correctly.
+create extension if not exists pgcrypto with schema public;
 
 alter table public.properties
   add column if not exists property_type text not null default 'hotel';
@@ -173,7 +168,7 @@ begin
   end if;
 
   calculated_hash := encode(
-    extensions.digest(
+    public.digest(
       lower(target_property_id::text || '|' || target_location_id::text || '|' || safe_category_key || '|' || safe_title || '|' || safe_description),
       'sha256'
     ),

@@ -1,10 +1,9 @@
 -- The create_property_owner_membership trigger on public.properties already
 -- inserts the owner's property_staff row (with ON CONFLICT DO NOTHING)
--- immediately after the properties insert below. create_stays_workspace's
--- own explicit "bootstrap the owner" insert then collided with that
--- trigger's row every single time (23505 on property_staff_pkey), rolling
--- back the whole workspace and silently discarding every Stays
--- registration attempt.
+-- immediately after the properties insert below. This function's own
+-- explicit "bootstrap the owner" insert then collided with that trigger's
+-- row every single time (23505 on property_staff_pkey), rolling back the
+-- whole workspace and silently discarding every Stays registration attempt.
 create or replace function public.create_stays_workspace(p_payload jsonb)
 returns uuid
 language plpgsql
