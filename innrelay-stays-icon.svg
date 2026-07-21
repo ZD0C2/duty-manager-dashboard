@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="InnRelay Stays">
+  <rect width="512" height="512" rx="116" fill="#0d2d26"/>
+  <path d="M260 105c-69 0-116 35-116 87 0 52 41 75 101 88 48 10 69 20 69 45 0 23-23 38-58 38-40 0-70-17-95-44l-42 39c32 38 78 58 136 58 73 0 122-36 122-92 0-52-37-78-104-92-50-11-67-20-67-43 0-20 20-33 53-33 35 0 60 13 82 37l40-40c-29-30-68-44-121-44Z" fill="#f4b65d"/>
+  <circle cx="336" cy="326" r="40" fill="none" stroke="#d8eadf" stroke-width="28"/>
+  <path d="M365 354l54 54m-8-8 26-26m-1 27 25-25" fill="none" stroke="#d8eadf" stroke-linecap="round" stroke-linejoin="round" stroke-width="28"/>
+</svg>
