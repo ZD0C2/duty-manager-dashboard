@@ -1,7 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="InnRelay Hotels">
-  <rect width="512" height="512" rx="116" fill="#ff8a68"/>
-  <path d="M142 360V152h58v78h112v-78h58v208h-58v-78H200v78h-58Z" fill="#0b1220"/>
-  <path d="M122 126h268l-30-42H152l-30 42Z" fill="#0b1220"/>
-  <path d="M116 388h280v40H116z" fill="#0b1220"/>
-  <path d="M216 152h80v30h-80zM216 330h80v30h-80z" fill="#fffdf8" opacity=".42"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F2C98D"></stop><stop offset="1" stop-color="#B5793D"></stop></linearGradient></defs><rect x="8" y="8" width="496" height="496" rx="118" fill="#0A1730"></rect>
+  <path d="M96 226 L256 88 L416 226" fill="none" stroke="url(#g)" stroke-width="52" stroke-linejoin="round"></path>
+  <g fill="none" stroke-linecap="round">
+    <path d="M330 168 A70 70 0 1 0 260 274 A80 80 0 1 1 194 396" stroke="#0A1730" stroke-width="88"></path>
+    <path d="M330 168 A70 70 0 1 0 260 274 A80 80 0 1 1 194 396" stroke="url(#g)" stroke-width="56"></path>
+  </g>
+  <circle cx="260" cy="354" r="42" fill="none" stroke="#0A1730" stroke-width="34"></circle>
+  <circle cx="260" cy="354" r="42" fill="none" stroke="url(#g)" stroke-width="20"></circle>
+  <circle cx="260" cy="341" r="15" fill="url(#g)"></circle>
+  <rect x="253" y="344" width="14" height="42" rx="6" fill="url(#g)"></rect>
 </svg>
