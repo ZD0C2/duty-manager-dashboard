@@ -19,11 +19,11 @@
     productChooserUrl: "https://zd0c2.github.io/duty-manager-dashboard/innrelay-start.html",
     // Public Cloudflare Turnstile site key. The private secret stays in Supabase Auth settings.
     turnstileSiteKey: "0x4AAAAAAD3vbYOgg4XyOhrS",
-    // Optional browser-restricted Google Maps key for the hotel directory menu.
-    // Keep the manual registration fallback enabled even after this is set.
-    // Intentionally blank in source. The earlier browser key was exposed and
-    // must be rotated; insert only a new HTTP-referrer-restricted browser key.
-    googlePlacesApiKey: "",
+    // Browser-restricted Google Maps key for the hotel directory menu.
+    // Keep the manual registration fallback enabled even with this set.
+    // Restricted by HTTP referrer in Google Cloud Console to zd0c2.github.io
+    // and innrelay.com, and to only the Maps JavaScript API + Places API.
+    googlePlacesApiKey: "AIzaSyDNz0Ctpgyz3d2m9NRibyHCQnhfJrYjy_k",
     hotelSearchCountry: "gb",
     receptionPhone: "Use the room phone and select Reception",
     emergencyNumber: "999",
