@@ -9,6 +9,18 @@ name: Uptime check
 # of repository inactivity. This repo is under active development, but
 # if commits ever stop for a couple of months, re-enable this workflow
 # from the Actions tab (or push any commit) to resume checks.
+#
+# These checks still hit zd0c2.github.io rather than innrelay.com. Since
+# the custom domain was wired up, GitHub Pages 301-redirects the old URLs
+# to innrelay.com, so -L (follow redirects) is required either way -- and
+# with -L in place, checking the old URL exercises the whole chain (old
+# host -> redirect -> innrelay.com -> 200) rather than skipping past it.
+# GitHub has not finished issuing the HTTPS certificate for innrelay.com
+# yet (DNS is correct; TLS handshake still fails as of this change), so
+# switching the canonical URL to https://innrelay.com/... directly would
+# fail every run until that finishes. Once HTTPS on innrelay.com is
+# confirmed working, switch these five checks to hit innrelay.com
+# directly and this comment can go.
 
 on:
   schedule:
@@ -21,7 +33,7 @@ jobs:
     steps:
       - name: Staff portal reachable
         run: |
-          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html")"
+          body="$(curl -sSL --retry 2 --retry-all-errors --connect-timeout 10 --max-time 30 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-prototype.html")"
           status="$(echo "$body" | tail -n1)"
           echo "Staff portal responded with $status"
           if [ "$status" != "200" ]; then echo "::error::Staff portal returned HTTP $status"; exit 1; fi
@@ -29,7 +41,7 @@ jobs:
 
       - name: Guest portal reachable
         run: |
-          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html")"
+          body="$(curl -sSL --retry 2 --retry-all-errors --connect-timeout 10 --max-time 30 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-guest.html")"
           status="$(echo "$body" | tail -n1)"
           echo "Guest portal responded with $status"
           if [ "$status" != "200" ]; then echo "::error::Guest portal returned HTTP $status"; exit 1; fi
@@ -37,7 +49,7 @@ jobs:
 
       - name: Product chooser reachable
         run: |
-          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-start.html")"
+          body="$(curl -sSL --retry 2 --retry-all-errors --connect-timeout 10 --max-time 30 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-start.html")"
           status="$(echo "$body" | tail -n1)"
           echo "Product chooser responded with $status"
           if [ "$status" != "200" ]; then echo "::error::Product chooser returned HTTP $status"; exit 1; fi
@@ -45,7 +57,7 @@ jobs:
 
       - name: Stays staff dashboard reachable
         run: |
-          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-stays.html")"
+          body="$(curl -sSL --retry 2 --retry-all-errors --connect-timeout 10 --max-time 30 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-stays.html")"
           status="$(echo "$body" | tail -n1)"
           echo "Stays staff dashboard responded with $status"
           if [ "$status" != "200" ]; then echo "::error::Stays staff dashboard returned HTTP $status"; exit 1; fi
@@ -53,7 +65,7 @@ jobs:
 
       - name: Stays guest portal reachable
         run: |
-          body="$(curl -s --max-time 15 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-stays-guest.html")"
+          body="$(curl -sSL --retry 2 --retry-all-errors --connect-timeout 10 --max-time 30 -w '\n%{http_code}' "https://zd0c2.github.io/duty-manager-dashboard/innrelay-stays-guest.html")"
           status="$(echo "$body" | tail -n1)"
           echo "Stays guest portal responded with $status"
           if [ "$status" != "200" ]; then echo "::error::Stays guest portal returned HTTP $status"; exit 1; fi
