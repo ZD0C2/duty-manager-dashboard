@@ -1,6 +1,8 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ALLOWED_ORIGINS = new Set([
+  "https://innrelay.com",
+  "https://www.innrelay.com",
   "https://zd0c2.github.io",
   "http://localhost:8080",
   "http://127.0.0.1:8080",
@@ -9,7 +11,7 @@ const ALLOWED_ORIGINS = new Set([
 function corsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get("Origin") || "";
   return {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.has(origin) ? origin : "https://zd0c2.github.io",
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.has(origin) ? origin : "https://innrelay.com",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Vary": "Origin",
