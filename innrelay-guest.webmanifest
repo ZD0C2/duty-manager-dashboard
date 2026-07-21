@@ -9,7 +9,7 @@
   "theme_color": "#0b1724",
   "icons": [
     {
-      "src": "./innrelay-icon.svg",
+      "src": "./innrelay-hotels-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

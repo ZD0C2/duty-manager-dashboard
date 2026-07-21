@@ -40,7 +40,12 @@ a { color: inherit; }
   font-size: 13px; font-weight: 800; text-align: center;
 }
 .brand-lockup { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 900; letter-spacing: -.04em; }
-.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 13px; color: var(--forest-deep); background: var(--sun); font-size: 19px; }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 13px; color: transparent; background: url("./innrelay-stays-icon.svg") center / cover no-repeat; font-size: 0; }
+.brand-mark-hotels { background-image: url("./innrelay-hotels-icon.svg"); }
+.brand-mark-stays { background-image: url("./innrelay-stays-icon.svg"); }
+.brand-inline { width: 18px; height: 18px; border-radius: 6px; display: inline-block; background: center / cover no-repeat; }
+.brand-inline-hotels { background-image: url("./innrelay-hotels-icon.svg"); }
+.brand-inline-stays { background-image: url("./innrelay-stays-icon.svg"); }
 .brand-copy { display: grid; line-height: 1; }
 .brand-copy strong { font-size: 20px; }
 .brand-copy span { margin-top: 5px; color: #b9e0cd; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; }
