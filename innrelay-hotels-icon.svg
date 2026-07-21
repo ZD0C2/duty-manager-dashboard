@@ -1,21 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F2C98D"></stop>
-      <stop offset="1" stop-color="#B5793D"></stop>
-    </linearGradient>
-  </defs>
-  <rect x="10" y="10" width="492" height="492" rx="118" fill="#0A1730" stroke="url(#gold)" stroke-width="10"></rect>
-  <path d="M112 214 L256 82 L400 214" fill="none" stroke="url(#gold)" stroke-width="40" stroke-linejoin="round"></path>
-  <rect x="78" y="244" width="40" height="116" rx="8" fill="url(#gold)"></rect>
-  <rect x="394" y="244" width="40" height="116" rx="8" fill="url(#gold)"></rect>
-  <path d="M152 322 L152 352 A108 108 0 0 0 368 352 L368 322" fill="none" stroke="url(#gold)" stroke-width="36"></path>
-  <g fill="none" stroke-linecap="round">
-    <path d="M316 158 A66 66 0 1 0 262 262 A74 74 0 1 1 201 378" stroke="#0A1730" stroke-width="62"></path>
-    <path d="M316 158 A66 66 0 1 0 262 262 A74 74 0 1 1 201 378" stroke="url(#gold)" stroke-width="40"></path>
+  <rect x="8" y="8" width="496" height="496" rx="118" fill="#0A1730"></rect>
+  <g fill="#F2C98D" transform="translate(97,51) scale(3.3)">
+    <path d="M4,46 L30,46 L30,92 L4,92 Z"></path>
+    <path d="M50,24 L69,34 L66,34 L66,92 L34,92 L34,34 L31,34 Z"></path>
+    <path d="M70,40 L80,40 L80,50 L96,50 L96,92 L70,92 Z"></path>
   </g>
-  <circle cx="262" cy="336" r="39" fill="none" stroke="#0A1730" stroke-width="28"></circle>
-  <circle cx="262" cy="336" r="39" fill="none" stroke="url(#gold)" stroke-width="14"></circle>
-  <circle cx="262" cy="324" r="12.5" fill="url(#gold)"></circle>
-  <rect x="256.5" y="326" width="11" height="38" rx="5" fill="url(#gold)"></rect>
 </svg>
