@@ -1,8 +1,97 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect x="8" y="8" width="496" height="496" rx="118" fill="#0A1730"></rect>
-  <g fill="#F2C98D" transform="translate(97,51) scale(3.3)">
-    <path d="M4,46 L30,46 L30,92 L4,92 Z"></path>
-    <path d="M50,24 L69,34 L66,34 L66,92 L34,92 L34,34 L31,34 Z"></path>
-    <path d="M70,40 L80,40 L80,50 L96,50 L96,92 L70,92 Z"></path>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000">
+  <defs>
+    <style>
+      .cls-3 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-4 {
+        fill: #fff;
+      }
+
+      .cls-5 {
+        fill: url(#radial-gradient-2);
+        mix-blend-mode: soft-light;
+        opacity: .15;
+      }
+
+      .cls-7 {
+        filter: url(#drop-shadow-4);
+      }
+
+      .cls-8 {
+        isolation: isolate;
+      }
+
+      .cls-2 {
+        fill: url(#radial-gradient);
+        opacity: .1;
+      }
+
+      .cls-9 {
+        fill: #5a3828;
+      }
+
+      .cls-10 {
+        fill: url(#linear-gradient);
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="550" y1="850" x2="550" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset=".006" stop-color="#684632"/>
+      <stop offset="1" stop-color="#2b1a13"/>
+    </linearGradient>
+    <radialGradient id="radial-gradient" cx="550" cy="500" fx="550" fy="500" r="350" gradientUnits="userSpaceOnUse">
+      <stop offset=".006" stop-color="#000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
+    <radialGradient id="radial-gradient-2" cx="550" cy="259.551" fx="550" fy="259.551" r="347.876" gradientUnits="userSpaceOnUse">
+      <stop offset=".042" stop-color="#c58a45"/>
+      <stop offset="1" stop-color="#c58a45" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="linear-gradient-2" x1="200" y1="500" x2="900" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6e431f"/>
+      <stop offset=".264" stop-color="#d6a64f"/>
+      <stop offset=".422" stop-color="#e8c275"/>
+      <stop offset=".525" stop-color="#f2d28a"/>
+      <stop offset=".624" stop-color="#d3a359"/>
+      <stop offset=".703" stop-color="#be8539"/>
+      <stop offset=".747" stop-color="#b77a2e"/>
+      <stop offset=".789" stop-color="#a56c2a"/>
+      <stop offset=".875" stop-color="#875624"/>
+      <stop offset=".948" stop-color="#744820"/>
+      <stop offset="1" stop-color="#6e431f"/>
+    </linearGradient>
+    <filter id="drop-shadow-4" x="276" y="280.8" width="548.16" height="448.32" filterUnits="userSpaceOnUse">
+      <feOffset dx="0" dy="5"/>
+      <feGaussianBlur result="blur-4" stdDeviation="8"/>
+      <feFlood flood-color="#000" flood-opacity=".22"/>
+      <feComposite in2="blur-4" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g class="cls-8">
+    <g id="Background">
+      <rect class="cls-9" x="200" y="150" width="700" height="700" rx="80" ry="80"/>
+    </g>
+    <g id="Background_Gradient">
+      <rect class="cls-10" x="200" y="150" width="700" height="700" rx="80" ry="80"/>
+    </g>
+    <g id="Vignette">
+      <rect id="Vignette-2" data-name="Vignette" class="cls-2" x="200" y="150" width="700" height="700" rx="80" ry="80"/>
+    </g>
+    <g id="Warm_Light">
+      <rect class="cls-5" x="200" y="150" width="700" height="700" rx="80" ry="80"/>
+    </g>
+    <g id="Gold_Border">
+      <path class="cls-3" d="M820,156c40.804,0,74,33.196,74,74v540c0,40.804-33.196,74-74,74H280c-40.804,0-74-33.196-74-74V230c0-40.804,33.196-74,74-74h540M820,150H280c-44.183,0-80,35.817-80,80v540c0,44.183,35.817,80,80,80h540c44.183,0,80-35.817,80-80V230c0-44.183-35.817-80-80-80h0Z"/>
+    </g>
+    <g id="Left_Bar_04" class="cls-7">
+      <g>
+        <polygon class="cls-4" points="700 375 700 425 600 375 600 700 550 700 550 600 450 600 450 700 400 700 400 425 450 400 450 525 550 525 550 325 400 400 400 375 550 300 700 375"/>
+        <polygon class="cls-4" points="700 450 700 700 650 700 650 425 700 450"/>
+        <polygon class="cls-4" points="800 500 800 700 750 700 750 475 800 500"/>
+        <polygon class="cls-4" points="350 450 350 700 300 700 300 475 350 450"/>
+      </g>
+    </g>
   </g>
 </svg>
