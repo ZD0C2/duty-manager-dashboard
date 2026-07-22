@@ -1,4 +1,4 @@
-const CACHE_NAME = "innrelay-platform-v17";
+const CACHE_NAME = "innrelay-platform-v18";
 const APP_SHELL = [
   "./innrelay-start.html",
   "./innrelay-prototype.html",
